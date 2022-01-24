@@ -9,8 +9,8 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule.forRoot(),
     MongooseModule.forRootAsync({
       useFactory: () => ({
-        uri:`${process.env.DB_url}`
-      })
+        uri: `${process.env.DB_url}`,
+      }),
     }),
   ],
   controllers: [AppController],
