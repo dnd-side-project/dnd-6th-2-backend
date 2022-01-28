@@ -1,13 +1,20 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true, 
+    forbidNonWhitelisted: true, 
+		transform: true,
+  }));
+
   const config = new DocumentBuilder()
-    .setTitle('DND2 API')
-    .setDescription('DND 2조의 API 문서입니다.')
+    .setTitle('까막noon API')
+    .setDescription('DND 2조의 까막noon API 문서입니다.')
     .setVersion('1.0')
     .build();
 
