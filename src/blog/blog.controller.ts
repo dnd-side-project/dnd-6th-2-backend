@@ -61,7 +61,7 @@ export class BlogController {
     @Delete('/:blogId')
     async deletePost(@Res() res, @Param('blogId') blogId: Number,) {
         const deletedBlog = await this.blogService.deletePost(blogId);
-        if ( deletedBlog) {
+        if (!deletedBlog) {
             throw new NotFoundException('Post does not exist!');
         }
         return res.status(HttpStatus.OK).json({
