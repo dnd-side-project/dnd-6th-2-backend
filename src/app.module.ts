@@ -3,8 +3,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
-import { BlogController } from './blog/blog.controller';
-import { BlogService } from './blog/blog.service';
 import { BlogModule } from './blog/blog.module';
 
 @Module({
