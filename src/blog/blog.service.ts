@@ -7,17 +7,17 @@ import { updateBlogDto } from './dto/updateBlog.dto';
 
 @Injectable()
 export class BlogService {
-  constructor(@InjectModel('Blog') private readonly blogModel: Model<Blog>) { }
+  constructor(@InjectModel('Blog') private readonly blogModel: Model<Blog>) {}
 
-  async addPost( BlogDTO: createBlogDto): Promise<Blog> {
+  async addPost(BlogDTO: createBlogDto): Promise<Blog> {
     const totalBlog = await this.blogModel.count();
     BlogDTO.blogId = totalBlog + 1;
     const newBlog = await new this.blogModel(BlogDTO);
     return newBlog.save();
   }
 
-  async getPost(id: Number): Promise<Blog> {
-    const blog = await this.blogModel.findOne({blogId: id});
+  async getPost(id: number): Promise<Blog> {
+    const blog = await this.blogModel.findOne({ blogId: id });
     return blog;
   }
 
@@ -26,15 +26,17 @@ export class BlogService {
     return blogs;
   }
 
-  async editPost(id: Number, updateBlogDTO: updateBlogDto): Promise<Blog> {
-    const editedBlog = await this.blogModel
-      .findOneAndUpdate({blogId: id}, updateBlogDTO, { new: true });
+  async editPost(id: number, updateBlogDTO: updateBlogDto): Promise<Blog> {
+    const editedBlog = await this.blogModel.findOneAndUpdate(
+      { blogId: id },
+      updateBlogDTO,
+      { new: true },
+    );
     return editedBlog;
   }
 
-  async deletePost(id: Number): Promise<any> {
-    const deletedBlog = await this.blogModel
-      .findOneAndRemove({blogId: id});
+  async deletePost(id: number): Promise<any> {
+    const deletedBlog = await this.blogModel.findOneAndRemove({ blogId: id });
     return deletedBlog;
   }
-} 
+}
