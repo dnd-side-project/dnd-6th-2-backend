@@ -3,7 +3,7 @@ import { ChallengeController } from './challenge.controller';
 import { ChallengeService } from './challenge.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { KeyWord, KeyWordSchema } from './schemas/keyword.schema';
-import { Article, ArticleSchema } from './schemas/Article.schema';
+import { Article, ArticleSchema } from './schemas/article.schema';
 import { KeyWordRepository } from './repository/keyword.repository';
 
 @Module({
