@@ -11,6 +11,7 @@ import {
   utilities as nestWinstonModuleUtilities,
   WinstonModule,
 } from 'nest-winston';
+import DailyRotateFile = require('winston-daily-rotate-file');
 
 @Module({
   imports: [
@@ -29,26 +30,26 @@ import {
           format: winston.format.combine(
             winston.format.timestamp(),
             winston.format.ms(),
-            nestWinstonModuleUtilities.format.nestLike('MyApp', { prettyPrint: true }),
+            nestWinstonModuleUtilities.format.nestLike('MyApp', {
+              prettyPrint: true,
+            }),
           ),
         }),
-        new (require('winston-daily-rotate-file'))
-          ({
-            format: winston.format.combine(
-              winston.format.timestamp({
-                format: 'YYYY-MM-DD HH:mm:ss'
-              }),
-              winston.format.printf(
-                (info) =>
-                  `[${info.timestamp}] ${info.level}: ${info.message}`
-              )
+        new DailyRotateFile({
+          format: winston.format.combine(
+            winston.format.timestamp({
+              format: 'YYYY-MM-DD HH:mm:ss',
+            }),
+            winston.format.printf(
+              (info) => `[${info.timestamp}] ${info.level}: ${info.message}`,
             ),
-            filename: 'responder-logs/%DATE%.log',
-            datePattern: 'YYYY-MM-DD',
-            zippedArchive: true,
-            maxSize: '20m',
-            maxFiles: '14d',
-          })
+          ),
+          filename: 'responder-logs/%DATE%.log',
+          datePattern: 'YYYY-MM-DD',
+          zippedArchive: true,
+          maxSize: '20m',
+          maxFiles: '14d',
+        }),
       ],
     }),
   ],
