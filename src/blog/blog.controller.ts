@@ -20,7 +20,7 @@ import {
   ApiCreatedResponse,
 } from '@nestjs/swagger';
 
-@ApiTags('blog')
+@ApiTags('blog(CRUD 테스트용)')
 @Controller('blog')
 export class BlogController {
   constructor(private blogService: BlogService) {}
