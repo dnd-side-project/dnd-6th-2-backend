@@ -22,6 +22,7 @@
     "forever": "forever start -m 999 -a -o log/out.log -e log/err.log dist/main.js"
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "^1.6.1",
     "@nestjs/common": "^8.0.0",
     "@nestjs/config": "^1.1.6",
     "@nestjs/core": "^8.0.0",
@@ -35,8 +36,10 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.13.2",
     "config": "^3.3.7",
+    "handlebars": "^4.7.7",
     "mongoose": "^6.1.6",
     "nest-winston": "^1.6.2",
+    "nodemailer": "^6.7.2",
     "passport": "^0.5.2",
     "passport-jwt": "^4.0.0",
     "reflect-metadata": "^0.1.13",
