@@ -19,7 +19,10 @@ export class AuthRepository {
         email,
         password: hashedPW,
       });
-      return user.save();
+      await user.save();
+      user.password = undefined;
+
+      return user;
     } catch (e) {
       // FIX: 에러 케이스 추가
       throw new InternalServerErrorException();
