@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { PasswordDto } from '../dto/change-password.dto';
 
 export class AuthRepository {
   constructor(
@@ -64,6 +65,7 @@ export class AuthRepository {
     const user = await this.findUserByEmail(email);
 
     if (user && (await bcrypt.compare(password, user.password))) {
+      // TOFIX: payload 추가
       const payload = { email };
       const accessToken = await this.jwtService.sign(payload);
       // FIX: refreshToken 추가
@@ -72,6 +74,27 @@ export class AuthRepository {
       return { accessToken };
     } else {
       throw new UnauthorizedException('로그인 실패');
+    }
+  }
+
+  // 비밀번호 재설정
+  async changePassword(email: string, passwordDto: PasswordDto): Promise<User> {
+    const { password } = passwordDto;
+
+    try {
+      const salt = await bcrypt.genSalt();
+      const hashedPW = await bcrypt.hash(password, salt);
+
+      const user = await this.userModel.findOneAndUpdate(
+        { email },
+        { password: hashedPW },
+      );
+      user.password = undefined;
+
+      return user;
+    } catch (e) {
+      // FIX: 에러 케이스 추가
+      throw new InternalServerErrorException('비밀번호 재설정 실패');
     }
   }
 }

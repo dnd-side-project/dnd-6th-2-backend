@@ -3,6 +3,7 @@ import { AuthCredentialDto } from './dto/auth.dto';
 import { AuthRepository } from './repository/auth.repository';
 import { User } from './schemas/user.schema';
 import { MailerService } from '@nestjs-modules/mailer';
+import { MailAuthDto, PasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +22,9 @@ export class AuthService {
     return this.authRepository.logIn(authCredentialDto);
   }
 
-  async sendEmail(email: string): Promise<string> {
+  async sendEmail(mailAuthDto: MailAuthDto): Promise<string> {
+    const { email } = mailAuthDto;
+
     try {
       const authCode: string = Math.random().toString().substring(2, 7); // 6글자
 
@@ -31,6 +34,8 @@ export class AuthService {
         subject: '이메일 인증',
         text: '이메일 인증 코드 ' + authCode,
       };
+      // TODO: 테스트
+      // FIX: 메일 템플릿
 
       await this.mailerService.sendMail(mailOptions);
 
@@ -38,5 +43,9 @@ export class AuthService {
     } catch (e) {
       throw new InternalServerErrorException('이메일 발신 실패');
     }
+  }
+
+  async changePassword(email: string, passwordDto: PasswordDto): Promise<User> {
+    return this.authRepository.changePassword(email, passwordDto);
   }
 }

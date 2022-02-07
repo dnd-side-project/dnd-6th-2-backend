@@ -1,7 +1,17 @@
-import { Body, Controller, Post, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Patch,
+  Post,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
+import { GetUser } from './decorators/get-user.decorator';
 import { AuthCredentialDto } from './dto/auth.dto';
+import { MailAuthDto, PasswordDto } from './dto/change-password.dto';
 import { User } from './schemas/user.schema';
 
 @Controller('auth')
@@ -39,5 +49,40 @@ export class AuthController {
     @Body(ValidationPipe) authCredentialDto: AuthCredentialDto,
   ): Promise<{ accessToken: string }> {
     return this.authService.logIn(authCredentialDto);
+  }
+
+  @ApiOperation({
+    summary: '비밀번호 재설정 시 이메일 인증을 하기 위한 엔드포인트입니다',
+    description: '이메일을 받아 해당 이메일로 인증번호를 보냅니다',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '인증 메일 전송 성공',
+  })
+  @Post('/email')
+  sendEmail(@Body(ValidationPipe) mailAuthDto: MailAuthDto): Promise<string> {
+    return this.authService.sendEmail(mailAuthDto);
+  }
+
+  @ApiOperation({
+    summary: '이메일 인증 후 비밀번호 재설정을 하기 위한 엔드포인트입니다',
+    description:
+      '인증 메일로 받은 인증코드로 인증을 한 뒤, 비밀번호를 받아 재설정합니다',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '비밀번호 재설정 성공',
+  })
+  @Patch('/password')
+  @UseGuards(AuthGuard())
+  changePassword(
+    @GetUser() user: User,
+    @Body(ValidationPipe) passwordDto: PasswordDto,
+  ): Promise<User> {
+    const { authCode, password } = passwordDto;
+
+    // TOFIX: 이메일 인증 코드 추가 (authCode - jwt에 저장)
+
+    return this.authService.changePassword(user.email, passwordDto);
   }
 }
