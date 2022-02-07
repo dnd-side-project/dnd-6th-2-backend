@@ -24,4 +24,20 @@ export class AuthController {
   ): Promise<User> {
     return this.authService.signUp(authCredentialDto);
   }
+
+  @ApiOperation({
+    summary: '로그인을 하기 위한 엔드포인트입니다',
+    description:
+      '로그인에 필요한 이메일, 비밀번호를 받아 로그인 한 뒤, accessToken을 발행합니다',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '로그인 성공',
+  })
+  @Post('/login')
+  logIn(
+    @Body(ValidationPipe) authCredentialDto: AuthCredentialDto,
+  ): Promise<{ accessToken: string }> {
+    return this.authService.logIn(authCredentialDto);
+  }
 }
