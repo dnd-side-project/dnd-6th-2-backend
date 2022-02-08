@@ -42,6 +42,9 @@ export class Article {
   @Prop({ default: 0 })
   commentNum: number;
 
+  @Prop({ default: 0 })
+  scrapNum: number;
+
   /* timestamps */
   createAt: Date;
   updateAt: Date;
