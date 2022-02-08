@@ -3,8 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Param,
-  Delete,
   Logger,
   Inject,
 } from '@nestjs/common';
@@ -62,7 +60,7 @@ export class ChallengeController {
     summary: '챌린지 글 등록 API',
     description: '오늘의 키워드를 보고 챌린지 글을 작성한다.',
   })
-  @ApiResponse({ status: 201, description: '챌린지 성공' })
+  @ApiResponse({ status: 201, description: 'state=true, 챌린지 성공' })
   @ApiBody({ type: CreateArticleDto })
   addArticle(@Body() createArticleDto: CreateArticleDto): Promise<Article> {
     // this.logger.log('Article ' + JSON.stringify(createArticleDto));
@@ -102,7 +100,7 @@ export class ChallengeController {
     summary: '챌린지 글 임시저장 API',
     description: '챌린지 글을 임시저장한다.',
   })
-  @ApiResponse({ status: 201, description: '임시저장 (챌린지 성공X)' })
+  @ApiResponse({ status: 201, description: 'state=false, 임시저장 (챌린지 성공X)' })
   @ApiBody({ type: CreateArticleDto })
   tempArticle(@Body() createArticleDto: CreateArticleDto): Promise<Article> {
     return this.challengeService.tempArticle(createArticleDto);
