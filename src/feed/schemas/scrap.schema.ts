@@ -1,28 +1,28 @@
-import { Prop, Schema, SchemaFactory, SchemaOptions } from "@nestjs/mongoose";
-import * as mongoose from "mongoose";
-import { Article } from "src/challenge/schemas/article.schema";
+import { Prop, Schema, SchemaFactory, SchemaOptions } from '@nestjs/mongoose';
+import * as mongoose from 'mongoose';
+import { Article } from 'src/challenge/schemas/article.schema';
 
-export type ScrapDocument = Scrap & Document
+export type ScrapDocument = Scrap & Document;
 
 const options: SchemaOptions = {
-    timestamps: true,
-  };
-  
-@Schema()
-export class Scrap{
-//   @Prop({
-//       type: mongoose.Schema.Types.ObjectId,
-//       ref: 'User'
-//   })
-//   user: User;
+  timestamps: true,
+};
 
-@Prop({
-  type: mongoose.Schema.Types.ObjectId,
-  ref: 'Article',
-})
+@Schema(options)
+export class Scrap {
+  //   @Prop({
+  //       type: mongoose.Schema.Types.ObjectId,
+  //       ref: 'User'
+  //   })
+  //   user: User;
+
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Article',
+  })
   article: Article;
 
-/* timestamps */
+  /* timestamps */
   createAt: Date;
   updateAt: Date;
 }

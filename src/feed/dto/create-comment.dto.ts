@@ -2,9 +2,8 @@ import { IsNotEmpty, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateCommentDto {
-
-  // article: mongoose.Schema.Types.ObjectId;  
-  article: string; 
+  // article: mongoose.Schema.Types.ObjectId;
+  article: string;
 
   @ApiProperty({
     type: String,
@@ -14,5 +13,4 @@ export class CreateCommentDto {
   @IsNotEmpty()
   @IsString()
   readonly content: string;
-
 }

@@ -47,7 +47,7 @@ export class ChallengeService {
   async updateKeyWord(): Promise<KeyWord[]> {
     this.schedulerRegistry.getCronJob('updatekeyword');
     // job.stop();
-    this.logger.log('키워드 뽑기 실행')
+    this.logger.log('키워드 뽑기 실행');
     return this.challengeRepository.updateKeyWord();
   }
 

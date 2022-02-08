@@ -43,4 +43,12 @@ export class FeedService {
   async deleteScrap(articleId: string): Promise<any> {
     return this.feedRepository.deleteScrap(articleId);
   }
+
+  async saveLike(articleId: string): Promise<any> {
+    return this.feedRepository.saveLike(articleId);
+  }
+
+  async deleteLike(articleId: string): Promise<any> {
+    return this.feedRepository.deleteLike(articleId);
+  }
 }
