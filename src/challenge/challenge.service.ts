@@ -27,20 +27,20 @@ export class ChallengeService {
     return this.challengeRepository.temporarySaveArticle(createArticleDto);
   }
 
-  async getAllArticle(): Promise<Article[]> {
-    return this.challengeRepository.findAllArticle();
-  }
+  // async getAllArticle(): Promise<Article[]> {
+  //   return this.challengeRepository.findAllArticle();
+  // }
 
-  async getOneArticle(id): Promise<Article> {
-    return this.challengeRepository.findOneArticle(id);
-  }
+  // async getOneArticle(id): Promise<Article> {
+  //   return this.challengeRepository.findOneArticle(id);
+  // }
 
-  async deleteArticle(id): Promise<any> {
-    return this.challengeRepository.deleteArticle(id);
-  }
+  // async deleteArticle(id): Promise<any> {
+  //   return this.challengeRepository.deleteArticle(id);
+  // }
 
   //cron으로 매일 자정에 DB 업데이트 해서 오늘의 키워드 뽑고 findRandomKeyWord에서는 키워드 리턴만
-  // @Cron('10 * * * * *', { name: 'updatekeyword' })
+  // @Cron('30 * * * * *', { name: 'updatekeyword' })
   @Cron('0 0 0 * * *', { name: 'updatekeyword', timeZone: 'Asia/Seoul' })
   async updateKeyWord(): Promise<KeyWord[]> {
     const job = this.schedulerRegistry.getCronJob('updatekeyword');

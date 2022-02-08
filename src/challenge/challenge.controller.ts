@@ -70,32 +70,32 @@ export class ChallengeController {
     return this.challengeService.addArticle(createArticleDto);
   }
 
-  @Get('/article')
-  @ApiOperation({
-    summary: '챌린지 글 조회(개발 중)',
-    description: '쓰여진 모든 챌린지 글 조회',
-  })
-  getArticle(): Promise<Article[]> {
-    return this.challengeService.getAllArticle();
-  }
+  // @Get('/article')
+  // @ApiOperation({
+  //   summary: '챌린지 글 조회(개발 중)',
+  //   description: '쓰여진 모든 챌린지 글 조회',
+  // })
+  // getArticle(): Promise<Article[]> {
+  //   return this.challengeService.getAllArticle();
+  // }
 
-  @Get('/article/:id')
-  @ApiOperation({
-    summary: '특정 챌린지 글 조회 API',
-    description: '특정 글 하나의 상세페이지를 조회한다.',
-  })
-  getOneArticle(@Param('id') id: string): Promise<Article> {
-    return this.challengeService.getOneArticle(id);
-  }
+  // @Get('/article/:id')
+  // @ApiOperation({
+  //   summary: '특정 챌린지 글 조회 API',
+  //   description: '특정 글 하나의 상세페이지를 조회한다.',
+  // })
+  // getOneArticle(@Param('id') id: string): Promise<Article> {
+  //   return this.challengeService.getOneArticle(id);
+  // }
 
-  @Delete('/article/:id')
-  @ApiOperation({
-    summary: '특정 챌린지 글 삭제 API',
-    description: '특정 글을 삭제한다.',
-  })
-  deleteArticle(@Param('id') id: string): Promise<any> {
-    return this.challengeService.deleteArticle(id);
-  }
+  // @Delete('/article/:id')
+  // @ApiOperation({
+  //   summary: '특정 챌린지 글 삭제 API',
+  //   description: '특정 글을 삭제한다.',
+  // })
+  // deleteArticle(@Param('id') id: string): Promise<any> {
+  //   return this.challengeService.deleteArticle(id);
+  // }
 
   @Post('/article/temp')
   @ApiOperation({

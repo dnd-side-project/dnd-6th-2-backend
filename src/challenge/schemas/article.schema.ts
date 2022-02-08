@@ -15,8 +15,8 @@ export class Article {
   // })
   // user: mongoose.Types.ObjectId;
 
-  // @Prop()
-  // title: string;
+  @Prop()
+  title: string;
 
   @Prop()
   content: string;
