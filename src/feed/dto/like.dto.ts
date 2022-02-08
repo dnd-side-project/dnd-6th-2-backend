@@ -1,4 +1,4 @@
-export class ScrapDto {
+export class LikeDto {
   article: string;
 
   //   user: string

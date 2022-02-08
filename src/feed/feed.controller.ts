@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Body, Post, Delete, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Body,
+  Post,
+  Delete,
+  Patch,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags, ApiBody } from '@nestjs/swagger';
 import { CreateArticleDto } from 'src/challenge/dto/create-article.dto';
 import { UpdateArticleDto } from 'src/challenge/dto/update-article.dto';
@@ -45,10 +53,13 @@ export class FeedController {
   @Patch('/:articleId')
   @ApiOperation({
     summary: '피드 글 수정 API',
-    description:'(자신의 글일 경우) 글을 수정한다.'
+    description: '(자신의 글일 경우) 글을 수정한다.',
   })
   @ApiBody({ type: CreateArticleDto })
-  updateArticle(@Param('articleId') articleId: string, @Body() updateArticleDto:UpdateArticleDto): Promise<Article> {
+  updateArticle(
+    @Param('articleId') articleId: string,
+    @Body() updateArticleDto: UpdateArticleDto,
+  ): Promise<Article> {
     return this.feedService.updateArticle(articleId, updateArticleDto);
   }
 
@@ -93,7 +104,7 @@ export class FeedController {
   })
   addScrap(
     @Param('articleId') articleId: string,
-    @Body() scrapDto: ScrapDto
+    @Body() scrapDto: ScrapDto,
   ): Promise<Scrap> {
     return this.feedService.saveScrap(articleId, scrapDto);
   }
@@ -105,5 +116,23 @@ export class FeedController {
   })
   deleteScrap(@Param('articleId') articleId: string): Promise<any> {
     return this.feedService.deleteScrap(articleId);
+  }
+
+  @Post('/like/:articleId')
+  @ApiOperation({
+    summary: '좋아요 API',
+    description: '특정 글에 좋아요를 한다.',
+  })
+  addLike(@Param('articleId') articleId: string): Promise<Scrap> {
+    return this.feedService.saveLike(articleId);
+  }
+
+  @Delete('/like/:articleId')
+  @ApiOperation({
+    summary: '좋아요 취소 API',
+    description: '좋아요를 취소한다.',
+  })
+  deleteLike(@Param('articleId') articleId: string): Promise<any> {
+    return this.feedService.deleteLike(articleId);
   }
 }

@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Logger,
-  Inject,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Logger, Inject } from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
 import { KeyWord } from './schemas/keyword.schema';
 import { CreateKeyWordDto } from './dto/create-keyword.dto';
@@ -100,7 +93,10 @@ export class ChallengeController {
     summary: '챌린지 글 임시저장 API',
     description: '챌린지 글을 임시저장한다.',
   })
-  @ApiResponse({ status: 201, description: 'state=false, 임시저장 (챌린지 성공X)' })
+  @ApiResponse({
+    status: 201,
+    description: 'state=false, 임시저장 (챌린지 성공X)',
+  })
   @ApiBody({ type: CreateArticleDto })
   tempArticle(@Body() createArticleDto: CreateArticleDto): Promise<Article> {
     return this.challengeService.tempArticle(createArticleDto);

@@ -2,7 +2,6 @@ import { IsArray, IsBoolean, IsNotEmpty, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateArticleDto {
-
   @ApiProperty({
     type: String,
     description: '글 제목',
