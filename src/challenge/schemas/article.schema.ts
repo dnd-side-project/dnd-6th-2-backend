@@ -1,10 +1,13 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory, SchemaOptions } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-// import * as mongoose from 'mongoose';
 
 export type ArticleDocument = Article & Document;
 
-@Schema()
+const options: SchemaOptions = {
+  timestamps: true,
+};
+
+@Schema(options)
 export class Article {
   // @Prop({
   //     type: mongoose.Schema.Types.ObjectId,
@@ -13,19 +16,19 @@ export class Article {
   // user: mongoose.Types.ObjectId;
 
   @Prop()
-  ArticleId: number;
-
-  @Prop()
   title: string;
 
   @Prop()
   content: string;
 
   @Prop()
-  tag: string[];
+  tags: string[];
 
   @Prop()
   category: string[];
+
+  @Prop()
+  keyWord: string;
 
   @Prop({ default: false })
   state: boolean;
@@ -33,17 +36,21 @@ export class Article {
   @Prop({ default: false })
   public: boolean;
 
-  @Prop()
+  @Prop({ default: 0 })
   likeNum: number;
 
-  @Prop()
+  @Prop({ default: 0 })
   commentNum: number;
 
-  @Prop()
-  createAt: Date;
+  @Prop({ default: 0 })
+  scrapNum: number;
 
-  @Prop()
+  /* timestamps */
+  createAt: Date;
   updateAt: Date;
 }
 
 export const ArticleSchema = SchemaFactory.createForClass(Article);
+// ArticleSchema.index({ keyWord: 'text' });
+
+// export {ArticleSchema};
