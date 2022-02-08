@@ -12,6 +12,10 @@ export class FeedService {
     return this.feedRepository.findAllArticle();
   }
 
+  async searchArticle(option: string, content: string): Promise<Article[]> {
+    return this.feedRepository.searchArticle(option, content);
+  }
+
   async getOneArticle(articleId): Promise<any[]> {
     return this.feedRepository.findOneArticle(articleId);
   }
