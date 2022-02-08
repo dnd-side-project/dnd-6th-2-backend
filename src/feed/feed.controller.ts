@@ -6,8 +6,9 @@ import {
   Post,
   Delete,
   Patch,
+  Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiBody } from '@nestjs/swagger';
+import { ApiOperation, ApiTags, ApiBody, ApiQuery } from '@nestjs/swagger';
 import { CreateArticleDto } from 'src/challenge/dto/create-article.dto';
 import { UpdateArticleDto } from 'src/challenge/dto/update-article.dto';
 import { Article } from 'src/challenge/schemas/article.schema';
@@ -30,6 +31,21 @@ export class FeedController {
   })
   getAllArticle(): Promise<Article[]> {
     return this.feedService.getAllArticle();
+  }
+
+  @Get('/search')
+  @ApiOperation({
+    summary: '피드에서 검색하기',
+    description: '제목, 내용, 제목+내용으로 검색한다.',
+  })
+  @ApiQuery({
+    name: 'option',
+    description:
+      '제목(title),내용(content),제목+내용(title+content) 조건을 주는 쿼리',
+  })
+  @ApiQuery({ name: 'content', description: '검색할 내용' })
+  searchArticle(@Query() query): Promise<Article[]> {
+    return this.feedService.searchArticle(query.option, query.content);
   }
 
   @Get('/:articleId')

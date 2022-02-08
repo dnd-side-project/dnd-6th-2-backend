@@ -24,6 +24,21 @@ export class FeedRepository {
     return await this.ArticleModel.find({ public: true });
   }
 
+  async searchArticle(option: string, content: string): Promise<Article[]> {
+    let options = [];
+    if (option == 'title') {
+      options = [{ title: new RegExp(content) }];
+    } else if (option == 'content') {
+      options = [{ content: new RegExp(content) }];
+    } else if (option == 'title+content') {
+      options = [
+        { title: new RegExp(content) },
+        { content: new RegExp(content) },
+      ];
+    }
+    return this.ArticleModel.find({ $or: options });
+  }
+
   async findOneArticle(id): Promise<any[]> {
     const result: any[] = [];
     const article = await this.ArticleModel.findOne({ _id: id, public: true });
