@@ -49,6 +49,7 @@ export class AuthRepository {
     }
   }
 
+  // For jwt-strategy
   async validate(payload): Promise<User> {
     // FIX: 닉네임 등 유저 정보 추가
     const { email } = payload;

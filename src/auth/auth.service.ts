@@ -26,13 +26,13 @@ export class AuthService {
     const { email } = mailAuthDto;
 
     try {
-      const authCode: string = Math.random().toString().substring(2, 7); // 6글자
+      const authCode: string = Math.random().toString().substring(2, 8); // 6글자
 
       const mailOptions = {
-        from: process.env.EMAIL_ID,
-        to: email,
-        subject: '이메일 인증',
-        text: '이메일 인증 코드 ' + authCode,
+        from: `${process.env.EMAIL_ID}`,
+        to: `${email}`,
+        subject: '이메일 인증 요청 메일입니다.',
+        text: `이메일 인증 : ${authCode}`,
       };
       // TODO: 테스트
       // FIX: 메일 템플릿
