@@ -15,8 +15,8 @@ export class Article {
   // })
   // user: mongoose.Types.ObjectId;
 
-  // @Prop()
-  // title: string;
+  @Prop()
+  title: string;
 
   @Prop()
   content: string;
@@ -41,6 +41,9 @@ export class Article {
 
   @Prop({ default: 0 })
   commentNum: number;
+
+  @Prop({ default: 0 })
+  scrapNum: number;
 
   /* timestamps */
   createAt: Date;

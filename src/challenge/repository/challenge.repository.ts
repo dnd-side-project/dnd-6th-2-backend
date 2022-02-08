@@ -101,15 +101,15 @@ export class ChallengeRepository {
     return article.save();
   }
 
-  async findAllArticle(): Promise<Article[]> {
-    return this.ArticleModel.find().exec();
-  }
+  // async findAllArticle(): Promise<Article[]> {
+  //   return this.ArticleModel.find().exec();
+  // }
 
-  async findOneArticle(id): Promise<Article> {
-    return await this.ArticleModel.findById(id);
-  }
+  // async findOneArticle(id): Promise<Article> {
+  //   return await this.ArticleModel.findById(id);
+  // }
 
-  async deleteArticle(id): Promise<any> {
-    return await this.ArticleModel.findByIdAndRemove(id);
-  }
+  // async deleteArticle(id): Promise<any> {
+  //   return await this.ArticleModel.findByIdAndRemove(id);
+  // }
 }

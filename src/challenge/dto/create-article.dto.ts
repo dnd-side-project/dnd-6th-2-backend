@@ -4,6 +4,15 @@ import { ApiProperty } from '@nestjs/swagger';
 export class CreateArticleDto {
   @ApiProperty({
     type: String,
+    description: '글 제목',
+    default: '오늘 일기',
+  })
+  @IsNotEmpty()
+  @IsString()
+  readonly title: string;
+
+  @ApiProperty({
+    type: String,
     description: '글 내용',
     default: '오늘은 카페에 갔다.',
   })
