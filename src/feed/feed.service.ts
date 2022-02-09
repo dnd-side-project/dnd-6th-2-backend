@@ -8,8 +8,8 @@ import { Scrap } from './schemas/scrap.schema';
 export class FeedService {
   constructor(private readonly feedRepository: FeedRepository) {}
 
-  async getAllArticle(): Promise<Article[]> {
-    return this.feedRepository.findAllArticle();
+  async getAllArticle(page:number): Promise<Article[]> {
+    return this.feedRepository.findAllArticle(page);
   }
 
   async searchArticle(option: string, content: string): Promise<Article[]> {
