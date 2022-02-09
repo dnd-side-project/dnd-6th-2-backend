@@ -19,6 +19,15 @@ async function bootstrap() {
     .setTitle('까막noon API')
     .setDescription('DND 2조의 까막noon API 문서입니다.')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'Token',
+        in: 'header',
+      },
+      'accessToken',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Logger, Inject, Req, UsePipes, ValidationP
 import { ChallengeService } from './challenge.service';
 import { KeyWord } from './schemas/keyword.schema';
 import { CreateKeyWordDto } from './dto/create-keyword.dto';
-import { ApiTags, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiBody, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { Article } from './schemas/article.schema';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -11,6 +11,7 @@ import { User } from 'src/auth/schemas/user.schema';
 import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('challenge')
+@ApiBearerAuth('accessToken')
 @Controller('challenge')
 @UseGuards(AuthGuard())
 export class ChallengeController {
