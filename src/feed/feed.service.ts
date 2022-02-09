@@ -3,12 +3,13 @@ import { FeedRepository } from './repository/feed.repository';
 import { Article } from 'src/challenge/schemas/article.schema';
 import { Comment } from './schemas/comment.schema';
 import { Scrap } from './schemas/scrap.schema';
+import { Like } from './schemas/like.schema';
 
 @Injectable()
 export class FeedService {
   constructor(private readonly feedRepository: FeedRepository) {}
 
-  async getAllArticle(page:number): Promise<Article[]> {
+  async getAllArticle(page: number): Promise<Article[]> {
     return this.feedRepository.findAllArticle(page);
   }
 
@@ -32,7 +33,11 @@ export class FeedService {
     return this.feedRepository.findComment(commentId);
   }
 
-  async addComment(user, articleId: string, createCommentDto): Promise<Comment> {
+  async addComment(
+    user,
+    articleId: string,
+    createCommentDto,
+  ): Promise<Comment> {
     return this.feedRepository.saveComment(user, articleId, createCommentDto);
   }
 
@@ -56,11 +61,15 @@ export class FeedService {
     return this.feedRepository.deleteScrap(user, articleId);
   }
 
-  async saveLike(articleId: string): Promise<any> {
-    return this.feedRepository.saveLike(articleId);
+  async findLike(user, articleId: string): Promise<Like[]> {
+    return this.feedRepository.findLike(user, articleId);
   }
 
-  async deleteLike(articleId: string): Promise<any> {
-    return this.feedRepository.deleteLike(articleId);
+  async saveLike(user, articleId: string, scrapDto): Promise<any> {
+    return this.feedRepository.saveLike(user, articleId, scrapDto);
+  }
+
+  async deleteLike(user, articleId: string): Promise<any> {
+    return this.feedRepository.deleteLike(user, articleId);
   }
 }

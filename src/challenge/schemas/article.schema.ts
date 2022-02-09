@@ -10,8 +10,7 @@ const options: SchemaOptions = {
 
 @Schema(options)
 export class Article {
-
-  _id:string;
+  _id: string;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,

@@ -1,8 +1,26 @@
-import { Controller, Get, Post, Body, Logger, Inject, Req, UsePipes, ValidationPipe, UseGuards, Res, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Logger,
+  Inject,
+  UsePipes,
+  ValidationPipe,
+  UseGuards,
+  Res,
+  HttpStatus,
+} from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
 import { KeyWord } from './schemas/keyword.schema';
 import { CreateKeyWordDto } from './dto/create-keyword.dto';
-import { ApiTags, ApiBody, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { Article } from './schemas/article.schema';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -24,7 +42,7 @@ export class ChallengeController {
   // @UseGuards(AuthGuard())
   // test(@GetUser() user: User) {
   //     console.log('user', user);
-  // } 
+  // }
 
   @Get()
   @ApiOperation({
@@ -67,13 +85,20 @@ export class ChallengeController {
   @ApiResponse({ status: 201, description: 'state=true, 챌린지 성공' })
   @ApiBody({ type: CreateArticleDto })
   @UsePipes(ValidationPipe)
-  async addArticle(@GetUser() user:User, @Body() createArticleDto: CreateArticleDto, @Res() res): Promise<Article> {
-    try{
-      const article = await this.challengeService.addArticle(user, createArticleDto);
-      return res.status(HttpStatus.OK).json(article)
-    }catch(e){
-      this.logger.error('챌린지 글 등록 ERR ' + e)
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e)
+  async addArticle(
+    @GetUser() user: User,
+    @Body() createArticleDto: CreateArticleDto,
+    @Res() res,
+  ): Promise<Article> {
+    try {
+      const article = await this.challengeService.addArticle(
+        user,
+        createArticleDto,
+      );
+      return res.status(HttpStatus.OK).json(article);
+    } catch (e) {
+      this.logger.error('챌린지 글 등록 ERR ' + e);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
     }
   }
 
@@ -114,7 +139,10 @@ export class ChallengeController {
     description: 'state=false, 임시저장 (챌린지 성공X)',
   })
   @ApiBody({ type: CreateArticleDto })
-  tempArticle(@GetUser() user:User, @Body() createArticleDto: CreateArticleDto): Promise<Article> {
+  tempArticle(
+    @GetUser() user: User,
+    @Body() createArticleDto: CreateArticleDto,
+  ): Promise<Article> {
     return this.challengeService.tempArticle(user, createArticleDto);
   }
 }

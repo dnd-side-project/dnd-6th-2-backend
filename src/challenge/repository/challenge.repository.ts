@@ -85,8 +85,11 @@ export class ChallengeRepository {
   //     return result;
   //   }
 
-  async saveArticle(user, createArticleDto: CreateArticleDto): Promise<Article> {
-    createArticleDto.user = user._id
+  async saveArticle(
+    user,
+    createArticleDto: CreateArticleDto,
+  ): Promise<Article> {
+    createArticleDto.user = user._id;
     createArticleDto.keyWord = this.todayKeyWord[0].content;
     createArticleDto.state = true;
     const article = new this.ArticleModel(createArticleDto);
@@ -95,7 +98,8 @@ export class ChallengeRepository {
 
   //임시저장
   async temporarySaveArticle(
-    user, createArticleDto: CreateArticleDto,
+    user,
+    createArticleDto: CreateArticleDto,
   ): Promise<Article> {
     createArticleDto.user = user._id;
     createArticleDto.keyWord = this.todayKeyWord[0].content;

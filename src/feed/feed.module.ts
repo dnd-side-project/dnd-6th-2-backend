@@ -8,6 +8,7 @@ import { Scrap, ScrapSchema } from './schemas/scrap.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { FeedRepository } from './repository/feed.repository';
 import { User, UserSchema } from 'src/auth/schemas/user.schema';
+import { Like, LikeSchema } from './schemas/like.schema';
 import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
@@ -17,7 +18,8 @@ import { AuthModule } from 'src/auth/auth.module';
     MongooseModule.forFeature([{ name: Comment.name, schema: CommentSchema }]),
     MongooseModule.forFeature([{ name: Scrap.name, schema: ScrapSchema }]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    AuthModule
+    MongooseModule.forFeature([{ name: Like.name, schema: LikeSchema }]),
+    AuthModule,
   ],
   providers: [FeedService, FeedRepository],
   controllers: [FeedController],
