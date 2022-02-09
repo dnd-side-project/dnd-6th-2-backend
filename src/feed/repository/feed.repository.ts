@@ -52,8 +52,8 @@ export class FeedRepository {
   }
 
   async deleteArticle(id): Promise<any> {
-    await this.CommentModel.deleteMany({ article: id });
-    return await this.ArticleModel.findByIdAndDelete(id);
+      await this.CommentModel.deleteMany({ article: id });
+      return await this.ArticleModel.findByIdAndDelete(id);
   }
 
   async updateArticle(
@@ -67,10 +67,18 @@ export class FeedRepository {
     );
   }
 
+  async findComment(
+    commentId
+  ): Promise<Comment> {
+    return await this.CommentModel.findById(commentId)
+  }
+
   async saveComment(
+    user,
     articleId: string,
     createCommentDto: CreateCommentDto,
   ): Promise<Comment> {
+    createCommentDto.user = user._id
     createCommentDto.article = articleId;
     await this.ArticleModel.findByIdAndUpdate(articleId, {
       $inc: {
@@ -102,7 +110,12 @@ export class FeedRepository {
     return await this.CommentModel.findByIdAndDelete(commentId);
   }
 
-  async saveScrap(articleId: string, scrapDto: ScrapDto): Promise<Scrap> {
+  async findScrap(user, articleId: string): Promise<Scrap[]> {
+    return await this.ScrapModel.find({user:user._id, article: articleId})
+  }
+
+  async saveScrap(user, articleId: string, scrapDto: ScrapDto): Promise<Scrap> {
+    scrapDto.user = user._id;
     scrapDto.article = articleId;
     await this.ArticleModel.findByIdAndUpdate(articleId, {
       $inc: {
@@ -113,13 +126,13 @@ export class FeedRepository {
     return scrap.save();
   }
 
-  async deleteScrap(articleId): Promise<any> {
+  async deleteScrap(user, articleId): Promise<any> {
     await this.ArticleModel.findByIdAndUpdate(articleId, {
       $inc: {
         scrapNum: -1,
       },
     });
-    return await this.ScrapModel.findOneAndDelete({ article: articleId });
+    return await this.ScrapModel.findOneAndDelete({ article: articleId, user: user._id });
   }
 
   async saveLike(articleId: string): Promise<any> {

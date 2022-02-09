@@ -1,4 +1,5 @@
 import {
+  HttpStatus,
   Controller,
   Get,
   Param,
@@ -7,8 +8,12 @@ import {
   Delete,
   Patch,
   Query,
+  UseGuards,
+  Res,
+  Logger,
+  Inject
 } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiBody, ApiQuery } from '@nestjs/swagger';
+import { ApiOperation, ApiTags, ApiBody, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { CreateArticleDto } from 'src/challenge/dto/create-article.dto';
 import { UpdateArticleDto } from 'src/challenge/dto/update-article.dto';
 import { Article } from 'src/challenge/schemas/article.schema';
@@ -18,11 +23,18 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import { FeedService } from './feed.service';
 import { Comment } from './schemas/comment.schema';
 import { Scrap } from './schemas/scrap.schema';
+import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { User } from 'src/auth/schemas/user.schema';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @ApiTags('feed')
+@ApiBearerAuth('accessToken')
 @Controller('feed')
+@UseGuards(AuthGuard())
 export class FeedController {
-  constructor(private feedService: FeedService) {}
+  constructor(private feedService: FeedService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger) {}
 
   @Get()
   @ApiOperation({
@@ -62,8 +74,20 @@ export class FeedController {
     summary: '피드 글 삭제 API',
     description: '(자신의 글일 경우) 글을 삭제한다.',
   })
-  deleteArticle(@Param('articleId') articleId: string): Promise<any> {
-    return this.feedService.deleteArticle(articleId);
+  async deleteArticle(@GetUser() user: User, @Param('articleId') articleId: string, @Res() res,): Promise<any[]> {
+    try{
+      const article = await this.feedService.getOneArticle(articleId)
+      if(JSON.stringify(article[0].user) == JSON.stringify(user._id)){
+        await this.feedService.deleteArticle(articleId);
+        return res.status(HttpStatus.OK).json({message:"삭제 완료"})
+      }
+      else{
+        return res.status(HttpStatus.BAD_REQUEST).json({message:"삭제 권한이 없습니다."})
+      }
+    }catch(e){
+      this.logger.error("피드 글 삭제 ERR " + e)
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: e })
+    }
   }
 
   @Patch('/:articleId')
@@ -72,11 +96,25 @@ export class FeedController {
     description: '(자신의 글일 경우) 글을 수정한다.',
   })
   @ApiBody({ type: CreateArticleDto })
-  updateArticle(
+  async updateArticle(
+    @GetUser() user: User,
     @Param('articleId') articleId: string,
     @Body() updateArticleDto: UpdateArticleDto,
+    @Res() res
   ): Promise<Article> {
-    return this.feedService.updateArticle(articleId, updateArticleDto);
+    try{
+      const article = await this.feedService.getOneArticle(articleId)
+      if(JSON.stringify(article[0].user) == JSON.stringify(user._id)){
+        const updateArticle = await this.feedService.updateArticle(articleId, updateArticleDto);
+        return res.status(HttpStatus.OK).json(updateArticle)
+      }
+      else{
+        return res.status(HttpStatus.BAD_REQUEST).json({message:"수정 권한이 없습니다."})
+      }
+    }catch(e){
+      this.logger.error("피드 글 수정 ERR " + e)
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: e })
+    }
   }
 
   @Post('/comment/:articleId')
@@ -85,10 +123,11 @@ export class FeedController {
     description: '글 상세페이지에서 댓글을 작성한다.',
   })
   addComment(
+    @GetUser() user: User,
     @Param('articleId') articleId: string,
     @Body() createCommentDto: CreateCommentDto,
   ): Promise<Comment> {
-    return this.feedService.addComment(articleId, createCommentDto);
+    return this.feedService.addComment(user, articleId, createCommentDto);
   }
 
   @Patch('/comment/:commentId')
@@ -97,11 +136,25 @@ export class FeedController {
     description: '글 상세페이지에서 댓글을 수정한다.',
   })
   @ApiBody({ type: CreateCommentDto })
-  updateComment(
+  async updateComment(
+    @GetUser() user: User,
     @Param('commentId') commentId: string,
     @Body() updateCommentDto: UpdateCommentDto,
+    @Res() res
   ): Promise<Comment> {
-    return this.feedService.updateComment(commentId, updateCommentDto);
+    try{
+      const comment = await this.feedService.findComment(commentId);
+      if(JSON.stringify(comment.user) == JSON.stringify(user._id)){
+        const updateComment = await this.feedService.updateComment(commentId, updateCommentDto);
+        return res.status(HttpStatus.OK).json(updateComment)
+      }
+      else{
+        return res.status(HttpStatus.BAD_REQUEST).json({message:"수정 권한이 없습니다."})
+      }
+    }catch(e){
+      this.logger.error("댓글 수정 ERR " + e);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e)
+    }
   }
 
   @Delete('/comment/:commentId')
@@ -109,8 +162,20 @@ export class FeedController {
     summary: '댓글 삭제 API',
     description: '댓글을 삭제한다.',
   })
-  deleteComment(@Param('commentId') commentId: string): Promise<any> {
-    return this.feedService.deleteComment(commentId);
+  async deleteComment(@GetUser()user:User, @Param('commentId') commentId: string, @Res() res): Promise<any> {
+    try{
+      const comment = await this.feedService.findComment(commentId);
+      if(JSON.stringify(comment.user) == JSON.stringify(user._id)){
+        await this.feedService.deleteComment(commentId);
+        return res.status(HttpStatus.OK).json({message: "삭제 완료"});
+      }
+      else{
+        return res.status(HttpStatus.BAD_REQUEST).json({message:"삭제 권한이 없습니다."})
+      }
+    }catch(e){
+      this.logger.error("댓글 삭제 ERR " + e);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e)
+    }
   }
 
   @Post('/scrap/:articleId')
@@ -118,11 +183,26 @@ export class FeedController {
     summary: '스크랩 API',
     description: '특정 글을 스크랩한다',
   })
-  addScrap(
+  async addScrap(
+    @GetUser() user: User,
     @Param('articleId') articleId: string,
     @Body() scrapDto: ScrapDto,
+    @Res() res
   ): Promise<Scrap> {
-    return this.feedService.saveScrap(articleId, scrapDto);
+    try{
+      const check = await this.feedService.findScrap(user, articleId);
+      if(check.length != 0){
+        return res.status(HttpStatus.BAD_REQUEST).json({message: "이미 스크랩한 글입니다."})
+      }
+      else{
+        const scrap = await this.feedService.saveScrap(user, articleId, scrapDto);
+        return res.status(HttpStatus.OK).json(scrap)
+      }
+    }catch(e){
+      this.logger.error("스크랩 ERR " + e);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e)
+
+    }
   }
 
   @Delete('/scrap/:articleId')
@@ -130,8 +210,20 @@ export class FeedController {
     summary: '스크랩 취소 API',
     description: '스크랩을 취소한다.',
   })
-  deleteScrap(@Param('articleId') articleId: string): Promise<any> {
-    return this.feedService.deleteScrap(articleId);
+  async deleteScrap(@GetUser() user: User, @Param('articleId') articleId: string, @Res() res): Promise<any> {
+    try{
+      const check = await this.feedService.findScrap(user, articleId);
+      if(check.length != 0){
+        await this.feedService.deleteScrap(user,articleId)
+        return res.status(HttpStatus.OK).json({message: "스크랩 취소 성공!"})
+      }
+      else{
+        return res.status(HttpStatus.NOT_FOUND).json({message: "스크랩한 글이 아닙니다."})
+      }
+    }catch(e){
+      this.logger.error("스크랩 취소 ERR " + e);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+    }
   }
 
   @Post('/like/:articleId')

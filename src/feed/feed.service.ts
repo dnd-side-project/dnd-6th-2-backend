@@ -28,8 +28,12 @@ export class FeedService {
     return this.feedRepository.updateArticle(articleId, updateArticleDto);
   }
 
-  async addComment(articleId: string, createCommentDto): Promise<Comment> {
-    return this.feedRepository.saveComment(articleId, createCommentDto);
+  async findComment(commentId): Promise<Comment> {
+    return this.feedRepository.findComment(commentId);
+  }
+
+  async addComment(user, articleId: string, createCommentDto): Promise<Comment> {
+    return this.feedRepository.saveComment(user, articleId, createCommentDto);
   }
 
   async updateComment(commentId: string, updateCommentDto): Promise<Comment> {
@@ -40,12 +44,16 @@ export class FeedService {
     return this.feedRepository.deleteComment(commentId);
   }
 
-  async saveScrap(articleId: string, scrapDto): Promise<Scrap> {
-    return this.feedRepository.saveScrap(articleId, scrapDto);
+  async findScrap(user, articleId: string): Promise<Scrap[]> {
+    return this.feedRepository.findScrap(user, articleId);
   }
 
-  async deleteScrap(articleId: string): Promise<any> {
-    return this.feedRepository.deleteScrap(articleId);
+  async saveScrap(user, articleId: string, scrapDto): Promise<Scrap> {
+    return this.feedRepository.saveScrap(user, articleId, scrapDto);
+  }
+
+  async deleteScrap(user, articleId: string): Promise<any> {
+    return this.feedRepository.deleteScrap(user, articleId);
   }
 
   async saveLike(articleId: string): Promise<any> {
