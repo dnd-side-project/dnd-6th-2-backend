@@ -21,12 +21,12 @@ export class ChallengeService {
     return this.challengeRepository.findKeyWord();
   }
 
-  async addArticle(createArticleDto): Promise<Article> {
-    return this.challengeRepository.saveArticle(createArticleDto);
+  async addArticle(user, createArticleDto): Promise<Article> {
+    return this.challengeRepository.saveArticle(user, createArticleDto);
   }
 
-  async tempArticle(createArticleDto): Promise<Article> {
-    return this.challengeRepository.temporarySaveArticle(createArticleDto);
+  async tempArticle(user, createArticleDto): Promise<Article> {
+    return this.challengeRepository.temporarySaveArticle(user, createArticleDto);
   }
 
   // async getAllArticle(): Promise<Article[]> {
@@ -51,7 +51,7 @@ export class ChallengeService {
     return this.challengeRepository.updateKeyWord();
   }
 
-  async getRandom() {
-    return await this.challengeRepository.findRandomKeyWord();
+  async getRandom(user) {
+    return await this.challengeRepository.findRandomKeyWord(user);
   }
 }

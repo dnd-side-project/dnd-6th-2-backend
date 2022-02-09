@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory, SchemaOptions } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import * as mongoose from 'mongoose';
+import { User } from 'src/auth/schemas/user.schema';
 
 export type ArticleDocument = Article & Document;
 
@@ -9,11 +10,11 @@ const options: SchemaOptions = {
 
 @Schema(options)
 export class Article {
-  // @Prop({
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: 'User'
-  // })
-  // user: mongoose.Types.ObjectId;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  })
+  user: User;
 
   @Prop()
   title: string;

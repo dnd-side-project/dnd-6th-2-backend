@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Logger, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Body, Logger, Inject, Req, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
 import { KeyWord } from './schemas/keyword.schema';
 import { CreateKeyWordDto } from './dto/create-keyword.dto';
@@ -6,14 +6,24 @@ import { ApiTags, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { Article } from './schemas/article.schema';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { User } from 'src/auth/schemas/user.schema';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('challenge')
 @Controller('challenge')
+@UseGuards(AuthGuard())
 export class ChallengeController {
   constructor(
     private challengeService: ChallengeService,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger,
   ) {}
+
+  // @Post('/test')
+  // @UseGuards(AuthGuard())
+  // test(@GetUser() user: User) {
+  //     console.log('user', user);
+  // } 
 
   @Get()
   @ApiOperation({
@@ -25,13 +35,13 @@ export class ChallengeController {
     status: 200,
     description: '글감 조회 성공, 해당 글감에 해당하는 챌린지 여부 확인',
   })
-  getChallenge() {
-    return this.challengeService.getRandom();
+  getChallenge(@GetUser() user: User) {
+    return this.challengeService.getRandom(user);
   }
 
   @Get('/keyword')
   @ApiOperation({
-    summary: '글감 조회 API (개발용)',
+    summary: '글감 조회 (개발용)',
     description: '현재 DB에 입력된 모든 글감을 조회한다.',
   })
   getKeyWord(): Promise<KeyWord[]> {
@@ -40,7 +50,7 @@ export class ChallengeController {
 
   @Post('/keyword')
   @ApiOperation({
-    summary: '글감 등록 API (개발용)',
+    summary: '글감 등록 (개발용)',
     description: 'DB에 글감을 등록한다.',
   })
   @ApiBody({ type: CreateKeyWordDto })
@@ -55,10 +65,12 @@ export class ChallengeController {
   })
   @ApiResponse({ status: 201, description: 'state=true, 챌린지 성공' })
   @ApiBody({ type: CreateArticleDto })
-  addArticle(@Body() createArticleDto: CreateArticleDto): Promise<Article> {
-    // this.logger.log('Article ' + JSON.stringify(createArticleDto));
-    // // this.logger.error('error')
-    return this.challengeService.addArticle(createArticleDto);
+  @UsePipes(ValidationPipe)
+  addArticle(@GetUser() user:User, @Body() createArticleDto: CreateArticleDto): Promise<Article> {
+    // console.log(user);
+    // // this.logger.log('Article ' + JSON.stringify(createArticleDto));
+    // // // this.logger.error('error')
+    return this.challengeService.addArticle(user, createArticleDto);
   }
 
   // @Get('/article')
@@ -98,7 +110,7 @@ export class ChallengeController {
     description: 'state=false, 임시저장 (챌린지 성공X)',
   })
   @ApiBody({ type: CreateArticleDto })
-  tempArticle(@Body() createArticleDto: CreateArticleDto): Promise<Article> {
-    return this.challengeService.tempArticle(createArticleDto);
+  tempArticle(@GetUser() user:User, @Body() createArticleDto: CreateArticleDto): Promise<Article> {
+    return this.challengeService.tempArticle(user, createArticleDto);
   }
 }
