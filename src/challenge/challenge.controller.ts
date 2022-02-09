@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Logger, Inject, Req, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Logger, Inject, Req, UsePipes, ValidationPipe, UseGuards, Res, HttpStatus } from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
 import { KeyWord } from './schemas/keyword.schema';
 import { CreateKeyWordDto } from './dto/create-keyword.dto';
@@ -67,11 +67,14 @@ export class ChallengeController {
   @ApiResponse({ status: 201, description: 'state=true, 챌린지 성공' })
   @ApiBody({ type: CreateArticleDto })
   @UsePipes(ValidationPipe)
-  addArticle(@GetUser() user:User, @Body() createArticleDto: CreateArticleDto): Promise<Article> {
-    // console.log(user);
-    // // this.logger.log('Article ' + JSON.stringify(createArticleDto));
-    // // // this.logger.error('error')
-    return this.challengeService.addArticle(user, createArticleDto);
+  async addArticle(@GetUser() user:User, @Body() createArticleDto: CreateArticleDto, @Res() res): Promise<Article> {
+    try{
+      const article = await this.challengeService.addArticle(user, createArticleDto);
+      return res.status(HttpStatus.OK).json(article)
+    }catch(e){
+      this.logger.error('챌린지 글 등록 ERR ' + e)
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e)
+    }
   }
 
   // @Get('/article')
