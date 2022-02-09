@@ -26,7 +26,10 @@ export class ChallengeService {
   }
 
   async tempArticle(user, createArticleDto): Promise<Article> {
-    return this.challengeRepository.temporarySaveArticle(user, createArticleDto);
+    return this.challengeRepository.temporarySaveArticle(
+      user,
+      createArticleDto,
+    );
   }
 
   // async getAllArticle(): Promise<Article[]> {

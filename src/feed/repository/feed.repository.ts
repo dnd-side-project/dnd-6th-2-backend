@@ -8,6 +8,7 @@ import { ScrapDto } from '../dto/scrap.dto';
 import { Comment, CommentDocument } from '../schemas/comment.schema';
 import { Scrap, ScrapDocument } from '../schemas/scrap.schema';
 import { User, UserDocument } from 'src/auth/schemas/user.schema';
+import { Like, LikeDocument } from '../schemas/like.schema';
 
 export class FeedRepository {
   constructor(
@@ -19,9 +20,11 @@ export class FeedRepository {
     private ScrapModel: Model<ScrapDocument>,
     @InjectModel(User.name)
     private UserModel: Model<UserDocument>,
+    @InjectModel(Like.name)
+    private LikeModel: Model<LikeDocument>,
   ) {}
 
-  async findAllArticle(page:number): Promise<Article[]> {
+  async findAllArticle(page: number): Promise<Article[]> {
     return await this.ArticleModel.find({ public: true })
       .sort({ _id: 1 })
       .limit(10)
@@ -140,19 +143,31 @@ export class FeedRepository {
     });
   }
 
-  async saveLike(articleId: string): Promise<any> {
+  async findLike(user, articleId: string): Promise<Like[]> {
+    return await this.LikeModel.find({ user: user._id, article: articleId });
+  }
+
+  async saveLike(user, articleId: string, scrapDto: ScrapDto): Promise<any> {
+    scrapDto.user = user._id;
+    scrapDto.article = articleId;
     await this.ArticleModel.findByIdAndUpdate(articleId, {
       $inc: {
         likeNum: 1,
       },
     });
+    const like = new this.LikeModel(scrapDto);
+    return like.save();
   }
 
-  async deleteLike(articleId): Promise<any> {
+  async deleteLike(user, articleId): Promise<any> {
     await this.ArticleModel.findByIdAndUpdate(articleId, {
       $inc: {
         likeNum: -1,
       },
+    });
+    return await this.LikeModel.findOneAndDelete({
+      article: articleId,
+      user: user._id,
     });
   }
 }

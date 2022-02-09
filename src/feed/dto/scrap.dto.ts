@@ -1,4 +1,4 @@
 export class ScrapDto {
-  user: string
+  user: string;
   article: string;
 }
