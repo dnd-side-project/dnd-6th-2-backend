@@ -18,11 +18,15 @@ export class FeedRepository {
     @InjectModel(Scrap.name)
     private ScrapModel: Model<ScrapDocument>,
     @InjectModel(User.name)
-    private UserModel: Model<UserDocument>
+    private UserModel: Model<UserDocument>,
   ) {}
 
-  async findAllArticle(): Promise<Article[]> {
-    return await this.ArticleModel.find({ public: true });
+  async findAllArticle(page:number): Promise<Article[]> {
+    return await this.ArticleModel.find({ public: true })
+      .sort({ _id: 1 })
+      .limit(10)
+      .skip((page - 1) * 10)
+      .exec();
   }
 
   // async findSubArticle(user): Promise<Article[]> {
@@ -52,8 +56,8 @@ export class FeedRepository {
   }
 
   async deleteArticle(id): Promise<any> {
-      await this.CommentModel.deleteMany({ article: id });
-      return await this.ArticleModel.findByIdAndDelete(id);
+    await this.CommentModel.deleteMany({ article: id });
+    return await this.ArticleModel.findByIdAndDelete(id);
   }
 
   async updateArticle(
@@ -67,10 +71,8 @@ export class FeedRepository {
     );
   }
 
-  async findComment(
-    commentId
-  ): Promise<Comment> {
-    return await this.CommentModel.findById(commentId)
+  async findComment(commentId): Promise<Comment> {
+    return await this.CommentModel.findById(commentId);
   }
 
   async saveComment(
@@ -78,7 +80,7 @@ export class FeedRepository {
     articleId: string,
     createCommentDto: CreateCommentDto,
   ): Promise<Comment> {
-    createCommentDto.user = user._id
+    createCommentDto.user = user._id;
     createCommentDto.article = articleId;
     await this.ArticleModel.findByIdAndUpdate(articleId, {
       $inc: {
@@ -111,7 +113,7 @@ export class FeedRepository {
   }
 
   async findScrap(user, articleId: string): Promise<Scrap[]> {
-    return await this.ScrapModel.find({user:user._id, article: articleId})
+    return await this.ScrapModel.find({ user: user._id, article: articleId });
   }
 
   async saveScrap(user, articleId: string, scrapDto: ScrapDto): Promise<Scrap> {
@@ -132,7 +134,10 @@ export class FeedRepository {
         scrapNum: -1,
       },
     });
-    return await this.ScrapModel.findOneAndDelete({ article: articleId, user: user._id });
+    return await this.ScrapModel.findOneAndDelete({
+      article: articleId,
+      user: user._id,
+    });
   }
 
   async saveLike(articleId: string): Promise<any> {

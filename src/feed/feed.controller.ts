@@ -41,8 +41,20 @@ export class FeedController {
     summary: '피드 조회 API',
     description: '공개 설정된 모든 글들을 조회한다.',
   })
-  getAllArticle(): Promise<Article[]> {
-    return this.feedService.getAllArticle();
+  @ApiQuery({ name: 'page', description: '페이지 넘버(한 페이지 당 글 10개)', example:1 })
+  async getAllArticle(@Query() query, @Res() res): Promise<Article[]> {
+    try{
+      if(query.page < 1){
+        return res.status(HttpStatus.BAD_REQUEST).json({message:'없는 페이지 입니다.'})
+      }
+      else{
+        const article:Article[] = await this.feedService.getAllArticle(query.page);
+        return res.status(HttpStatus.OK).json(article)
+      }
+    }catch(e){
+      this.logger.error("피드 전체 조회 ERR " + e)
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e)
+    }
   }
 
   @Get('/search')
