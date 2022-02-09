@@ -5,10 +5,9 @@ import { CreateCommentDto } from '../dto/create-comment.dto';
 import { UpdateArticleDto } from 'src/challenge/dto/update-article.dto';
 import { UpdateCommentDto } from '../dto/update-comment.dto';
 import { ScrapDto } from '../dto/scrap.dto';
-// import { LikeDto } from '../dto/like.dto';
 import { Comment, CommentDocument } from '../schemas/comment.schema';
 import { Scrap, ScrapDocument } from '../schemas/scrap.schema';
-// import { Like, LikeDocument } from '../schemas/like.schema';
+import { User, UserDocument } from 'src/auth/schemas/user.schema';
 
 export class FeedRepository {
   constructor(
@@ -17,12 +16,17 @@ export class FeedRepository {
     @InjectModel(Comment.name)
     private CommentModel: Model<CommentDocument>,
     @InjectModel(Scrap.name)
-    private ScrapModel: Model<ScrapDocument>, // @InjectModel(Like.name) // private LikeModel: Model<LikeDocument>
+    private ScrapModel: Model<ScrapDocument>,
+    @InjectModel(User.name)
+    private UserModel: Model<UserDocument>
   ) {}
 
   async findAllArticle(): Promise<Article[]> {
     return await this.ArticleModel.find({ public: true });
   }
+
+  // async findSubArticle(user): Promise<Article[]> {
+  // }
 
   async searchArticle(option: string, content: string): Promise<Article[]> {
     let options = [];

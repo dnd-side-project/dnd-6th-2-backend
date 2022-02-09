@@ -7,7 +7,8 @@ import { Comment, CommentSchema } from './schemas/comment.schema';
 import { Scrap, ScrapSchema } from './schemas/scrap.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { FeedRepository } from './repository/feed.repository';
-// import { Like, LikeSchema } from './schemas/like.schema';
+import { User, UserSchema } from 'src/auth/schemas/user.schema';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
@@ -15,7 +16,8 @@ import { FeedRepository } from './repository/feed.repository';
     MongooseModule.forFeature([{ name: KeyWord.name, schema: KeyWordSchema }]),
     MongooseModule.forFeature([{ name: Comment.name, schema: CommentSchema }]),
     MongooseModule.forFeature([{ name: Scrap.name, schema: ScrapSchema }]),
-    // MongooseModule.forFeature([{ name: Like.name, schema: LikeSchema }]),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    AuthModule
   ],
   providers: [FeedService, FeedRepository],
   controllers: [FeedController],

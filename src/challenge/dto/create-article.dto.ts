@@ -2,10 +2,13 @@ import { IsArray, IsBoolean, IsNotEmpty, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateArticleDto {
+
+  user: string;
+
   @ApiProperty({
     type: String,
     description: '글 제목',
-    default: '오늘 일기',
+    example: '오늘 일기',
   })
   @IsNotEmpty()
   @IsString()
@@ -14,7 +17,7 @@ export class CreateArticleDto {
   @ApiProperty({
     type: String,
     description: '글 내용',
-    default: '오늘은 카페에 갔다.',
+    example: '오늘은 카페에 갔다.',
   })
   @IsNotEmpty()
   @IsString()
@@ -23,7 +26,7 @@ export class CreateArticleDto {
   @ApiProperty({
     type: Array,
     description: '글 태그',
-    default: ['일상', '공부'],
+    example: ['일상', '공부'],
   })
   @IsNotEmpty()
   @IsArray()

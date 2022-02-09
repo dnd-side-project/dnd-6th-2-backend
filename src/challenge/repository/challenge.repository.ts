@@ -44,7 +44,7 @@ export class ChallengeRepository {
   }
 
   //개발용 함수 (서버 계속 껐다 키니까 presenetKeyWord 변수 만들어서 임시적으로 오늘의 키워드 저장해주고 보여줌)
-  async findRandomKeyWord(): Promise<any[]> {
+  async findRandomKeyWord(user): Promise<any[]> {
     const result: any[] = [];
     const today = new Date().toDateString();
     const presentKeyWord: KeyWord[] = [];
@@ -52,6 +52,7 @@ export class ChallengeRepository {
     this.todayKeyWord = presentKeyWord;
     result.push(presentKeyWord[0]);
     const challenge = await this.ArticleModel.findOne({
+      user: user,
       state: true,
       keyWord: presentKeyWord[0].content,
     });
@@ -84,7 +85,8 @@ export class ChallengeRepository {
   //     return result;
   //   }
 
-  async saveArticle(createArticleDto: CreateArticleDto): Promise<Article> {
+  async saveArticle(user, createArticleDto: CreateArticleDto): Promise<Article> {
+    createArticleDto.user = user._id
     createArticleDto.keyWord = this.todayKeyWord[0].content;
     createArticleDto.state = true;
     const article = new this.ArticleModel(createArticleDto);
@@ -93,8 +95,9 @@ export class ChallengeRepository {
 
   //임시저장
   async temporarySaveArticle(
-    createArticleDto: CreateArticleDto,
+    user, createArticleDto: CreateArticleDto,
   ): Promise<Article> {
+    createArticleDto.user = user._id;
     createArticleDto.keyWord = this.todayKeyWord[0].content;
     createArticleDto.state = false;
     const article = new this.ArticleModel(createArticleDto);
