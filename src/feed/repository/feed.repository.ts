@@ -80,9 +80,6 @@ export class FeedRepository {
     });
   }
 
-  // async findSubArticle(user): Promise<Article[]> {
-  // }
-
   async searchArticle(option: string, content: string): Promise<Article[]> {
     let options = [];
     if (option == 'title') {
@@ -95,7 +92,9 @@ export class FeedRepository {
         { content: new RegExp(content) },
       ];
     }
-    return this.ArticleModel.find({ $or: options });
+    return this.ArticleModel.find({ $or: options, public: true }).sort({
+      _id: -1,
+    });
   }
 
   async findOneArticle(id): Promise<any[]> {
@@ -106,8 +105,13 @@ export class FeedRepository {
     return result;
   }
 
-  async deleteArticle(id): Promise<any> {
+  async deleteArticle(user, id): Promise<any> {
     await this.CommentModel.deleteMany({ article: id });
+    await this.UserModel.findByIdAndUpdate(user._id, {
+      $pull: {
+        articles: id,
+      },
+    });
     return await this.ArticleModel.findByIdAndDelete(id);
   }
 

@@ -48,7 +48,7 @@ export class FeedController {
   @Get()
   @ApiOperation({
     summary: '전체 피드 조회 API',
-    description: '공개 설정된 모든 글들을 조회한다.',
+    description: '공개 설정된 모든 글들을 조회한다.(업데이트순)',
   })
   @ApiQuery({
     name: 'page',
@@ -74,7 +74,7 @@ export class FeedController {
   @Get('/subscribe')
   @ApiOperation({
     summary: '구독 피드 조회 API',
-    description: '구독한 작가들의 글과 구독목록을 조회한다.',
+    description: '구독한 작가들의 글과 구독목록을 조회한다.(업데이트순)',
   })
   @ApiQuery({
     name: 'page',
@@ -153,8 +153,22 @@ export class FeedController {
       '제목(title),내용(content),제목+내용(title+content) 조건을 주는 쿼리',
   })
   @ApiQuery({ name: 'content', description: '검색할 내용' })
-  searchArticle(@Query() query): Promise<Article[]> {
-    return this.feedService.searchArticle(query.option, query.content);
+  async searchArticle(@Query() query, @Res() res): Promise<Article[]> {
+    try {
+      const articles = await this.feedService.searchArticle(
+        query.option,
+        query.content,
+      );
+      if (articles.length != 0) {
+        return res.status(HttpStatus.OK).json(articles);
+      } else {
+        return res
+          .status(HttpStatus.NOT_FOUND)
+          .json({ message: '검색 결과가 없습니다.' });
+      }
+    } catch (e) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+    }
   }
 
   @Get('/:articleId')
@@ -179,7 +193,7 @@ export class FeedController {
     try {
       const article = await this.feedService.getOneArticle(articleId);
       if (JSON.stringify(article[0].user) == JSON.stringify(user._id)) {
-        await this.feedService.deleteArticle(articleId);
+        await this.feedService.deleteArticle(user, articleId);
         return res.status(HttpStatus.OK).json({ message: '삭제 완료' });
       } else {
         return res

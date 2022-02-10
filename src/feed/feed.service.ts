@@ -38,8 +38,8 @@ export class FeedService {
     return this.feedRepository.findOneArticle(articleId);
   }
 
-  async deleteArticle(articleId): Promise<any> {
-    return this.feedRepository.deleteArticle(articleId);
+  async deleteArticle(user, articleId): Promise<any> {
+    return this.feedRepository.deleteArticle(user, articleId);
   }
 
   async updateArticle(articleId: string, updateArticleDto): Promise<Article> {
