@@ -76,7 +76,7 @@ export class ChallengeController {
     summary: '챌린지 글 등록 API',
     description: '오늘의 키워드를 보고 챌린지 글을 작성한다.',
   })
-  @ApiResponse({ status: 201, description: 'state=true, 챌린지 성공' })
+  @ApiResponse({ status: 201, description: 'state=true, 챌린지 성공', type:Article })
   @ApiBody({ type: CreateArticleDto })
   @UsePipes(ValidationPipe)
   async addArticle(
