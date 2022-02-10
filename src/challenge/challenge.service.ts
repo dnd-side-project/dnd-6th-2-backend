@@ -54,6 +54,13 @@ export class ChallengeService {
     return this.challengeRepository.updateKeyWord();
   }
 
+  @Cron('0 0 0 * * *', { name: 'resetChallenge', timeZone: 'Asia/Seoul' })
+  async resetChallenge(): Promise<any> {
+    this.schedulerRegistry.getCronJob('resetChallenge');
+    this.logger.log('챌린지 리셋');
+    return this.challengeRepository.resetChallenge();
+  }
+
   async getRandom(user) {
     return await this.challengeRepository.findRandomKeyWord(user);
   }

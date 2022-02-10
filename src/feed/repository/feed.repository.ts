@@ -111,7 +111,21 @@ export class FeedRepository {
       $pull: {
         articles: id,
       },
+      $inc: {
+        challenge: -1
+      }
     });
+    const article = await this.UserModel.findById(user._id)
+    if(article.articles.length == 0){
+      await this.UserModel.findByIdAndUpdate(user._id, {
+        $set:{
+          state: false
+        },
+        $inc:{
+          stampCount: -1
+        }
+      })
+    }
     return await this.ArticleModel.findByIdAndDelete(id);
   }
 
