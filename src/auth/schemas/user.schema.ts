@@ -47,6 +47,12 @@ export class User {
 
   @Prop({ default: 0 })
   challenge: number;
+
+  @Prop({default: 0})
+  stampCount: number; //도장 개수
+
+  @Prop({default: false})
+  state: boolean; //오늘 챌린지 했는지 여부
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
