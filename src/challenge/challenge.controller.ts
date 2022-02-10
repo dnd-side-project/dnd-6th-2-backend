@@ -38,12 +38,6 @@ export class ChallengeController {
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger,
   ) {}
 
-  // @Post('/test')
-  // @UseGuards(AuthGuard())
-  // test(@GetUser() user: User) {
-  //     console.log('user', user);
-  // }
-
   @Get()
   @ApiOperation({
     summary: '글감 랜덤 제공, 챌린지 여부 확인 API',

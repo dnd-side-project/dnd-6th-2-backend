@@ -4,13 +4,30 @@ import { Article } from 'src/challenge/schemas/article.schema';
 import { Comment } from './schemas/comment.schema';
 import { Scrap } from './schemas/scrap.schema';
 import { Like } from './schemas/like.schema';
+import { User } from 'src/auth/schemas/user.schema';
 
 @Injectable()
 export class FeedService {
   constructor(private readonly feedRepository: FeedRepository) {}
 
-  async getAllArticle(page: number): Promise<Article[]> {
-    return this.feedRepository.findAllArticle(page);
+  async mainFeed(page: number): Promise<Article[]> {
+    return this.feedRepository.mainFeed(page);
+  }
+
+  async subFeed(user, page: number): Promise<any[]> {
+    return this.feedRepository.subFeed(user, page);
+  }
+
+  async findSubUser(user, articleId): Promise<any[]> {
+    return this.feedRepository.findSubUser(user, articleId);
+  }
+
+  async findAllSubUser(user): Promise<User[]> {
+    return this.feedRepository.findAllSubUser(user);
+  }
+
+  async subUser(user, articleId): Promise<any> {
+    return this.feedRepository.subUser(user, articleId);
   }
 
   async searchArticle(option: string, content: string): Promise<Article[]> {

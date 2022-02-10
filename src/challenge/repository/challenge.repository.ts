@@ -2,6 +2,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Article, ArticleDocument } from '../schemas/article.schema';
 import { KeyWord, KeyWordDocument } from '../schemas/keyword.schema';
+import { User, UserDocument } from 'src/auth/schemas/user.schema';
 import { CreateArticleDto } from '../dto/create-article.dto';
 import { CreateKeyWordDto } from '../dto/create-keyword.dto';
 
@@ -11,6 +12,8 @@ export class ChallengeRepository {
     private ArticleModel: Model<ArticleDocument>,
     @InjectModel(KeyWord.name)
     private KeyWordModel: Model<KeyWordDocument>,
+    @InjectModel(User.name)
+    private UserModel: Model<UserDocument>,
   ) {}
   private todayKeyWord: KeyWord[] = [];
 
@@ -51,12 +54,14 @@ export class ChallengeRepository {
     presentKeyWord.push(await this.KeyWordModel.findOne({ updateDay: today }));
     this.todayKeyWord = presentKeyWord;
     result.push(presentKeyWord[0]);
-    const challenge = await this.ArticleModel.findOne({
+    const challenge = await this.ArticleModel.find({
       user: user,
       state: true,
       keyWord: presentKeyWord[0].content,
     });
     result.push(challenge);
+    const userinfo = await this.UserModel.findById(user._id);
+    result.push(userinfo);
     return result;
     // } else {
     //   const todayKeyWord = await this.KeyWordModel.findOne({
@@ -72,27 +77,41 @@ export class ChallengeRepository {
     // }
   }
 
-  //배포용 ( 키워드, 챌린지 여부 리턴)
-  // async findRandomKeyWord(): Promise<any[]> {
+  // 배포용 ( 키워드, 챌린지 여부 리턴)
+  // async findRandomKeyWord(user): Promise<any[]> {
   //     let result:any[] = [];
-  // // 나중에 유저 정보 추가
-  //     const challenge = await this.ArticleModel.findOne({state: true, keyWord:this.todayKeyWord[0].content})
+  //     const challenge = await this.ArticleModel.find({
+  //      user: user,
+  //      state: true,
+  //      keyWord:this.todayKeyWord[0].content
+  //       });
   //     result.push(challenge)
   //     const todayKeyWord = await this.KeyWordModel.findOne({
   //       content: this.todayKeyWord[0].content,
   //     });
   //     result.push(todayKeyWord)
+  //     const userinfo = await this.UserModel.findById(user._id)
+  //     result.push(userinfo);
   //     return result;
-  //   }
+  // }
 
   async saveArticle(
     user,
     createArticleDto: CreateArticleDto,
   ): Promise<Article> {
     createArticleDto.user = user._id;
+    createArticleDto.userNickname = user.nickname;
     createArticleDto.keyWord = this.todayKeyWord[0].content;
     createArticleDto.state = true;
-    const article = new this.ArticleModel(createArticleDto);
+    const article = await new this.ArticleModel(createArticleDto);
+    await this.UserModel.findByIdAndUpdate(user._id, {
+      $push: {
+        articles: article,
+      },
+      $inc: {
+        challenge: 1,
+      },
+    });
     return article.save();
   }
 
@@ -104,7 +123,12 @@ export class ChallengeRepository {
     createArticleDto.user = user._id;
     createArticleDto.keyWord = this.todayKeyWord[0].content;
     createArticleDto.state = false;
-    const article = new this.ArticleModel(createArticleDto);
+    const article = await new this.ArticleModel(createArticleDto);
+    await this.UserModel.findByIdAndUpdate(user._id, {
+      $push: {
+        temporary: article,
+      },
+    });
     return article.save();
   }
 
