@@ -24,12 +24,60 @@ export class FeedRepository {
     private LikeModel: Model<LikeDocument>,
   ) {}
 
-  async findAllArticle(page: number): Promise<Article[]> {
+  async mainFeed(page: number): Promise<Article[]> {
+    //공개 설정된 모든글
+    //업데이트순 정렬
     return await this.ArticleModel.find({ public: true })
-      .sort({ _id: 1 })
+      .sort({ _id: -1 })
       .limit(10)
       .skip((page - 1) * 10)
       .exec();
+  }
+
+  async subFeed(user, page: number): Promise<any[]> {
+    const loginUser: User = await this.UserModel.findById(user._id);
+    const result: any[] = [];
+    //구독한 유저들의 공개된 글들
+    //업데이트순 정렬
+    const articles: Article[] = await this.ArticleModel.find({
+      user: loginUser.subscribeUser,
+      public: true,
+    })
+      .sort({ _id: -1 })
+      .limit(10)
+      .skip((page - 1) * 10)
+      .exec();
+    //내가 구독한 유저들
+    const subUserList: User[] = await this.UserModel.find({
+      _id: loginUser.subscribeUser,
+    });
+    result.push(articles, subUserList);
+    return result;
+  }
+
+  async findSubUser(user, articleId): Promise<any[]> {
+    const article = await this.ArticleModel.findById(articleId);
+    const author = await this.UserModel.findById(article.user);
+    const check = await this.UserModel.find({
+      _id: user._id,
+      subscribeUser: author._id,
+    });
+    return check;
+  }
+
+  async findAllSubUser(user): Promise<User[]> {
+    const loginUser = await this.UserModel.findById(user._id);
+    return await this.UserModel.find({ _id: loginUser.subscribeUser });
+  }
+
+  async subUser(user, articleId): Promise<any> {
+    const article = await this.ArticleModel.findById(articleId);
+    const author = await this.UserModel.findById(article.user);
+    return await this.UserModel.findByIdAndUpdate(user._id, {
+      $push: {
+        subscribeUser: author,
+      },
+    });
   }
 
   // async findSubArticle(user): Promise<Article[]> {

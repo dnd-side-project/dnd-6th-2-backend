@@ -19,6 +19,9 @@ export class Article {
   user: User;
 
   @Prop()
+  userNickname: string;
+
+  @Prop()
   title: string;
 
   @Prop()
@@ -54,6 +57,3 @@ export class Article {
 }
 
 export const ArticleSchema = SchemaFactory.createForClass(Article);
-// ArticleSchema.index({ keyWord: 'text' });
-
-// export {ArticleSchema};

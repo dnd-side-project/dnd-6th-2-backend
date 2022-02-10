@@ -47,7 +47,7 @@ export class FeedController {
 
   @Get()
   @ApiOperation({
-    summary: '피드 조회 API',
+    summary: '전체 피드 조회 API',
     description: '공개 설정된 모든 글들을 조회한다.',
   })
   @ApiQuery({
@@ -55,21 +55,90 @@ export class FeedController {
     description: '페이지 넘버(한 페이지 당 글 10개)',
     example: 1,
   })
-  async getAllArticle(@Query() query, @Res() res): Promise<Article[]> {
+  async getMainFeed(@Query() query, @Res() res): Promise<Article[]> {
     try {
       if (query.page < 1) {
         return res
           .status(HttpStatus.BAD_REQUEST)
           .json({ message: '없는 페이지 입니다.' });
       } else {
-        const article: Article[] = await this.feedService.getAllArticle(
-          query.page,
-        );
+        const article: Article[] = await this.feedService.mainFeed(query.page);
         return res.status(HttpStatus.OK).json(article);
       }
     } catch (e) {
       this.logger.error('피드 전체 조회 ERR ' + e);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+    }
+  }
+
+  @Get('/subscribe')
+  @ApiOperation({
+    summary: '구독 피드 조회 API',
+    description: '구독한 작가들의 글과 구독목록을 조회한다.',
+  })
+  @ApiQuery({
+    name: 'page',
+    description: '페이지 넘버(한 페이지 당 글 10개)',
+    example: 1,
+  })
+  async getSubFeed(
+    @GetUser() user: User,
+    @Query() query,
+    @Res() res,
+  ): Promise<any[]> {
+    try {
+      if (query.page < 1) {
+        return res
+          .status(HttpStatus.BAD_REQUEST)
+          .json({ message: '없는 페이지 입니다.' });
+      } else {
+        const feed: any[] = await this.feedService.subFeed(user, query.page);
+        return res.status(HttpStatus.OK).json(feed);
+      }
+    } catch (e) {
+      this.logger.error('피드 전체 조회 ERR ' + e);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+    }
+  }
+
+  @Get('subscribe/authorlist')
+  @ApiOperation({
+    summary: '구독한 작가들 전체목록 조회 API',
+    description: '구독한 작가들 목록 전체를 조회한다.',
+  })
+  async getAllSubUser(@GetUser() user: User, @Res() res): Promise<User[]> {
+    try {
+      const authors = await this.feedService.findAllSubUser(user);
+      return res.status(HttpStatus.OK).json(authors);
+    } catch (e) {
+      this.logger.error('구독한 작가 전체 목록 조회 ERR ' + e);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+    }
+  }
+
+  @Patch('subscribe/:articleId')
+  @ApiOperation({
+    summary: '구독하기 API',
+    description: '작가를 구독한다.',
+  })
+  async subUser(
+    @GetUser() user: User,
+    @Param('articleId') articleId: string,
+    @Res() res,
+  ): Promise<any> {
+    try {
+      const check = await this.feedService.findSubUser(user, articleId);
+      if (check.length != 0) {
+        res
+          .status(HttpStatus.BAD_REQUEST)
+          .json({ message: '이미 구독한 작가입니다.' });
+      } else {
+        const subscribe = await this.feedService.subUser(user, articleId);
+        res.status(HttpStatus.OK).json(subscribe);
+      }
+    } catch (e) {
+      this.logger.error('구독 ERR ' + e);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
     }
   }
 
