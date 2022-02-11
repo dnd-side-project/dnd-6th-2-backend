@@ -26,7 +26,10 @@ export class ChallengeService {
   }
 
   async tempArticle(user, createArticleDto): Promise<Article> {
-    return this.challengeRepository.temporarySaveArticle(user, createArticleDto);
+    return this.challengeRepository.temporarySaveArticle(
+      user,
+      createArticleDto,
+    );
   }
 
   // async getAllArticle(): Promise<Article[]> {
@@ -49,6 +52,13 @@ export class ChallengeService {
     // job.stop();
     this.logger.log('키워드 뽑기 실행');
     return this.challengeRepository.updateKeyWord();
+  }
+
+  @Cron('0 0 0 * * *', { name: 'resetChallenge', timeZone: 'Asia/Seoul' })
+  async resetChallenge(): Promise<any> {
+    this.schedulerRegistry.getCronJob('resetChallenge');
+    this.logger.log('챌린지 리셋');
+    return this.challengeRepository.resetChallenge();
   }
 
   async getRandom(user) {

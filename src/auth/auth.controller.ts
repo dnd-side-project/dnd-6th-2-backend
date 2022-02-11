@@ -43,6 +43,7 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: '로그인 성공',
+    type: User,
   })
   @Post('/login')
   logIn(

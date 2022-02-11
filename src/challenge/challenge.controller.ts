@@ -1,8 +1,26 @@
-import { Controller, Get, Post, Body, Logger, Inject, Req, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Logger,
+  Inject,
+  UsePipes,
+  ValidationPipe,
+  UseGuards,
+  Res,
+  HttpStatus,
+} from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
 import { KeyWord } from './schemas/keyword.schema';
 import { CreateKeyWordDto } from './dto/create-keyword.dto';
-import { ApiTags, ApiBody, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { Article } from './schemas/article.schema';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -19,12 +37,6 @@ export class ChallengeController {
     private challengeService: ChallengeService,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger,
   ) {}
-
-  // @Post('/test')
-  // @UseGuards(AuthGuard())
-  // test(@GetUser() user: User) {
-  //     console.log('user', user);
-  // } 
 
   @Get()
   @ApiOperation({
@@ -64,14 +76,28 @@ export class ChallengeController {
     summary: '챌린지 글 등록 API',
     description: '오늘의 키워드를 보고 챌린지 글을 작성한다.',
   })
-  @ApiResponse({ status: 201, description: 'state=true, 챌린지 성공' })
+  @ApiResponse({
+    status: 201,
+    description: 'state=true, 챌린지 성공',
+    type: Article,
+  })
   @ApiBody({ type: CreateArticleDto })
   @UsePipes(ValidationPipe)
-  addArticle(@GetUser() user:User, @Body() createArticleDto: CreateArticleDto): Promise<Article> {
-    // console.log(user);
-    // // this.logger.log('Article ' + JSON.stringify(createArticleDto));
-    // // // this.logger.error('error')
-    return this.challengeService.addArticle(user, createArticleDto);
+  async addArticle(
+    @GetUser() user: User,
+    @Body() createArticleDto: CreateArticleDto,
+    @Res() res,
+  ): Promise<Article> {
+    try {
+      const article = await this.challengeService.addArticle(
+        user,
+        createArticleDto,
+      );
+      return res.status(HttpStatus.OK).json(article);
+    } catch (e) {
+      this.logger.error('챌린지 글 등록 ERR ' + e);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+    }
   }
 
   // @Get('/article')
@@ -111,7 +137,10 @@ export class ChallengeController {
     description: 'state=false, 임시저장 (챌린지 성공X)',
   })
   @ApiBody({ type: CreateArticleDto })
-  tempArticle(@GetUser() user:User, @Body() createArticleDto: CreateArticleDto): Promise<Article> {
+  tempArticle(
+    @GetUser() user: User,
+    @Body() createArticleDto: CreateArticleDto,
+  ): Promise<Article> {
     return this.challengeService.tempArticle(user, createArticleDto);
   }
 }

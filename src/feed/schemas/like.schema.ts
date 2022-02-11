@@ -1,16 +1,16 @@
-import { Prop, Schema, SchemaOptions, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory, SchemaOptions } from '@nestjs/mongoose';
 import * as mongoose from 'mongoose';
 import { Article } from 'src/challenge/schemas/article.schema';
 import { User } from 'src/auth/schemas/user.schema';
 
-export type CommentDocument = Comment & Document;
+export type LikeDocument = Like & Document;
 
 const options: SchemaOptions = {
   timestamps: true,
 };
 
 @Schema(options)
-export class Comment {
+export class Like {
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -22,13 +22,6 @@ export class Comment {
     ref: 'Article',
   })
   article: Article;
-
-  @Prop()
-  content: string;
-
-  /* timestamps */
-  createAt: Date;
-  updateAt: Date;
 }
 
-export const CommentSchema = SchemaFactory.createForClass(Comment);
+export const LikeSchema = SchemaFactory.createForClass(Like);

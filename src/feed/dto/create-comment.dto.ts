@@ -5,6 +5,8 @@ export class CreateCommentDto {
   // article: mongoose.Schema.Types.ObjectId;
   article: string;
 
+  user: string;
+
   @ApiProperty({
     type: String,
     description: '댓글 내용',
