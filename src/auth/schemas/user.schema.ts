@@ -50,17 +50,17 @@ export class User {
   challenge: number;
 
   @ApiProperty({
-    type:Number,
-    description:'도장 개수'
+    type: Number,
+    description: '도장 개수',
   })
-  @Prop({default: 0})
+  @Prop({ default: 0 })
   stampCount: number; //도장 개수
 
   @ApiProperty({
-    type:Boolean,
-    description:'오늘 챌린지 했는지 여부(false=안 함, true=완료상태)'
+    type: Boolean,
+    description: '오늘 챌린지 했는지 여부(false=안 함, true=완료상태)',
   })
-  @Prop({default: false})
+  @Prop({ default: false })
   state: boolean; //오늘 챌린지 했는지 여부
 }
 

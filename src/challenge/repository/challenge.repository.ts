@@ -103,7 +103,7 @@ export class ChallengeRepository {
     createArticleDto.keyWord = this.todayKeyWord[0].content;
     createArticleDto.state = true;
     const article = await new this.ArticleModel(createArticleDto);
-    const loginUser = await this.UserModel.findByIdAndUpdate(user._id, {
+    await this.UserModel.findByIdAndUpdate(user._id, {
       $push: {
         articles: article,
       },
@@ -111,15 +111,16 @@ export class ChallengeRepository {
         challenge: 1,
       },
     });
-    if(loginUser.state == false){ //오늘 챌린지 안 했을 때만(최초 챌린지 일 때)
-      await this.UserModel.findByIdAndUpdate(user._id,{
+    if (user.state == false) {
+      //오늘 챌린지 안 했을 때만(최초 챌린지 일 때)
+      await this.UserModel.findByIdAndUpdate(user._id, {
         $inc: {
-          stampCount: 1
+          stampCount: 1,
         },
         $set: {
-          state: true
-        }
-      })
+          state: true,
+        },
+      });
     }
     return article.save();
   }
@@ -144,10 +145,10 @@ export class ChallengeRepository {
   //매일 유저들의 챌린지 여부 리셋
   async resetChallenge(): Promise<any> {
     return await this.UserModel.updateMany({
-      $set:{
-        state: false
-      }
-    })
+      $set: {
+        state: false,
+      },
+    });
   }
 
   // async findAllArticle(): Promise<Article[]> {

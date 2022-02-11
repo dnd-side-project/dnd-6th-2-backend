@@ -101,7 +101,7 @@ export class FeedController {
     }
   }
 
-  @Get('subscribe/authorlist')
+  @Get('/subscribe/authorlist')
   @ApiOperation({
     summary: '구독한 작가들 전체목록 조회 API',
     description: '구독한 작가들 목록 전체를 조회한다.',
@@ -112,6 +112,46 @@ export class FeedController {
       return res.status(HttpStatus.OK).json(authors);
     } catch (e) {
       this.logger.error('구독한 작가 전체 목록 조회 ERR ' + e);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+    }
+  }
+
+  @Get('/subscribe/:authorId')
+  @ApiOperation({
+    summary: '특정 구독작가의 글만 조회 API',
+    description: '특정 구독 작가의 글과 나의 구독목록을 조회한다.(업데이트순)',
+  })
+  @ApiQuery({
+    name: 'page',
+    description: '페이지 넘버(한 페이지 당 글 10개)',
+    example: 1,
+  })
+  async getSubFeedOne(
+    @GetUser() user: User,
+    @Query() query,
+    @Param('authorId') authorId: string,
+    @Res() res,
+  ): Promise<any[]> {
+    try {
+      const check = await this.feedService.findSubUser(user, authorId);
+      if (query.page < 1) {
+        return res
+          .status(HttpStatus.BAD_REQUEST)
+          .json({ message: '없는 페이지 입니다.' });
+      } else if (check.length == 0) {
+        return res
+          .status(HttpStatus.BAD_REQUEST)
+          .json({ message: '구독한 작가가 아닙니다.' });
+      } else if (query.page >= 1 && check.length != 0) {
+        const feed: any[] = await this.feedService.subFeedOne(
+          user,
+          authorId,
+          query.page,
+        );
+        return res.status(HttpStatus.OK).json(feed);
+      }
+    } catch (e) {
+      this.logger.error('특정 구독 작가 글만 조회 ERR ' + e);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
     }
   }
@@ -160,14 +200,13 @@ export class FeedController {
           .json({ message: '구독한 작가가 아닙니다.' });
       } else {
         await this.feedService.updateSubUser(user, authorId);
-        res.status(HttpStatus.OK).json({message:'구독 취소 성공'});
+        res.status(HttpStatus.OK).json({ message: '구독 취소 성공' });
       }
     } catch (e) {
       this.logger.error('구독 취소 ERR ' + e);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
     }
   }
-
 
   @Get('/search')
   @ApiOperation({
@@ -247,7 +286,7 @@ export class FeedController {
   ): Promise<Article> {
     try {
       const article = await this.feedService.getOneArticle(articleId);
-      if (JSON.stringify(article[0].user) == JSON.stringify(user._id)) {
+      if (JSON.stringify(article.user._id) == JSON.stringify(user._id)) {
         const updateArticle = await this.feedService.updateArticle(
           articleId,
           updateArticleDto,

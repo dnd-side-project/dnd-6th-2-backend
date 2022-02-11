@@ -37,12 +37,12 @@ export class FeedRepository {
   }
 
   async subFeed(user, page: number): Promise<any[]> {
-    const loginUser: User = await this.UserModel.findById(user._id)
+    // const loginUser: User = await this.UserModel.findById(user._id)
     const result: any[] = [];
     //구독한 유저들의 공개된 글들
     //업데이트순 정렬
     const articles: Article[] = await this.ArticleModel.find({
-      user: loginUser.subscribeUser,
+      user: user.subscribeUser,
       public: true,
     })
       .sort({ _id: -1 })
@@ -53,42 +53,60 @@ export class FeedRepository {
       .exec();
     //내가 구독한 유저들
     const subUserList: User[] = await this.UserModel.find({
+      _id: user.subscribeUser,
+    });
+    result.push(articles, subUserList);
+    return result;
+  }
+
+  //특정 구독작가의 글만 보기
+  async subFeedOne(user, authorId, page: number): Promise<any[]> {
+    const loginUser: User = await this.UserModel.findById(user._id);
+    const result: any[] = [];
+    const articles = await this.ArticleModel.find({
+      user: authorId,
+      public: true,
+    })
+      .sort({ _id: -1 })
+      .limit(10)
+      .skip((page - 1) * 10)
+      .populate('user')
+      .exec();
+    //내가 구독한 유저들
+    const subUserList: User[] = await this.UserModel.find({
       _id: loginUser.subscribeUser,
     });
     result.push(articles, subUserList);
     return result;
   }
 
-  async findSubUser(user, subUserId): Promise<any[]> {
-    // const article = await this.ArticleModel.findById(articleId);
-    // const author = await this.UserModel.findById(article.user);
+  //구독한 유저인지 체크
+  async findSubUser(user, authorId): Promise<any[]> {
     const check = await this.UserModel.find({
       _id: user._id,
-      // subscribeUser: author._id,
-      subscribeUser: subUserId
+      subscribeUser: authorId,
     });
     return check;
   }
 
   async findAllSubUser(user): Promise<User[]> {
-    const loginUser = await this.UserModel.findById(user._id);
-    return await this.UserModel.find({ _id: loginUser.subscribeUser });
+    return await this.UserModel.find({ _id: user.subscribeUser });
   }
 
-  async subUser(user, subUserId): Promise<any> {
+  async subUser(user, authorId): Promise<any> {
     return await this.UserModel.findByIdAndUpdate(user._id, {
       $push: {
-        subscribeUser: subUserId
+        subscribeUser: authorId,
       },
     });
   }
 
-  async updateSubUser(user, subUserId): Promise<any>{
-    return await this.UserModel.findByIdAndUpdate(user._id,{
+  async updateSubUser(user, authorId): Promise<any> {
+    return await this.UserModel.findByIdAndUpdate(user._id, {
       $pull: {
-        subscribeUser: subUserId
-      }
-    })
+        subscribeUser: authorId,
+      },
+    });
   }
 
   async searchArticle(option: string, content: string): Promise<Article[]> {
@@ -104,9 +122,9 @@ export class FeedRepository {
       ];
     }
     return this.ArticleModel.find({ $or: options, public: true })
-    .sort({_id: -1,})
-    .populate('user')
-    .exec();
+      .sort({ _id: -1 })
+      .populate('user')
+      .exec();
   }
 
   async findOneArticle(id): Promise<Article> {
@@ -123,19 +141,19 @@ export class FeedRepository {
         articles: id,
       },
       $inc: {
-        challenge: -1
-      }
+        challenge: -1,
+      },
     });
-    const article = await this.UserModel.findById(user._id)
-    if(article.articles.length == 0){
+    const article = await this.UserModel.findById(user._id);
+    if (article.articles.length == 0) {
       await this.UserModel.findByIdAndUpdate(user._id, {
-        $set:{
-          state: false
+        $set: {
+          state: false,
         },
-        $inc:{
-          stampCount: -1
-        }
-      })
+        $inc: {
+          stampCount: -1,
+        },
+      });
     }
     return await this.ArticleModel.findByIdAndDelete(id);
   }
@@ -168,8 +186,8 @@ export class FeedRepository {
         commentNum: 1,
       },
       $push: {
-        comments: comment
-      }
+        comments: comment,
+      },
     });
     return comment.save();
   }
@@ -192,8 +210,8 @@ export class FeedRepository {
         commentNum: -1,
       },
       $pull: {
-        comments: commentId
-      }
+        comments: commentId,
+      },
     });
     return await this.CommentModel.findByIdAndDelete(commentId);
   }
