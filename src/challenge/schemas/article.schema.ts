@@ -106,8 +106,8 @@ export class Article {
   comments: Comment[];
 
   /* timestamps */
-  createAt: Date;
-  updateAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export const ArticleSchema = SchemaFactory.createForClass(Article);
