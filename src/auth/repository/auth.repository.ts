@@ -4,6 +4,7 @@ import * as bcrypt from 'bcryptjs';
 import { AuthCredentialDto } from '../dto/auth.dto';
 import { User, UserDocument } from '../schemas/user.schema';
 import {
+  ForbiddenException,
   InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
@@ -25,6 +26,46 @@ export class AuthRepository {
     }
 
     return user;
+  }
+
+  async getAccessToken(email: string) {
+    const accessToken = this.jwtService.sign({ email }, { expiresIn: '3h' });
+
+    return accessToken;
+  }
+
+  async getRefreshToken(email: string) {
+    const refreshToken = this.jwtService.sign({ email }, { expiresIn: '14d' });
+
+    return refreshToken;
+  }
+
+  async updateRefreshToken(email: string, refreshToken: string) {
+    const salt = await bcrypt.genSalt();
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, salt);
+
+    return await this.userModel.findOneAndUpdate(
+      { email },
+      { hashedRefreshToken },
+    );
+  }
+
+  async removeRefreshToken(email: string) {
+    // for logout
+    return await this.userModel.findOneAndUpdate(
+      { email },
+      { hashedRefreshToken: null },
+    );
+  }
+
+  async validateRefresh(email: string, refreshToken: string): Promise<User> {
+    const user = await this.findUserByEmail(email);
+
+    if (await bcrypt.compare(refreshToken, user.hashedRefreshToken)) {
+      return user;
+    } else {
+      throw new UnauthorizedException();
+    }
   }
 
   async signUp(authCredentialDto: AuthCredentialDto): Promise<User> {
@@ -49,32 +90,19 @@ export class AuthRepository {
     }
   }
 
-  // For jwt-strategy
-  async validate(payload): Promise<User> {
-    // FIX: 닉네임 등 유저 정보 추가
-    const { email } = payload;
-    const user = await this.findUserByEmail(email);
-
-    // FIX: 특정 정보만 return
-    return user;
-  }
-
-  async logIn(
-    authCredentialDto: AuthCredentialDto,
-  ): Promise<{ accessToken: string }> {
+  async logIn(authCredentialDto: AuthCredentialDto) {
     const { email, password } = authCredentialDto;
     const user = await this.findUserByEmail(email);
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-      // TOFIX: payload 추가
-      const payload = { email };
-      const accessToken = await this.jwtService.sign(payload);
-      // FIX: refreshToken 추가
+    if (await bcrypt.compare(password, user.password)) {
+      const accessToken = await this.getAccessToken(email);
+      const refreshToken = await this.getRefreshToken(email);
 
-      // FIX: user return & token cookie에 저장
-      return { accessToken };
+      await this.updateRefreshToken(email, refreshToken);
+
+      return { accessToken, refreshToken };
     } else {
-      throw new UnauthorizedException('로그인 실패');
+      throw new ForbiddenException('로그인 실패');
     }
   }
 

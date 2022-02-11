@@ -3,15 +3,18 @@ import {
   Controller,
   Patch,
   Post,
+  Res,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { GetUser } from './decorators/get-user.decorator';
 import { AuthCredentialDto } from './dto/auth.dto';
 import { MailAuthDto, PasswordDto } from './dto/change-password.dto';
+import { LocalAuthGuard } from './guards/local-auth.guard';
 import { User } from './schemas/user.schema';
 
 @Controller('auth')
@@ -46,10 +49,17 @@ export class AuthController {
     type: User,
   })
   @Post('/login')
-  logIn(
+  @UseGuards(LocalAuthGuard)
+  async logIn(
     @Body(ValidationPipe) authCredentialDto: AuthCredentialDto,
-  ): Promise<{ accessToken: string }> {
-    return this.authService.logIn(authCredentialDto);
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { accessToken, refreshToken } = await this.authService.logIn(
+      authCredentialDto,
+    );
+
+    res.cookie('auth', { accessToken, refreshToken });
+    return accessToken; // test
   }
 
   @ApiOperation({
