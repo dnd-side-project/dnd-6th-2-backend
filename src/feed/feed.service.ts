@@ -18,20 +18,24 @@ export class FeedService {
     return this.feedRepository.subFeed(user, page);
   }
 
-  async findSubUser(user, subUserId): Promise<any[]> {
-    return this.feedRepository.findSubUser(user, subUserId);
+  async subFeedOne(user, authorId, page: number): Promise<any[]> {
+    return this.feedRepository.subFeedOne(user, authorId, page);
+  }
+
+  async findSubUser(user, authorId): Promise<any[]> {
+    return this.feedRepository.findSubUser(user, authorId);
   }
 
   async findAllSubUser(user): Promise<User[]> {
     return this.feedRepository.findAllSubUser(user);
   }
 
-  async subUser(user, subUserId): Promise<any> {
-    return this.feedRepository.subUser(user, subUserId);
+  async subUser(user, authorId): Promise<any> {
+    return this.feedRepository.subUser(user, authorId);
   }
 
-  async updateSubUser(user, subUserId): Promise<any> {
-    return this.feedRepository.updateSubUser(user,subUserId);
+  async updateSubUser(user, authorId): Promise<any> {
+    return this.feedRepository.updateSubUser(user, authorId);
   }
 
   async searchArticle(option: string, content: string): Promise<Article[]> {
