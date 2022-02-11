@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PasswordDto } from '../dto/change-password.dto';
+import { SignUpDto } from '../dto/signup.dto';
 
 export class AuthRepository {
   constructor(
@@ -68,26 +69,23 @@ export class AuthRepository {
     }
   }
 
-  async signUp(authCredentialDto: AuthCredentialDto): Promise<User> {
-    const { email, password } = authCredentialDto;
+  async signUp(signUpDto: SignUpDto): Promise<User> {
+    const { email, password, nickname, genre, bio } = signUpDto;
 
-    try {
-      const salt = await bcrypt.genSalt();
-      const hashedPW = await bcrypt.hash(password, salt);
+    const salt = await bcrypt.genSalt();
+    const hashedPW = await bcrypt.hash(password, salt);
 
-      const user = new this.userModel({
-        email,
-        password: hashedPW,
-      });
-      await user.save();
-      user.password = undefined;
+    const user = new this.userModel({
+      email,
+      password: hashedPW,
+      nickname,
+      genre,
+      bio,
+    });
+    await user.save();
+    user.password = undefined;
 
-      // FIX: 특정 정보만 리턴
-      return user;
-    } catch (e) {
-      // FIX: 에러 케이스 추가
-      throw new InternalServerErrorException();
-    }
+    return user;
   }
 
   async logIn(authCredentialDto: AuthCredentialDto) {

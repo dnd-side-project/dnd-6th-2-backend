@@ -4,6 +4,7 @@ import { AuthRepository } from './repository/auth.repository';
 import { User } from './schemas/user.schema';
 import { MailerService } from '@nestjs-modules/mailer';
 import { MailAuthDto, PasswordDto } from './dto/change-password.dto';
+import { SignUpDto } from './dto/signup.dto';
 
 @Injectable()
 export class AuthService {
@@ -12,8 +13,8 @@ export class AuthService {
     private mailerService: MailerService,
   ) {}
 
-  async signUp(authCredentialDto: AuthCredentialDto): Promise<User> {
-    return this.authRepository.signUp(authCredentialDto);
+  async signUp(signUpDto: SignUpDto): Promise<User> {
+    return this.authRepository.signUp(signUpDto);
   }
 
   async logIn(authCredentialDto: AuthCredentialDto) {

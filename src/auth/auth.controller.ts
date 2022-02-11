@@ -14,6 +14,7 @@ import { AuthService } from './auth.service';
 import { GetUser } from './decorators/get-user.decorator';
 import { AuthCredentialDto } from './dto/auth.dto';
 import { MailAuthDto, PasswordDto } from './dto/change-password.dto';
+import { SignUpDto } from './dto/signup.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { User } from './schemas/user.schema';
 
@@ -32,10 +33,8 @@ export class AuthController {
     description: '회원가입 성공',
   })
   @Post('/signup')
-  signUp(
-    @Body(ValidationPipe) authCredentialDto: AuthCredentialDto,
-  ): Promise<User> {
-    return this.authService.signUp(authCredentialDto);
+  signUp(@Body(ValidationPipe) signUpDto: SignUpDto): Promise<User> {
+    return this.authService.signUp(signUpDto);
   }
 
   @ApiOperation({

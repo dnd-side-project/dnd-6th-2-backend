@@ -18,6 +18,12 @@ export class User {
   @Prop()
   nickname: string;
 
+  @Prop()
+  genre: string[];
+
+  @Prop()
+  bio: string;
+
   // FIX
   // @Prop()
   // profileImage: string;
@@ -62,6 +68,9 @@ export class User {
   })
   @Prop({ default: false })
   state: boolean; //오늘 챌린지 했는지 여부
+
+  @Prop()
+  hashedRefreshToken: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
