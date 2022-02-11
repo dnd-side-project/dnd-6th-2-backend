@@ -31,11 +31,13 @@ export class FeedRepository {
       .sort({ _id: -1 })
       .limit(10)
       .skip((page - 1) * 10)
+      // .populate('user','nickname')
+      .populate('user')
       .exec();
   }
 
   async subFeed(user, page: number): Promise<any[]> {
-    const loginUser: User = await this.UserModel.findById(user._id);
+    const loginUser: User = await this.UserModel.findById(user._id)
     const result: any[] = [];
     //구독한 유저들의 공개된 글들
     //업데이트순 정렬
@@ -46,6 +48,8 @@ export class FeedRepository {
       .sort({ _id: -1 })
       .limit(10)
       .skip((page - 1) * 10)
+      .populate('user')
+      // .populate('user','nickname')
       .exec();
     //내가 구독한 유저들
     const subUserList: User[] = await this.UserModel.find({
@@ -55,12 +59,13 @@ export class FeedRepository {
     return result;
   }
 
-  async findSubUser(user, articleId): Promise<any[]> {
-    const article = await this.ArticleModel.findById(articleId);
-    const author = await this.UserModel.findById(article.user);
+  async findSubUser(user, subUserId): Promise<any[]> {
+    // const article = await this.ArticleModel.findById(articleId);
+    // const author = await this.UserModel.findById(article.user);
     const check = await this.UserModel.find({
       _id: user._id,
-      subscribeUser: author._id,
+      // subscribeUser: author._id,
+      subscribeUser: subUserId
     });
     return check;
   }
@@ -70,14 +75,20 @@ export class FeedRepository {
     return await this.UserModel.find({ _id: loginUser.subscribeUser });
   }
 
-  async subUser(user, articleId): Promise<any> {
-    const article = await this.ArticleModel.findById(articleId);
-    const author = await this.UserModel.findById(article.user);
+  async subUser(user, subUserId): Promise<any> {
     return await this.UserModel.findByIdAndUpdate(user._id, {
       $push: {
-        subscribeUser: author,
+        subscribeUser: subUserId
       },
     });
+  }
+
+  async updateSubUser(user, subUserId): Promise<any>{
+    return await this.UserModel.findByIdAndUpdate(user._id,{
+      $pull: {
+        subscribeUser: subUserId
+      }
+    })
   }
 
   async searchArticle(option: string, content: string): Promise<Article[]> {
@@ -92,17 +103,17 @@ export class FeedRepository {
         { content: new RegExp(content) },
       ];
     }
-    return this.ArticleModel.find({ $or: options, public: true }).sort({
-      _id: -1,
-    });
+    return this.ArticleModel.find({ $or: options, public: true })
+    .sort({_id: -1,})
+    .populate('user')
+    .exec();
   }
 
-  async findOneArticle(id): Promise<any[]> {
-    const result: any[] = [];
-    const article = await this.ArticleModel.findOne({ _id: id, public: true });
-    const comment = await this.CommentModel.find({ article: id });
-    result.push(article, comment);
-    return result;
+  async findOneArticle(id): Promise<Article> {
+    return await this.ArticleModel.findOne({ _id: id, public: true })
+      .populate('user')
+      .populate('comments')
+      .exec();
   }
 
   async deleteArticle(user, id): Promise<any> {
@@ -151,13 +162,16 @@ export class FeedRepository {
   ): Promise<Comment> {
     createCommentDto.user = user._id;
     createCommentDto.article = articleId;
+    const comment = new this.CommentModel(createCommentDto);
     await this.ArticleModel.findByIdAndUpdate(articleId, {
       $inc: {
         commentNum: 1,
       },
+      $push: {
+        comments: comment
+      }
     });
-    const Comment = new this.CommentModel(createCommentDto);
-    return Comment.save();
+    return comment.save();
   }
 
   async updateComment(
@@ -171,12 +185,15 @@ export class FeedRepository {
     );
   }
 
-  async deleteComment(commentId: string): Promise<any> {
+  async deleteComment(commentId): Promise<any> {
     const comment = await this.CommentModel.findById(commentId);
     await this.ArticleModel.findByIdAndUpdate(comment.article, {
       $inc: {
         commentNum: -1,
       },
+      $pull: {
+        comments: commentId
+      }
     });
     return await this.CommentModel.findByIdAndDelete(commentId);
   }
