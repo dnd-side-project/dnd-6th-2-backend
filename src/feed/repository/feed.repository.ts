@@ -9,6 +9,7 @@ import { Comment, CommentDocument } from '../schemas/comment.schema';
 import { Scrap, ScrapDocument } from '../schemas/scrap.schema';
 import { User, UserDocument } from 'src/auth/schemas/user.schema';
 import { Like, LikeDocument } from '../schemas/like.schema';
+import { KeyWord, KeyWordDocument } from 'src/challenge/schemas/keyword.schema';
 
 export class FeedRepository {
   constructor(
@@ -22,6 +23,8 @@ export class FeedRepository {
     private UserModel: Model<UserDocument>,
     @InjectModel(Like.name)
     private LikeModel: Model<LikeDocument>,
+    @InjectModel(KeyWord.name)
+    private KeyWordModel: Model<KeyWordDocument>
   ) {}
 
   async mainFeed(page: number): Promise<Article[]> {
@@ -128,6 +131,9 @@ export class FeedRepository {
   }
 
   async findOneArticle(id): Promise<Article> {
+    // const test = await this.ArticleModel.findOne({_id:id, public:true})
+    // console.log(test)
+    // console.log(test.createdAt.toDateString())
     return await this.ArticleModel.findOne({ _id: id, public: true })
       .populate('user')
       .populate('comments')
@@ -144,8 +150,11 @@ export class FeedRepository {
         challenge: -1,
       },
     });
-    const article = await this.UserModel.findById(user._id);
-    if (article.articles.length == 0) {
+    const article = await this.ArticleModel.findById(id);
+    const keyWord = await this.KeyWordModel.findOne({updateDay: article.createdAt.toDateString()})
+    const challenge = await this.ArticleModel.find({user:user._id, keyWord:keyWord.content})
+    //마지막 챌린지 글을 삭제할 때
+    if (challenge.length == 1) {
       await this.UserModel.findByIdAndUpdate(user._id, {
         $set: {
           state: false,
