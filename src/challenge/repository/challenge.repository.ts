@@ -100,7 +100,6 @@ export class ChallengeRepository {
     createArticleDto: CreateArticleDto,
   ): Promise<Article> {
     createArticleDto.user = user._id;
-    createArticleDto.userNickname = user.nickname;
     createArticleDto.keyWord = this.todayKeyWord[0].content;
     createArticleDto.state = true;
     const article = await new this.ArticleModel(createArticleDto);

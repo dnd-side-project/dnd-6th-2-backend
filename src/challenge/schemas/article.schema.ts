@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory, SchemaOptions } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import * as mongoose from 'mongoose';
 import { User } from 'src/auth/schemas/user.schema';
+import { Comment } from 'src/feed/schemas/comment.schema';
 
 export type ArticleDocument = Article & Document;
 
@@ -15,16 +16,10 @@ export class Article {
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
+    description:'글쓴이',
     ref: 'User',
   })
   user: User;
-
-  @ApiProperty({
-    type:String,
-    description:'글쓴이 닉네임',
-  })
-  @Prop()
-  userNickname: string;
 
   @ApiProperty({
     type:String,
@@ -102,6 +97,13 @@ export class Article {
   })
   @Prop({ default: 0 })
   scrapNum: number;
+
+  @Prop({
+    type: [mongoose.Schema.Types.ObjectId],
+    description:'댓글 목록',
+    ref: 'Comment',
+  })
+  comments:Comment[]
 
   /* timestamps */
   createAt: Date;

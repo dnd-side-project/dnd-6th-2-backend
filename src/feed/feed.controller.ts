@@ -116,24 +116,24 @@ export class FeedController {
     }
   }
 
-  @Patch('subscribe/:articleId')
+  @Patch('subscribe/:authorId')
   @ApiOperation({
     summary: '구독하기 API',
     description: '작가를 구독한다.',
   })
   async subUser(
     @GetUser() user: User,
-    @Param('articleId') articleId: string,
+    @Param('authorId') authorId: string,
     @Res() res,
   ): Promise<any> {
     try {
-      const check = await this.feedService.findSubUser(user, articleId);
+      const check = await this.feedService.findSubUser(user, authorId);
       if (check.length != 0) {
         res
           .status(HttpStatus.BAD_REQUEST)
           .json({ message: '이미 구독한 작가입니다.' });
       } else {
-        const subscribe = await this.feedService.subUser(user, articleId);
+        const subscribe = await this.feedService.subUser(user, authorId);
         res.status(HttpStatus.OK).json(subscribe);
       }
     } catch (e) {
@@ -141,6 +141,33 @@ export class FeedController {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
     }
   }
+
+  @Patch('subscribe-cancel/:authorId')
+  @ApiOperation({
+    summary: '구독 취소 API',
+    description: '구독을 취소한다.',
+  })
+  async updateSubUser(
+    @GetUser() user: User,
+    @Param('authorId') authorId: string,
+    @Res() res,
+  ): Promise<any> {
+    try {
+      const check = await this.feedService.findSubUser(user, authorId);
+      if (check.length == 0) {
+        res
+          .status(HttpStatus.BAD_REQUEST)
+          .json({ message: '구독한 작가가 아닙니다.' });
+      } else {
+        await this.feedService.updateSubUser(user, authorId);
+        res.status(HttpStatus.OK).json({message:'구독 취소 성공'});
+      }
+    } catch (e) {
+      this.logger.error('구독 취소 ERR ' + e);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+    }
+  }
+
 
   @Get('/search')
   @ApiOperation({
@@ -176,7 +203,7 @@ export class FeedController {
     summary: '피드 글 상세페이지 조회 API',
     description: '피드의 특정 글 1개의 상세페이지를 조회한다.',
   })
-  getOneArticle(@Param('articleId') articleId: string): Promise<any[]> {
+  getOneArticle(@Param('articleId') articleId: string): Promise<Article> {
     return this.feedService.getOneArticle(articleId);
   }
 
@@ -192,7 +219,7 @@ export class FeedController {
   ): Promise<any[]> {
     try {
       const article = await this.feedService.getOneArticle(articleId);
-      if (JSON.stringify(article[0].user) == JSON.stringify(user._id)) {
+      if (JSON.stringify(article.user._id) == JSON.stringify(user._id)) {
         await this.feedService.deleteArticle(user, articleId);
         return res.status(HttpStatus.OK).json({ message: '삭제 완료' });
       } else {
