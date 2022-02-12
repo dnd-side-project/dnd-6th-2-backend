@@ -3,6 +3,7 @@ import { Model } from 'mongoose';
 import { Article, ArticleDocument } from '../schemas/article.schema';
 import { KeyWord, KeyWordDocument } from '../schemas/keyword.schema';
 import { User, UserDocument } from 'src/auth/schemas/user.schema';
+import { Tip, TipDocument } from '../schemas/tip.schema';
 import { CreateArticleDto } from '../dto/create-article.dto';
 import { CreateKeyWordDto } from '../dto/create-keyword.dto';
 
@@ -14,6 +15,8 @@ export class ChallengeRepository {
     private KeyWordModel: Model<KeyWordDocument>,
     @InjectModel(User.name)
     private UserModel: Model<UserDocument>,
+    @InjectModel(Tip.name)
+    private TipModel: Model<TipDocument>
   ) {}
   private todayKeyWord: KeyWord[] = [];
 
@@ -94,6 +97,10 @@ export class ChallengeRepository {
   //     result.push(userinfo);
   //     return result;
   // }
+  async findTip(): Promise<any> {
+    const tip= await this.TipModel.aggregate([{$sample: {size:1}}]);
+    return tip[0]
+  }
 
   async saveArticle(
     user,

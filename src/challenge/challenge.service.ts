@@ -4,6 +4,7 @@ import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { ChallengeRepository } from './repository/challenge.repository';
 import { Article } from './schemas/article.schema';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { Tip } from './schemas/tip.schema';
 
 @Injectable()
 export class ChallengeService {
@@ -19,6 +20,10 @@ export class ChallengeService {
 
   async getKeyWord(): Promise<any[]> {
     return this.challengeRepository.findKeyWord();
+  }
+
+  async findTip(): Promise<any>{
+    return this.challengeRepository.findTip();
   }
 
   async addArticle(user, createArticleDto): Promise<Article> {

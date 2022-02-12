@@ -12,7 +12,34 @@ export class MailAuthDto {
   email: string;
 }
 
+export class AuthCodeDto {
+  @ApiProperty({
+    type: String,
+    description: '인증 메일을 받은 사용자의 이메일',
+    example: 'user@gmail.com',
+  })
+  @IsNotEmpty()
+  @IsString()
+  email: string;
+
+  @ApiProperty({
+    type: Number,
+    description: '인증 메일에서 받은 인증 코드',
+  })
+  @IsNotEmpty()
+  authCode: number;
+}
+
 export class PasswordDto {
+  @ApiProperty({
+    type: String,
+    description: '비밀번호를 변경할 사용자의 이메일',
+    example: 'user@gmail.com',
+  })
+  @IsNotEmpty()
+  @IsString()
+  email: string;
+
   @ApiProperty({
     type: String,
     description: '비밀번호 재설정 시 사용자가 입력한 새 비밀번호',
@@ -20,11 +47,4 @@ export class PasswordDto {
   @IsNotEmpty()
   @IsString()
   password: string;
-
-  @ApiProperty({
-    type: String,
-    description: '인증 메일에서 받은 인증 코드',
-  })
-  @IsNotEmpty()
-  authCode: string;
 }

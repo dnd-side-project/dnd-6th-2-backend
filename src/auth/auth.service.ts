@@ -3,7 +3,12 @@ import { AuthCredentialDto } from './dto/auth.dto';
 import { AuthRepository } from './repository/auth.repository';
 import { User } from './schemas/user.schema';
 import { MailerService } from '@nestjs-modules/mailer';
-import { MailAuthDto, PasswordDto } from './dto/change-password.dto';
+import {
+  AuthCodeDto,
+  MailAuthDto,
+  PasswordDto,
+} from './dto/change-password.dto';
+import { SignUpDto } from './dto/signup.dto';
 
 @Injectable()
 export class AuthService {
@@ -12,21 +17,19 @@ export class AuthService {
     private mailerService: MailerService,
   ) {}
 
-  async signUp(authCredentialDto: AuthCredentialDto): Promise<User> {
-    return this.authRepository.signUp(authCredentialDto);
+  async signUp(signUpDto: SignUpDto): Promise<User> {
+    return this.authRepository.signUp(signUpDto);
   }
 
-  async logIn(
-    authCredentialDto: AuthCredentialDto,
-  ): Promise<{ accessToken: string }> {
+  async logIn(authCredentialDto: AuthCredentialDto) {
     return this.authRepository.logIn(authCredentialDto);
   }
 
-  async sendEmail(mailAuthDto: MailAuthDto): Promise<string> {
-    const { email } = mailAuthDto;
-
+  async sendEmail(email: string): Promise<number> {
     try {
-      const authCode: string = Math.random().toString().substring(2, 8); // 6글자
+      const authCode: number = parseInt(
+        Math.random().toString().substring(2, 8),
+      ); // 6글자
 
       const mailOptions = {
         from: `${process.env.EMAIL_ID}`,
@@ -34,18 +37,25 @@ export class AuthService {
         subject: '이메일 인증 요청 메일입니다.',
         text: `이메일 인증 : ${authCode}`,
       };
-      // TODO: 테스트
-      // FIX: 메일 템플릿
 
       await this.mailerService.sendMail(mailOptions);
+      await this.authRepository.storeAuthCode(email, authCode);
 
-      return authCode;
+      return authCode; // test
     } catch (e) {
       throw new InternalServerErrorException('이메일 발신 실패');
     }
   }
 
-  async changePassword(email: string, passwordDto: PasswordDto): Promise<User> {
-    return this.authRepository.changePassword(email, passwordDto);
+  async verifyAuthCode(authCodeDto: AuthCodeDto) {
+    return this.authRepository.verifyAuthCode(authCodeDto);
+  }
+
+  async changePassword(passwordDto: PasswordDto): Promise<User> {
+    return this.authRepository.changePassword(passwordDto);
+  }
+
+  async logOut(email: string) {
+    return this.authRepository.removeAuthCode(email);
   }
 }
