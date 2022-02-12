@@ -3,11 +3,7 @@ import { AuthCredentialDto } from './dto/auth.dto';
 import { AuthRepository } from './repository/auth.repository';
 import { User } from './schemas/user.schema';
 import { MailerService } from '@nestjs-modules/mailer';
-import {
-  AuthCodeDto,
-  MailAuthDto,
-  PasswordDto,
-} from './dto/change-password.dto';
+import { AuthCodeDto, PasswordDto } from './dto/change-password.dto';
 import { SignUpDto } from './dto/signup.dto';
 
 @Injectable()
@@ -56,6 +52,6 @@ export class AuthService {
   }
 
   async logOut(email: string) {
-    return this.authRepository.removeAuthCode(email);
+    return this.authRepository.removeRefreshToken(email);
   }
 }
