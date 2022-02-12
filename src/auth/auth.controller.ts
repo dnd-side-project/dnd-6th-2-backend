@@ -124,6 +124,7 @@ export class AuthController {
     description: '로그아웃 성공',
   })
   @UseGuards(JwtAuthGuard, JwtRefreshGuard)
+  @ApiBearerAuth('accessToken')
   @Delete('/logout')
   logOut(@GetUser() user: User, @Res({ passthrough: true }) res: Response) {
     const { email } = user;
