@@ -3,24 +3,44 @@ import { ApiProperty } from '@nestjs/swagger';
 import * as mongoose from 'mongoose';
 import { Article } from 'src/challenge/schemas/article.schema';
 
-export type UserDocument = User & mongoose.Document;
+export type UserDocument = User & Document;
 
 @Schema()
 export class User {
   _id: string;
 
+  @ApiProperty({
+    type: String,
+    description: '사용자의 이메일',
+  })
   @Prop({ required: true })
   email: string;
 
+  @ApiProperty({
+    type: String,
+    description: '사용자의 비밀번호',
+  })
   @Prop({ required: true })
   password: string;
 
+  @ApiProperty({
+    type: String,
+    description: '사용자의 닉네임',
+  })
   @Prop()
   nickname: string;
 
+  @ApiProperty({
+    type: Array,
+    description: '관심 장르',
+  })
   @Prop()
   genre: string[];
 
+  @ApiProperty({
+    type: String,
+    description: '자기소개 한 줄',
+  })
   @Prop()
   bio: string;
 

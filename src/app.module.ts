@@ -13,6 +13,7 @@ import {
 } from 'nest-winston';
 import { AuthModule } from './auth/auth.module';
 import { FeedModule } from './feed/feed.module';
+import { RelayModule } from './relay/relay.module';
 import DailyRotateFile = require('winston-daily-rotate-file');
 
 @Module({
@@ -56,6 +57,7 @@ import DailyRotateFile = require('winston-daily-rotate-file');
     }),
     AuthModule,
     FeedModule,
+    RelayModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -105,6 +105,9 @@ export class Article {
   })
   comments: Comment[];
 
+  @Prop({ default: false })
+  isRelay: boolean; // 릴레이 글인지 판별
+
   /* timestamps */
   createdAt: Date;
   updatedAt: Date;
