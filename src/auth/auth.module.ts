@@ -7,9 +7,10 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import * as dotenv from 'dotenv';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { JwtUserStrategy } from './passport/auth.strategy';
 import { AuthRepository } from './repository/auth.repository';
 import { User, UserSchema } from './schemas/user.schema';
+import { JwtAuthStrategy } from './strategy/jwt-auth.strategy';
+import { JwtRefreshStrategy } from './strategy/jwt-refresh.strategy';
 
 dotenv.config();
 
@@ -37,14 +38,11 @@ dotenv.config();
     }),
     JwtModule.register({
       secret: process.env.SECRET_KEY as string,
-      signOptions: {
-        expiresIn: 3 * 60 * 60, // 3h
-      },
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthRepository, JwtUserStrategy],
-  exports: [JwtUserStrategy, PassportModule], // 인증
+  providers: [AuthService, AuthRepository, JwtAuthStrategy, JwtRefreshStrategy],
+  exports: [PassportModule, JwtAuthStrategy, JwtRefreshStrategy], // 인증
 })
 export class AuthModule {}
