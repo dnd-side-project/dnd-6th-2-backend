@@ -70,7 +70,10 @@ export class User {
   state: boolean; //오늘 챌린지 했는지 여부
 
   @Prop()
-  hashedRefreshToken: string;
+  hashedRefreshToken: string; // refresh token 저장
+
+  @Prop()
+  mailAuthCode: number; // 메일 인증 코드
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

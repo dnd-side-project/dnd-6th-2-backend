@@ -5,12 +5,11 @@ import { AuthCredentialDto } from '../dto/auth.dto';
 import { User, UserDocument } from '../schemas/user.schema';
 import {
   ForbiddenException,
-  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PasswordDto } from '../dto/change-password.dto';
+import { AuthCodeDto, PasswordDto } from '../dto/change-password.dto';
 import { SignUpDto } from '../dto/signup.dto';
 
 export class AuthRepository {
@@ -45,18 +44,26 @@ export class AuthRepository {
     const salt = await bcrypt.genSalt();
     const hashedRefreshToken = await bcrypt.hash(refreshToken, salt);
 
-    return await this.userModel.findOneAndUpdate(
-      { email },
-      { hashedRefreshToken },
-    );
+    try {
+      return await this.userModel.findOneAndUpdate(
+        { email },
+        { hashedRefreshToken },
+      );
+    } catch (e) {
+      throw new NotFoundException();
+    }
   }
 
   async removeRefreshToken(email: string) {
     // for logout
-    return await this.userModel.findOneAndUpdate(
-      { email },
-      { hashedRefreshToken: null },
-    );
+    try {
+      return await this.userModel.findOneAndUpdate(
+        { email },
+        { hashedRefreshToken: undefined },
+      );
+    } catch (e) {
+      throw new NotFoundException();
+    }
   }
 
   async validateRefresh(email: string, refreshToken: string): Promise<User> {
@@ -104,9 +111,38 @@ export class AuthRepository {
     }
   }
 
-  // 비밀번호 재설정
-  async changePassword(email: string, passwordDto: PasswordDto): Promise<User> {
-    const { password } = passwordDto;
+  async storeAuthCode(email: string, authCode: number) {
+    try {
+      return await this.userModel.findOneAndUpdate(
+        { email },
+        { mailAuthCode: authCode },
+      );
+    } catch (e) {
+      throw new NotFoundException();
+    }
+  }
+
+  async removeAuthCode(email: string) {
+    return await this.userModel.updateOne(
+      { email },
+      { mailAuthCode: undefined },
+    );
+  }
+
+  async verifyAuthCode(authCodeDto: AuthCodeDto) {
+    const { email, authCode } = authCodeDto;
+    const user = await this.findUserByEmail(email);
+
+    if (user.mailAuthCode === authCode) {
+      await this.removeAuthCode(email);
+      return true;
+    } else {
+      throw new UnauthorizedException();
+    }
+  }
+
+  async changePassword(passwordDto: PasswordDto): Promise<User> {
+    const { email, password } = passwordDto;
 
     try {
       const salt = await bcrypt.genSalt();
@@ -118,10 +154,9 @@ export class AuthRepository {
       );
       user.password = undefined;
 
-      return user;
+      return user; // test
     } catch (e) {
-      // FIX: 에러 케이스 추가
-      throw new InternalServerErrorException('비밀번호 재설정 실패');
+      throw new NotFoundException();
     }
   }
 }
