@@ -10,6 +10,7 @@ import {
   UseGuards,
   Res,
   HttpStatus,
+  Redirect
 } from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
 import { KeyWord } from './schemas/keyword.schema';
@@ -26,6 +27,7 @@ import { Article } from './schemas/article.schema';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { User } from 'src/auth/schemas/user.schema';
+import { Tip } from './schemas/tip.schema';
 import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('challenge')
@@ -48,8 +50,18 @@ export class ChallengeController {
     status: 200,
     description: '글감 조회 성공, 해당 글감에 해당하는 챌린지 여부 확인',
   })
-  getChallenge(@GetUser() user: User) {
-    return this.challengeService.getRandom(user);
+  async getChallenge(@GetUser() user: User): Promise<any[]>{
+    return await this.challengeService.getRandom(user);
+  }
+
+  @Get('article')
+  @ApiOperation({
+    summary: '챌린지 글 작성 페이지',
+    description: '챌린지 글 작성페이지에서 글쓰기 팁을 조회하고 글을 작성한다.'
+  })
+  async getTip(@GetUser() user: User): Promise<any>{
+    //@GetUser안 붙여주면 실행 안 됨
+    return await this.challengeService.findTip();
   }
 
   @Get('/keyword')
@@ -71,10 +83,11 @@ export class ChallengeController {
     return this.challengeService.addKeyWord(createKeyWordDto);
   }
 
+
   @Post('/article')
   @ApiOperation({
-    summary: '챌린지 글 등록 API',
-    description: '오늘의 키워드를 보고 챌린지 글을 작성한다.',
+    summary: '챌린지 글 저장 API',
+    description: '오늘의 키워드를 보고 챌린지 글을 저장한다.',
   })
   @ApiResponse({
     status: 201,
@@ -143,4 +156,8 @@ export class ChallengeController {
   ): Promise<Article> {
     return this.challengeService.tempArticle(user, createArticleDto);
   }
+
+  // @Redirect('/challenge', 301)
+  // @Get('/article/cancel')
+  // cancelWrite(){}
 }
