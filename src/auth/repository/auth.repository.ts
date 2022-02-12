@@ -3,11 +3,7 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { AuthCredentialDto } from '../dto/auth.dto';
 import { User, UserDocument } from '../schemas/user.schema';
-import {
-  ForbiddenException,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthCodeDto, PasswordDto } from '../dto/change-password.dto';
 import { SignUpDto } from '../dto/signup.dto';
@@ -66,8 +62,20 @@ export class AuthRepository {
     }
   }
 
-  async validateRefresh(email: string, refreshToken: string): Promise<User> {
-    const user = await this.findUserByEmail(email);
+  async validateUser(email: string) {
+    const user = await this.userModel.findOne(
+      { email },
+      { _id: 1, email: 1, nickname: 1, genre: 1, bio: 1 },
+    );
+
+    if (!user) {
+      throw new NotFoundException();
+    }
+    return user;
+  }
+
+  async validateRefresh(email: string, refreshToken: string) {
+    const user = await this.validateUser(email);
 
     if (await bcrypt.compare(refreshToken, user.hashedRefreshToken)) {
       return user;

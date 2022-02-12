@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Patch,
   Post,
   Res,
@@ -131,11 +132,18 @@ export class AuthController {
     description: '로그아웃 성공',
   })
   @ApiBearerAuth('accessToken')
-  @UseGuards(JwtAuthGuard)
   @Delete('/logout')
+  @UseGuards(JwtAuthGuard)
   logOut(@GetUser() user: User, @Res({ passthrough: true }) res: Response) {
     this.authService.logOut(user.email);
     res.clearCookie('auth');
     return '로그아웃 성공'; // test
+  }
+
+  // test
+  @Get('/test')
+  @UseGuards(JwtAuthGuard)
+  test(@GetUser() user: User) {
+    return user;
   }
 }

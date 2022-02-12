@@ -24,15 +24,15 @@ export class User {
   @Prop()
   bio: string;
 
-  // FIX
+  // ADD: validate return 값에 추가
   // @Prop()
   // profileImage: string;
 
-  // @Prop({
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: 'Comment',
-  // })
-  // comments: Comment[];
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Comment',
+  })
+  comments: Comment[];
 
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
