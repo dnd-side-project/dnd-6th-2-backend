@@ -20,7 +20,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
     });
   }
 
-  async validate(req, res, payload) {
+  async validate(req, payload, res) {
     const { email } = payload;
     const refreshToken = req.cookies?.auth?.refreshToken;
 
