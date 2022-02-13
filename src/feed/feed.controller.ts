@@ -53,8 +53,15 @@ export class FeedController {
   })
   @ApiQuery({
     name: 'page',
+    type: Number,
     description: '페이지 넘버(한 페이지 당 글 10개)',
     example: 1,
+  })
+  @ApiQuery({
+    name: 'tag',
+    type: Array,
+    description: '태그별로 분류해서 보여주기 위한 쿼리',
+    required: false
   })
   async getMainFeed(@Query() query, @Res() res): Promise<Article[]> {
     try {
@@ -63,7 +70,7 @@ export class FeedController {
           .status(HttpStatus.BAD_REQUEST)
           .json({ message: '없는 페이지 입니다.' });
       } else {
-        const article: Article[] = await this.feedService.mainFeed(query.page);
+        const article: Article[] = await this.feedService.mainFeed(query.page, query.tag);
         return res.status(HttpStatus.OK).json(article);
       }
     } catch (e) {
@@ -83,6 +90,16 @@ export class FeedController {
     description: '페이지 넘버(한 페이지 당 글 10개)',
     example: 1,
   })
+  @ApiQuery({
+    name: 'tag',
+    type: Array,
+    description: '태그별로 분류해서 보여주기 위한 쿼리',
+    required: false
+  })
+  @ApiResponse({
+    status: 200,
+    description: '구독한 작가들의 Article 객체 배열 , 구독한 작가들의 user 객체 배열 반환'
+  })
   async getSubFeed(
     @GetUser() user: User,
     @Query() query,
@@ -94,7 +111,7 @@ export class FeedController {
           .status(HttpStatus.BAD_REQUEST)
           .json({ message: '없는 페이지 입니다.' });
       } else {
-        const feed: any[] = await this.feedService.subFeed(user, query.page);
+        const feed: any[] = await this.feedService.subFeed(user, query.page, query.tag);
         return res.status(HttpStatus.OK).json(feed);
       }
     } catch (e) {
@@ -221,6 +238,12 @@ export class FeedController {
     description: '제목, 내용, 제목+내용으로 검색한다.',
   })
   @ApiQuery({
+    name: 'page',
+    type: String,
+    description: '페이지 넘버(한 페이지 당 글 10개)',
+    example: 1,
+  })
+  @ApiQuery({
     name: 'option',
     description:
       '제목(title),내용(content),제목+내용(title+content) 조건을 주는 쿼리',
@@ -233,6 +256,7 @@ export class FeedController {
   ): Promise<Article[]> {
     try {
       const articles = await this.feedService.searchArticle(
+        query.page,
         query.option,
         query.content,
       );
