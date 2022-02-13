@@ -8,17 +8,10 @@ import { RelayController } from './relay.controller';
 import { RelayService } from './relay.service';
 import { RelayRepository } from './repository/relay.repository';
 import { Relay, RelaySchema } from './schemas/relay.schema';
-import {
-  RelayedArticle,
-  RelayedArticleSchema,
-} from './schemas/relayed-article.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Relay.name, schema: RelaySchema }]),
-    MongooseModule.forFeature([
-      { name: RelayedArticle.name, schema: RelayedArticleSchema },
-    ]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([{ name: Article.name, schema: ArticleSchema }]),
     MongooseModule.forFeature([{ name: Like.name, schema: LikeSchema }]),

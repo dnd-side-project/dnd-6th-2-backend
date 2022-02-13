@@ -14,4 +14,8 @@ export class RelayService {
   ): Promise<Relay> {
     return await this.relayRepository.createRelay(createRelayDto, user);
   }
+
+  async deleteRelay(relayId: string, user: User) {
+    return await this.relayRepository.deleteRelay(relayId, user);
+  }
 }

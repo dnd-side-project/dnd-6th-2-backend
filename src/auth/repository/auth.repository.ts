@@ -55,27 +55,27 @@ export class AuthRepository {
     try {
       return await this.userModel.findOneAndUpdate(
         { email },
-        { hashedRefreshToken: null },
+        { $unset: { hashedRefreshToken: 1 } },
       );
     } catch (e) {
       throw new NotFoundException();
     }
   }
 
-  async validateUser(email: string) {
-    const user = await this.userModel.findOne(
-      { email },
-      { _id: 1, email: 1, nickname: 1, genre: 1, bio: 1 },
-    );
+  // async validateUser(email: string) {
+  //   const user = await this.userModel.findOne(
+  //     { email },
+  //     { _id: 1, email: 1, nickname: 1, genre: 1, bio: 1 },
+  //   );
 
-    if (!user) {
-      throw new NotFoundException();
-    }
-    return user;
-  }
+  //   if (!user) {
+  //     throw new NotFoundException();
+  //   }
+  //   return user;
+  // }
 
   async validateRefresh(email: string, refreshToken: string) {
-    const user = await this.validateUser(email);
+    const user = await this.findUserByEmail(email);
 
     if (await bcrypt.compare(refreshToken, user.hashedRefreshToken)) {
       return user;
@@ -131,7 +131,10 @@ export class AuthRepository {
   }
 
   async removeAuthCode(email: string) {
-    return await this.userModel.updateOne({ email }, { mailAuthCode: null });
+    return await this.userModel.updateOne(
+      { email },
+      { $unset: { mailAuthCode: 1 } },
+    );
   }
 
   async verifyAuthCode(authCodeDto: AuthCodeDto) {
