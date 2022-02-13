@@ -31,7 +31,7 @@ export class AuthService {
         from: `${process.env.EMAIL_ID}`,
         to: `${email}`,
         subject: '이메일 인증 요청 메일입니다.',
-        text: `이메일 인증 : ${authCode}`,
+        text: `인증 번호 : ${authCode}`,
       };
 
       await this.mailerService.sendMail(mailOptions);

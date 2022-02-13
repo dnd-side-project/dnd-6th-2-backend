@@ -6,6 +6,7 @@ import { Article, ArticleSchema } from 'src/challenge/schemas/article.schema';
 import { Like, LikeSchema } from 'src/feed/schemas/like.schema';
 import { RelayController } from './relay.controller';
 import { RelayService } from './relay.service';
+import { RelayRepository } from './repository/relay.repository';
 import { Relay, RelaySchema } from './schemas/relay.schema';
 import {
   RelayedArticle,
@@ -24,6 +25,6 @@ import {
     AuthModule,
   ],
   controllers: [RelayController],
-  providers: [RelayService],
+  providers: [RelayService, RelayRepository],
 })
 export class RelayModule {}
