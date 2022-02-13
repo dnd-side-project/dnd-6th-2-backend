@@ -44,14 +44,15 @@ export class AuthService {
   }
 
   async verifyAuthCode(authCodeDto: AuthCodeDto) {
-    return this.authRepository.verifyAuthCode(authCodeDto);
+    return await this.authRepository.verifyAuthCode(authCodeDto);
   }
 
   async changePassword(passwordDto: PasswordDto): Promise<User> {
-    return this.authRepository.changePassword(passwordDto);
+    return await this.authRepository.changePassword(passwordDto);
   }
 
   async logOut(email: string) {
-    return this.authRepository.removeRefreshToken(email);
+    await this.authRepository.removeAuthCode(email);
+    return await this.authRepository.removeRefreshToken(email);
   }
 }
