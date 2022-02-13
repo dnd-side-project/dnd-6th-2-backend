@@ -9,6 +9,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { FeedRepository } from './repository/feed.repository';
 import { User, UserSchema } from 'src/auth/schemas/user.schema';
 import { Like, LikeSchema } from './schemas/like.schema';
+import { History, HistorySchema } from './schemas/history.schema';
 import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
@@ -19,6 +20,7 @@ import { AuthModule } from 'src/auth/auth.module';
     MongooseModule.forFeature([{ name: Scrap.name, schema: ScrapSchema }]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([{ name: Like.name, schema: LikeSchema }]),
+    MongooseModule.forFeature([{ name: History.name, schema: HistorySchema }]),
     AuthModule,
   ],
   providers: [FeedService, FeedRepository],

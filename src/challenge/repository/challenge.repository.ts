@@ -16,7 +16,7 @@ export class ChallengeRepository {
     @InjectModel(User.name)
     private UserModel: Model<UserDocument>,
     @InjectModel(Tip.name)
-    private TipModel: Model<TipDocument>
+    private TipModel: Model<TipDocument>,
   ) {}
   private todayKeyWord: KeyWord[] = [];
 
@@ -98,8 +98,8 @@ export class ChallengeRepository {
   //     return result;
   // }
   async findTip(): Promise<any> {
-    const tip= await this.TipModel.aggregate([{$sample: {size:1}}]);
-    return tip[0]
+    const tip = await this.TipModel.aggregate([{ $sample: { size: 1 } }]);
+    return tip[0];
   }
 
   async saveArticle(

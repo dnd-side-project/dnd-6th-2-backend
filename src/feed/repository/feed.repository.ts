@@ -10,6 +10,7 @@ import { Scrap, ScrapDocument } from '../schemas/scrap.schema';
 import { User, UserDocument } from 'src/auth/schemas/user.schema';
 import { Like, LikeDocument } from '../schemas/like.schema';
 import { KeyWord, KeyWordDocument } from 'src/challenge/schemas/keyword.schema';
+import { History, HistoryDocument } from '../schemas/history.schema';
 
 export class FeedRepository {
   constructor(
@@ -24,7 +25,9 @@ export class FeedRepository {
     @InjectModel(Like.name)
     private LikeModel: Model<LikeDocument>,
     @InjectModel(KeyWord.name)
-    private KeyWordModel: Model<KeyWordDocument>
+    private KeyWordModel: Model<KeyWordDocument>,
+    @InjectModel(History.name)
+    private HistoryModel: Model<HistoryDocument>,
   ) {}
 
   async mainFeed(page: number): Promise<Article[]> {
@@ -130,6 +133,49 @@ export class FeedRepository {
       .exec();
   }
 
+  async findHistory(user): Promise<any[]> {
+    const histories = await this.HistoryModel.find({ user: user._id })
+      .sort({ _id: -1 })
+      .limit(10);
+    return histories;
+  }
+
+  async findOneHistory(user, historyId): Promise<any> {
+    return await this.HistoryModel.findOneAndDelete({
+      _id: historyId,
+      user: user._id,
+    });
+  }
+
+  async saveHistory(user, content: string): Promise<any> {
+    const history = await this.HistoryModel.findOne({
+      user: user._id,
+      content: content,
+    });
+    //유저의 검색어가 몇 개 저장됐는지 알기 위함
+    const length = await this.HistoryModel.find({
+      user: user._id,
+    }).countDocuments();
+    if (history) {
+      return history;
+    } else if (!history && length < 10) {
+      const newHistory = await new this.HistoryModel({
+        user: user,
+        content: content,
+      });
+      return newHistory.save();
+    }
+    //검색어가 10개 이상이면 제일 오래된 걸 삭제해주고 최근 검색어 저장
+    else if (!history && length >= 10) {
+      await this.HistoryModel.findOneAndDelete().sort({ _id: 1 });
+      const newHistory = await new this.HistoryModel({
+        user: user,
+        content: content,
+      });
+      return newHistory.save();
+    }
+  }
+
   async findOneArticle(id): Promise<Article> {
     // const test = await this.ArticleModel.findOne({_id:id, public:true})
     // console.log(test)
@@ -151,8 +197,13 @@ export class FeedRepository {
       },
     });
     const article = await this.ArticleModel.findById(id);
-    const keyWord = await this.KeyWordModel.findOne({updateDay: article.createdAt.toDateString()})
-    const challenge = await this.ArticleModel.find({user:user._id, keyWord:keyWord.content})
+    const keyWord = await this.KeyWordModel.findOne({
+      updateDay: article.createdAt.toDateString(),
+    });
+    const challenge = await this.ArticleModel.find({
+      user: user._id,
+      keyWord: keyWord.content,
+    });
     //마지막 챌린지 글을 삭제할 때
     if (challenge.length == 1) {
       await this.UserModel.findByIdAndUpdate(user._id, {
