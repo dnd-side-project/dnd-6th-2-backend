@@ -14,6 +14,10 @@ const options: SchemaOptions = {
 export class Article {
   _id: string;
 
+  @ApiProperty({
+    type: mongoose.Schema.Types.ObjectId,
+    description: '글쓴이 객체',
+  })
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     description: '글쓴이',
@@ -98,6 +102,10 @@ export class Article {
   @Prop({ default: 0 })
   scrapNum: number;
 
+  @ApiProperty({
+    type: [mongoose.Schema.Types.ObjectId],
+    description: '댓글 객체 배열'
+  })
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
     description: '댓글 목록',
@@ -106,7 +114,15 @@ export class Article {
   comments: Comment[];
 
   /* timestamps */
+  @ApiProperty({
+    type: Date,
+    description: '작성 날짜'
+  })
   createdAt: Date;
+  @ApiProperty({
+    type: Date,
+    description: '수정 날짜'
+  })
   updatedAt: Date;
 }
 

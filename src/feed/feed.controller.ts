@@ -19,6 +19,7 @@ import {
   ApiBody,
   ApiQuery,
   ApiBearerAuth,
+  ApiResponse,
 } from '@nestjs/swagger';
 import { CreateArticleDto } from 'src/challenge/dto/create-article.dto';
 import { UpdateArticleDto } from 'src/challenge/dto/update-article.dto';
@@ -35,7 +36,6 @@ import { User } from 'src/auth/schemas/user.schema';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Like } from './schemas/like.schema';
 
-@ApiTags('feed')
 @ApiBearerAuth('accessToken')
 @Controller('feed')
 @UseGuards(AuthGuard())
@@ -45,6 +45,7 @@ export class FeedController {
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger,
   ) {}
 
+  @ApiTags('feed')
   @Get()
   @ApiOperation({
     summary: '전체 피드 조회 API',
@@ -71,6 +72,7 @@ export class FeedController {
     }
   }
 
+  @ApiTags('feed/subscribe')
   @Get('/subscribe')
   @ApiOperation({
     summary: '구독 피드 조회 API',
@@ -101,6 +103,7 @@ export class FeedController {
     }
   }
 
+  @ApiTags('feed/subscribe')
   @Get('/subscribe/authorlist')
   @ApiOperation({
     summary: '구독한 작가들 전체목록 조회 API',
@@ -116,6 +119,7 @@ export class FeedController {
     }
   }
 
+  @ApiTags('feed/subscribe')
   @Get('/subscribe/:authorId')
   @ApiOperation({
     summary: '특정 구독작가의 글만 조회 API',
@@ -156,6 +160,7 @@ export class FeedController {
     }
   }
 
+  @ApiTags('feed/subscribe')
   @Patch('subscribe/:authorId')
   @ApiOperation({
     summary: '구독하기 API',
@@ -182,7 +187,8 @@ export class FeedController {
     }
   }
 
-  @Patch('subscribe-cancel/:authorId')
+  @ApiTags('feed/subscribe')
+  @Patch('subscribe/cancel/:authorId')
   @ApiOperation({
     summary: '구독 취소 API',
     description: '구독을 취소한다.',
@@ -208,41 +214,7 @@ export class FeedController {
     }
   }
 
-  @Get('/search/history')
-  @ApiOperation({
-    summary: '검색창에서 최근 검색어 보기',
-    description: '최근 검색어를 10개까지 조회한다.',
-  })
-  async findHistory(@GetUser() user: User, @Res() res): Promise<any[]> {
-    try {
-      const histories = await this.feedService.findHistory(user);
-      return res.status(HttpStatus.OK).json(histories);
-    } catch (e) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
-    }
-  }
-
-  //최근 검색어 삭제
-  @Delete('/search/history/:historyId')
-  @ApiOperation({
-    summary: '검색창에서 최근 검색어 삭제하기',
-    description: '최근 검색어를 삭제한다.',
-  })
-  async deleteHistory(
-    @GetUser() user: User,
-    @Param('historyId') historyId: string,
-    @Res() res,
-  ): Promise<any> {
-    try {
-      await this.feedService.findOneHistory(user, historyId);
-      return res
-        .status(HttpStatus.OK)
-        .json({ message: '검색어가 삭제되었습니다.' });
-    } catch (e) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
-    }
-  }
-
+  @ApiTags('feed/search')
   @Get('/search')
   @ApiOperation({
     summary: '피드에서 검색하기',
@@ -277,6 +249,44 @@ export class FeedController {
     }
   }
 
+  @ApiTags('feed/search')
+  @Get('/search/history')
+  @ApiOperation({
+    summary: '검색창에서 최근 검색어 보기',
+    description: '최근 검색어를 10개까지 조회한다.',
+  })
+  async findHistory(@GetUser() user: User, @Res() res): Promise<any[]> {
+    try {
+      const histories = await this.feedService.findHistory(user);
+      return res.status(HttpStatus.OK).json(histories);
+    } catch (e) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+    }
+  }
+
+  //최근 검색어 삭제
+  @ApiTags('feed/search')
+  @Delete('/search/history/:historyId')
+  @ApiOperation({
+    summary: '검색창에서 최근 검색어 삭제하기',
+    description: '최근 검색어를 삭제한다.',
+  })
+  async deleteHistory(
+    @GetUser() user: User,
+    @Param('historyId') historyId: string,
+    @Res() res,
+  ): Promise<any> {
+    try {
+      await this.feedService.findOneHistory(user, historyId);
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: '검색어가 삭제되었습니다.' });
+    } catch (e) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+    }
+  }
+
+  @ApiTags('feed')
   @Get('/:articleId')
   @ApiOperation({
     summary: '피드 글 상세페이지 조회 API',
@@ -286,6 +296,7 @@ export class FeedController {
     return this.feedService.getOneArticle(articleId);
   }
 
+  @ApiTags('feed')
   @Delete('/:articleId')
   @ApiOperation({
     summary: '피드 글 삭제 API',
@@ -312,6 +323,7 @@ export class FeedController {
     }
   }
 
+  @ApiTags('feed')
   @Patch('/:articleId')
   @ApiOperation({
     summary: '피드 글 수정 API',
@@ -343,10 +355,15 @@ export class FeedController {
     }
   }
 
+  @ApiTags('feed/comment')
   @Post('/comment/:articleId')
   @ApiOperation({
     summary: '댓글 작성 API',
     description: '글 상세페이지에서 댓글을 작성한다.',
+  })
+  @ApiResponse({
+    status: 201,
+    type: Comment,
   })
   addComment(
     @GetUser() user: User,
@@ -356,6 +373,7 @@ export class FeedController {
     return this.feedService.addComment(user, articleId, createCommentDto);
   }
 
+  @ApiTags('feed/comment')
   @Patch('/comment/:commentId')
   @ApiOperation({
     summary: '댓글 수정 API',
@@ -387,6 +405,7 @@ export class FeedController {
     }
   }
 
+  @ApiTags('feed/comment')
   @Delete('/comment/:commentId')
   @ApiOperation({
     summary: '댓글 삭제 API',
@@ -413,10 +432,15 @@ export class FeedController {
     }
   }
 
+  @ApiTags('feed')
   @Post('/scrap/:articleId')
   @ApiOperation({
     summary: '스크랩 API',
     description: '특정 글을 스크랩한다',
+  })
+  @ApiResponse({
+    status: 201,
+    type: Scrap,
   })
   async addScrap(
     @GetUser() user: User,
@@ -444,6 +468,7 @@ export class FeedController {
     }
   }
 
+  @ApiTags('feed')
   @Delete('/scrap/:articleId')
   @ApiOperation({
     summary: '스크랩 취소 API',
@@ -470,10 +495,15 @@ export class FeedController {
     }
   }
 
+  @ApiTags('feed')
   @Post('/like/:articleId')
   @ApiOperation({
     summary: '좋아요 API',
     description: '특정 글에 좋아요를 한다.',
+  })
+  @ApiResponse({
+    status: 201,
+    type: Like,
   })
   async addLike(
     @GetUser() user: User,
@@ -497,6 +527,7 @@ export class FeedController {
     }
   }
 
+  @ApiTags('feed')
   @Delete('/like/:articleId')
   @ApiOperation({
     summary: '좋아요 취소 API',
