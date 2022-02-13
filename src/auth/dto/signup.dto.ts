@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString } from 'class-validator';
 
 export class SignUpDto {
   @ApiProperty({
@@ -31,11 +31,15 @@ export class SignUpDto {
     type: Array,
     description: '사용자의 관심 장르',
   })
+  @IsNotEmpty()
+  @IsArray()
   readonly genre: string[];
 
   @ApiProperty({
     type: String,
     description: '사용자의 자기소개 한 줄',
   })
+  @IsNotEmpty()
+  @IsString()
   readonly bio: string;
 }

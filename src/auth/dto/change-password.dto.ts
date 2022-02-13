@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class MailAuthDto {
   @ApiProperty({
@@ -27,6 +27,7 @@ export class AuthCodeDto {
     description: '인증 메일에서 받은 인증 코드',
   })
   @IsNotEmpty()
+  @IsNumber()
   authCode: number;
 }
 

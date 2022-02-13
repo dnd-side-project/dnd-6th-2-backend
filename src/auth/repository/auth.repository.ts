@@ -59,7 +59,7 @@ export class AuthRepository {
     try {
       return await this.userModel.findOneAndUpdate(
         { email },
-        { hashedRefreshToken: undefined },
+        { hashedRefreshToken: null },
       );
     } catch (e) {
       throw new NotFoundException();
@@ -107,7 +107,7 @@ export class AuthRepository {
 
       return { accessToken, refreshToken };
     } else {
-      throw new ForbiddenException('로그인 실패');
+      throw new UnauthorizedException('로그인 실패');
     }
   }
 
@@ -123,10 +123,7 @@ export class AuthRepository {
   }
 
   async removeAuthCode(email: string) {
-    return await this.userModel.updateOne(
-      { email },
-      { mailAuthCode: undefined },
-    );
+    return await this.userModel.updateOne({ email }, { mailAuthCode: null });
   }
 
   async verifyAuthCode(authCodeDto: AuthCodeDto) {

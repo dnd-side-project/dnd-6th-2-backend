@@ -22,7 +22,7 @@ export class ChallengeService {
     return this.challengeRepository.findKeyWord();
   }
 
-  async findTip(): Promise<any>{
+  async findTip(): Promise<any> {
     return this.challengeRepository.findTip();
   }
 
