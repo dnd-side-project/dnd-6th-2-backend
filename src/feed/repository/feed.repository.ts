@@ -30,39 +30,62 @@ export class FeedRepository {
     private HistoryModel: Model<HistoryDocument>,
   ) {}
 
-  async mainFeed(page: number): Promise<Article[]> {
+  async mainFeed(page: number, tag:[String]): Promise<Article[]> {
     //공개 설정된 모든글
     //업데이트순 정렬
-    return await this.ArticleModel.find({ public: true })
+    if (tag != null){
+      return await this.ArticleModel.find({ public: true, tags:tag })
       .sort({ _id: -1 })
       .limit(10)
       .skip((page - 1) * 10)
-      // .populate('user','nickname')
       .populate('user')
       .exec();
+    }
+    else {
+      return await this.ArticleModel.find({ public: true })
+      .sort({ _id: -1 })
+      .limit(10)
+      .skip((page - 1) * 10)
+      .populate('user')
+      .exec();
+    }
   }
 
-  async subFeed(user, page: number): Promise<any[]> {
-    // const loginUser: User = await this.UserModel.findById(user._id)
+  async subFeed(user, page: number, tag:[string]): Promise<any[]> {
     const result: any[] = [];
-    //구독한 유저들의 공개된 글들
-    //업데이트순 정렬
-    const articles: Article[] = await this.ArticleModel.find({
-      user: user.subscribeUser,
-      public: true,
-    })
-      .sort({ _id: -1 })
-      .limit(10)
-      .skip((page - 1) * 10)
-      .populate('user')
-      // .populate('user','nickname')
-      .exec();
     //내가 구독한 유저들
     const subUserList: User[] = await this.UserModel.find({
       _id: user.subscribeUser,
     });
-    result.push(articles, subUserList);
-    return result;
+    //구독한 유저들의 공개된 글들
+    //업데이트순 정렬
+    if(tag != null){
+      const articles: Article[] = await this.ArticleModel.find({
+        user: user.subscribeUser,
+        public: true,
+        tags: tag
+      })
+        .sort({ _id: -1 })
+        .limit(10)
+        .skip((page - 1) * 10)
+        .populate('user')
+        .exec();
+        result.push(articles, subUserList);
+        return result;
+    }
+    else{
+      const articles: Article[] = await this.ArticleModel.find({
+        user: user.subscribeUser,
+        public: true,
+      })
+        .sort({ _id: -1 })
+        .limit(10)
+        .skip((page - 1) * 10)
+        .populate('user')
+        .exec();
+        result.push(articles, subUserList);
+        return result;
+    }
   }
 
   //특정 구독작가의 글만 보기
@@ -115,7 +138,7 @@ export class FeedRepository {
     });
   }
 
-  async searchArticle(option: string, content: string): Promise<Article[]> {
+  async searchArticle(page:number, option: string, content: string): Promise<Article[]> {
     let options = [];
     if (option == 'title') {
       options = [{ title: new RegExp(content) }];
@@ -129,6 +152,8 @@ export class FeedRepository {
     }
     return this.ArticleModel.find({ $or: options, public: true })
       .sort({ _id: -1 })
+      .limit(10)
+      .skip((page - 1) * 10)
       .populate('user')
       .exec();
   }

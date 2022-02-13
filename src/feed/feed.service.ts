@@ -10,12 +10,12 @@ import { User } from 'src/auth/schemas/user.schema';
 export class FeedService {
   constructor(private readonly feedRepository: FeedRepository) {}
 
-  async mainFeed(page: number): Promise<Article[]> {
-    return this.feedRepository.mainFeed(page);
+  async mainFeed(page: number, tag:[string]): Promise<Article[]> {
+    return this.feedRepository.mainFeed(page, tag);
   }
 
-  async subFeed(user, page: number): Promise<any[]> {
-    return this.feedRepository.subFeed(user, page);
+  async subFeed(user, page: number, tag:[string]): Promise<any[]> {
+    return this.feedRepository.subFeed(user, page, tag);
   }
 
   async subFeedOne(user, authorId, page: number): Promise<any[]> {
@@ -38,8 +38,8 @@ export class FeedService {
     return this.feedRepository.updateSubUser(user, authorId);
   }
 
-  async searchArticle(option: string, content: string): Promise<Article[]> {
-    return this.feedRepository.searchArticle(option, content);
+  async searchArticle(page:number, option: string, content: string): Promise<Article[]> {
+    return this.feedRepository.searchArticle(page, option, content);
   }
 
   async findHistory(user): Promise<any[]> {
