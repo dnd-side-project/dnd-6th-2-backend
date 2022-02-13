@@ -208,6 +208,41 @@ export class FeedController {
     }
   }
 
+  @Get('/search/history')
+  @ApiOperation({
+    summary: '검색창에서 최근 검색어 보기',
+    description: '최근 검색어를 10개까지 조회한다.',
+  })
+  async findHistory(@GetUser() user: User, @Res() res): Promise<any[]> {
+    try {
+      const histories = await this.feedService.findHistory(user);
+      return res.status(HttpStatus.OK).json(histories);
+    } catch (e) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+    }
+  }
+
+  //최근 검색어 삭제
+  @Delete('/search/history/:historyId')
+  @ApiOperation({
+    summary: '검색창에서 최근 검색어 삭제하기',
+    description: '최근 검색어를 삭제한다.',
+  })
+  async deleteHistory(
+    @GetUser() user: User,
+    @Param('historyId') historyId: string,
+    @Res() res,
+  ): Promise<any> {
+    try {
+      await this.feedService.findOneHistory(user, historyId);
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: '검색어가 삭제되었습니다.' });
+    } catch (e) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+    }
+  }
+
   @Get('/search')
   @ApiOperation({
     summary: '피드에서 검색하기',
@@ -219,12 +254,17 @@ export class FeedController {
       '제목(title),내용(content),제목+내용(title+content) 조건을 주는 쿼리',
   })
   @ApiQuery({ name: 'content', description: '검색할 내용' })
-  async searchArticle(@Query() query, @Res() res): Promise<Article[]> {
+  async searchArticle(
+    @GetUser() user: User,
+    @Query() query,
+    @Res() res,
+  ): Promise<Article[]> {
     try {
       const articles = await this.feedService.searchArticle(
         query.option,
         query.content,
       );
+      await this.feedService.saveHistory(user, query.content);
       if (articles.length != 0) {
         return res.status(HttpStatus.OK).json(articles);
       } else {

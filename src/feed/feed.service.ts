@@ -42,6 +42,18 @@ export class FeedService {
     return this.feedRepository.searchArticle(option, content);
   }
 
+  async findHistory(user): Promise<any[]> {
+    return this.feedRepository.findHistory(user);
+  }
+
+  async findOneHistory(user, historyId): Promise<any> {
+    return this.feedRepository.findOneHistory(user, historyId);
+  }
+
+  async saveHistory(user, content): Promise<any> {
+    return this.feedRepository.saveHistory(user, content);
+  }
+
   async getOneArticle(articleId): Promise<Article> {
     return this.feedRepository.findOneArticle(articleId);
   }
