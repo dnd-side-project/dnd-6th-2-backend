@@ -17,7 +17,7 @@ export class RelayRepository {
     const relay = await this.relayModel.findById(id);
 
     if (!relay) {
-      throw new NotFoundException();
+      throw new NotFoundException('요청하신 릴레이 방이 존재하지 않습니다.');
     }
     return relay;
   }
@@ -25,7 +25,7 @@ export class RelayRepository {
   async checkUser(relayId: string, userId: string) {
     const relay = await this.findRelayById(relayId);
     if (relay.host._id !== userId) {
-      throw new ForbiddenException();
+      throw new ForbiddenException('권한이 없습니다.');
     }
   }
 

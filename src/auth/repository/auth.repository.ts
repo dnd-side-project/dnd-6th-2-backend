@@ -3,7 +3,11 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { AuthCredentialDto } from '../dto/auth.dto';
 import { User, UserDocument } from '../schemas/user.schema';
-import { NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthCodeDto, PasswordDto } from '../dto/change-password.dto';
 import { SignUpDto } from '../dto/signup.dto';
@@ -18,7 +22,7 @@ export class AuthRepository {
     const user = await this.userModel.findOne({ email });
 
     if (!user) {
-      throw new NotFoundException();
+      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
     }
 
     return user;
@@ -46,7 +50,7 @@ export class AuthRepository {
         { hashedRefreshToken },
       );
     } catch (e) {
-      throw new NotFoundException();
+      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
     }
   }
 
@@ -58,7 +62,7 @@ export class AuthRepository {
         { $unset: { hashedRefreshToken: 1 } },
       );
     } catch (e) {
-      throw new NotFoundException();
+      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
     }
   }
 
@@ -80,7 +84,7 @@ export class AuthRepository {
     if (await bcrypt.compare(refreshToken, user.hashedRefreshToken)) {
       return user;
     } else {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('로그인이 필요합니다.');
     }
   }
 
@@ -115,7 +119,7 @@ export class AuthRepository {
 
       return { accessToken, refreshToken };
     } else {
-      throw new UnauthorizedException('로그인 실패');
+      throw new ForbiddenException('로그인에 실패했습니다.');
     }
   }
 
@@ -126,7 +130,7 @@ export class AuthRepository {
         { mailAuthCode: authCode },
       );
     } catch (e) {
-      throw new NotFoundException();
+      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
     }
   }
 
@@ -145,7 +149,9 @@ export class AuthRepository {
       await this.removeAuthCode(email);
       return true;
     } else {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(
+        '인증에 실패했습니다. 다시 시도해주세요.',
+      );
     }
   }
 
@@ -164,7 +170,7 @@ export class AuthRepository {
 
       return user; // test
     } catch (e) {
-      throw new NotFoundException();
+      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
     }
   }
 }

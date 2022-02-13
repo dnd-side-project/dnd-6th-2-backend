@@ -39,7 +39,7 @@ export class AuthService {
 
       return authCode; // test
     } catch (e) {
-      throw new InternalServerErrorException('이메일 발신 실패');
+      throw new InternalServerErrorException('이메일 발신에 실패했습니다.');
     }
   }
 
