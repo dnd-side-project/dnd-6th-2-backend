@@ -22,7 +22,7 @@ export class AuthRepository {
     const user = await this.userModel.findOne({ email });
 
     if (!user) {
-      throw new NotFoundException();
+      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
     }
 
     return user;
@@ -50,7 +50,7 @@ export class AuthRepository {
         { hashedRefreshToken },
       );
     } catch (e) {
-      throw new NotFoundException();
+      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
     }
   }
 
@@ -59,20 +59,32 @@ export class AuthRepository {
     try {
       return await this.userModel.findOneAndUpdate(
         { email },
-        { hashedRefreshToken: null },
+        { $unset: { hashedRefreshToken: 1 } },
       );
     } catch (e) {
-      throw new NotFoundException();
+      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
     }
   }
 
-  async validateRefresh(email: string, refreshToken: string): Promise<User> {
+  // async validateUser(email: string) {
+  //   const user = await this.userModel.findOne(
+  //     { email },
+  //     { _id: 1, email: 1, nickname: 1, genre: 1, bio: 1 },
+  //   );
+
+  //   if (!user) {
+  //     throw new NotFoundException();
+  //   }
+  //   return user;
+  // }
+
+  async validateRefresh(email: string, refreshToken: string) {
     const user = await this.findUserByEmail(email);
 
     if (await bcrypt.compare(refreshToken, user.hashedRefreshToken)) {
       return user;
     } else {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('로그인이 필요합니다.');
     }
   }
 
@@ -107,7 +119,7 @@ export class AuthRepository {
 
       return { accessToken, refreshToken };
     } else {
-      throw new UnauthorizedException('로그인 실패');
+      throw new ForbiddenException('로그인에 실패했습니다.');
     }
   }
 
@@ -118,12 +130,15 @@ export class AuthRepository {
         { mailAuthCode: authCode },
       );
     } catch (e) {
-      throw new NotFoundException();
+      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
     }
   }
 
   async removeAuthCode(email: string) {
-    return await this.userModel.updateOne({ email }, { mailAuthCode: null });
+    return await this.userModel.updateOne(
+      { email },
+      { $unset: { mailAuthCode: 1 } },
+    );
   }
 
   async verifyAuthCode(authCodeDto: AuthCodeDto) {
@@ -134,7 +149,9 @@ export class AuthRepository {
       await this.removeAuthCode(email);
       return true;
     } else {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(
+        '인증에 실패했습니다. 다시 시도해주세요.',
+      );
     }
   }
 
@@ -153,7 +170,7 @@ export class AuthRepository {
 
       return user; // test
     } catch (e) {
-      throw new NotFoundException();
+      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
     }
   }
 }

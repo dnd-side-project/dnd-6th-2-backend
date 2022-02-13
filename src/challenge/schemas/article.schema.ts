@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import * as mongoose from 'mongoose';
 import { User } from 'src/auth/schemas/user.schema';
 import { Comment } from 'src/feed/schemas/comment.schema';
+import { Relay } from 'src/relay/schemas/relay.schema';
 
 export type ArticleDocument = Article & Document;
 
@@ -112,6 +113,13 @@ export class Article {
     ref: 'Comment',
   })
   comments: Comment[];
+
+  @Prop({
+    type: [mongoose.Schema.Types.ObjectId],
+    description: '릴레이 방에서 쓰인 글이면 해당 릴레이 방의 id 저장',
+    ref: 'Relay',
+  })
+  relay: Relay;
 
   /* timestamps */
   @ApiProperty({
