@@ -62,25 +62,6 @@ export class ChallengeController {
     return await this.challengeService.findTip();
   }
 
-  @Get('/keyword')
-  @ApiOperation({
-    summary: '글감 조회 (개발용)',
-    description: '현재 DB에 입력된 모든 글감을 조회한다.',
-  })
-  getKeyWord(): Promise<KeyWord[]> {
-    return this.challengeService.getKeyWord();
-  }
-
-  @Post('/keyword')
-  @ApiOperation({
-    summary: '글감 등록 (개발용)',
-    description: 'DB에 글감을 등록한다.',
-  })
-  @ApiBody({ type: CreateKeyWordDto })
-  addKeyWord(@Body() createKeyWordDto: CreateKeyWordDto): Promise<KeyWord> {
-    return this.challengeService.addKeyWord(createKeyWordDto);
-  }
-
   @Post('/article')
   @ApiOperation({
     summary: '챌린지 글 저장 API',
@@ -109,6 +90,42 @@ export class ChallengeController {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
     }
   }
+  
+  @Post('/article/temp')
+  @ApiOperation({
+    summary: '챌린지 글 임시저장 API',
+    description: '챌린지 글을 임시저장한다.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'state=false, 임시저장 (챌린지 성공X)',
+  })
+  @ApiBody({ type: CreateArticleDto })
+  tempArticle(
+    @GetUser() user: User,
+    @Body() createArticleDto: CreateArticleDto,
+  ): Promise<Article> {
+    return this.challengeService.tempArticle(user, createArticleDto);
+  }
+
+  @Get('/keyword')
+  @ApiOperation({
+    summary: '글감 조회 (개발용)',
+    description: '현재 DB에 입력된 모든 글감을 조회한다.',
+  })
+  getKeyWord(): Promise<KeyWord[]> {
+    return this.challengeService.getKeyWord();
+  }
+
+  @Post('/keyword')
+  @ApiOperation({
+    summary: '글감 등록 (개발용)',
+    description: 'DB에 글감을 등록한다.',
+  })
+  @ApiBody({ type: CreateKeyWordDto })
+  addKeyWord(@Body() createKeyWordDto: CreateKeyWordDto): Promise<KeyWord> {
+    return this.challengeService.addKeyWord(createKeyWordDto);
+  }
 
   // @Get('/article')
   // @ApiOperation({
@@ -136,21 +153,4 @@ export class ChallengeController {
   // deleteArticle(@Param('id') id: string): Promise<any> {
   //   return this.challengeService.deleteArticle(id);
   // }
-
-  @Post('/article/temp')
-  @ApiOperation({
-    summary: '챌린지 글 임시저장 API',
-    description: '챌린지 글을 임시저장한다.',
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'state=false, 임시저장 (챌린지 성공X)',
-  })
-  @ApiBody({ type: CreateArticleDto })
-  tempArticle(
-    @GetUser() user: User,
-    @Body() createArticleDto: CreateArticleDto,
-  ): Promise<Article> {
-    return this.challengeService.tempArticle(user, createArticleDto);
-  }
 }
