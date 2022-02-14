@@ -2,12 +2,14 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Patch,
   Post,
   Res,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import {
   ApiOperation,
   ApiResponse,
@@ -25,11 +27,10 @@ import {
   PasswordDto,
 } from './dto/change-password.dto';
 import { SignUpDto } from './dto/signup.dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { User } from './schemas/user.schema';
 
-@Controller('auth')
 @ApiTags('auth')
+@Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
@@ -44,7 +45,7 @@ export class AuthController {
     description: '회원가입 성공',
   })
   @Post('/signup')
-  signUp(@Body(ValidationPipe) signUpDto: SignUpDto): Promise<User> {
+  signUp(@Body() signUpDto: SignUpDto): Promise<User> {
     return this.authService.signUp(signUpDto);
   }
 
@@ -61,7 +62,7 @@ export class AuthController {
   })
   @Post('/login')
   async logIn(
-    @Body(ValidationPipe) authCredentialDto: AuthCredentialDto,
+    @Body() authCredentialDto: AuthCredentialDto,
     @Res({ passthrough: true }) res: Response,
   ) {
     const { accessToken, refreshToken } = await this.authService.logIn(
@@ -83,7 +84,7 @@ export class AuthController {
     description: '인증 메일 전송 성공',
   })
   @Post('/email')
-  sendEmail(@Body(ValidationPipe) mailAuthDto: MailAuthDto): Promise<number> {
+  sendEmail(@Body() mailAuthDto: MailAuthDto): Promise<number> {
     const { email } = mailAuthDto;
     return this.authService.sendEmail(email);
   }
@@ -99,9 +100,7 @@ export class AuthController {
     description: '인증 성공',
   })
   @Post('/email/check')
-  verifyAuthCode(
-    @Body(ValidationPipe) authCodeDto: AuthCodeDto,
-  ): Promise<boolean> {
+  verifyAuthCode(@Body() authCodeDto: AuthCodeDto): Promise<boolean> {
     return this.authService.verifyAuthCode(authCodeDto);
   }
 
@@ -116,9 +115,7 @@ export class AuthController {
     description: '비밀번호 재설정 성공',
   })
   @Patch('/password')
-  changePassword(
-    @Body(ValidationPipe) passwordDto: PasswordDto,
-  ): Promise<User> {
+  changePassword(@Body() passwordDto: PasswordDto): Promise<User> {
     return this.authService.changePassword(passwordDto);
   }
 
@@ -131,11 +128,18 @@ export class AuthController {
     description: '로그아웃 성공',
   })
   @ApiBearerAuth('accessToken')
-  @UseGuards(JwtAuthGuard)
   @Delete('/logout')
+  @UseGuards(AuthGuard())
   logOut(@GetUser() user: User, @Res({ passthrough: true }) res: Response) {
     this.authService.logOut(user.email);
     res.clearCookie('auth');
     return '로그아웃 성공'; // test
+  }
+
+  // test
+  @Get('/test')
+  @UseGuards(AuthGuard())
+  test(@GetUser() user: User) {
+    return user;
   }
 }
