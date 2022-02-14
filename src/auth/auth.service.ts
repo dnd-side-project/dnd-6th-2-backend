@@ -31,7 +31,7 @@ export class AuthService {
         from: `${process.env.EMAIL_ID}`,
         to: `${email}`,
         subject: '이메일 인증 요청 메일입니다.',
-        text: `이메일 인증 : ${authCode}`,
+        text: `인증 번호 : ${authCode}`,
       };
 
       await this.mailerService.sendMail(mailOptions);
@@ -39,19 +39,20 @@ export class AuthService {
 
       return authCode; // test
     } catch (e) {
-      throw new InternalServerErrorException('이메일 발신 실패');
+      throw new InternalServerErrorException('이메일 발신에 실패했습니다.');
     }
   }
 
   async verifyAuthCode(authCodeDto: AuthCodeDto) {
-    return this.authRepository.verifyAuthCode(authCodeDto);
+    return await this.authRepository.verifyAuthCode(authCodeDto);
   }
 
   async changePassword(passwordDto: PasswordDto): Promise<User> {
-    return this.authRepository.changePassword(passwordDto);
+    return await this.authRepository.changePassword(passwordDto);
   }
 
   async logOut(email: string) {
-    return this.authRepository.removeRefreshToken(email);
+    await this.authRepository.removeAuthCode(email);
+    return await this.authRepository.removeRefreshToken(email);
   }
 }
