@@ -115,7 +115,7 @@ export class Article {
   comments: Comment[];
 
   @Prop({
-    type: [mongoose.Schema.Types.ObjectId],
+    type: mongoose.Schema.Types.ObjectId,
     description: '릴레이 방에서 쓰인 글이면 해당 릴레이 방의 id 저장',
     ref: 'Relay',
   })

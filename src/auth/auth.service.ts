@@ -3,7 +3,7 @@ import { AuthCredentialDto } from './dto/auth.dto';
 import { AuthRepository } from './repository/auth.repository';
 import { User } from './schemas/user.schema';
 import { MailerService } from '@nestjs-modules/mailer';
-import { AuthCodeDto, PasswordDto } from './dto/change-password.dto';
+import { AuthCodeDto } from './dto/change-password.dto';
 import { SignUpDto } from './dto/signup.dto';
 
 @Injectable()
@@ -47,8 +47,8 @@ export class AuthService {
     return await this.authRepository.verifyAuthCode(authCodeDto);
   }
 
-  async changePassword(passwordDto: PasswordDto): Promise<User> {
-    return await this.authRepository.changePassword(passwordDto);
+  async changePassword(authCredentialDto: AuthCredentialDto): Promise<User> {
+    return await this.authRepository.changePassword(authCredentialDto);
   }
 
   async logOut(email: string) {

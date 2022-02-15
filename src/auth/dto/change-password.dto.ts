@@ -30,22 +30,3 @@ export class AuthCodeDto {
   @IsNumber()
   authCode: number;
 }
-
-export class PasswordDto {
-  @ApiProperty({
-    type: String,
-    description: '비밀번호를 변경할 사용자의 이메일',
-    example: 'user@gmail.com',
-  })
-  @IsNotEmpty()
-  @IsString()
-  email: string;
-
-  @ApiProperty({
-    type: String,
-    description: '비밀번호 재설정 시 사용자가 입력한 새 비밀번호',
-  })
-  @IsNotEmpty()
-  @IsString()
-  password: string;
-}
