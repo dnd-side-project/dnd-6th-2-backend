@@ -6,11 +6,31 @@ import { MyArticleRepository } from './repository/my-article.repository';
 export class MyArticleService {
   constructor(private readonly myArticleRepository: MyArticleRepository) {}
 
-  async findMyArticle(user): Promise<Article[]> {
-    return this.myArticleRepository.findMyArticle(user);
+  async findMyArticle(user, last): Promise<Article[]> {
+    return this.myArticleRepository.findMyArticle(user, last);
   }
 
-  async findMyArticleOne(articleId): Promise<Article> {
+  async findMyArticleNext(user, last): Promise<any> {
+    return this.myArticleRepository.findMyArticleNext(user, last);
+  }
+
+  async saveMyArticle(user, createArticleDto): Promise<Article> {
+    return this.myArticleRepository.saveMyArticle(user, createArticleDto);
+  }
+
+  async saveMyArticleTemp(user, createArticleDto): Promise<Article> {
+    return this.myArticleRepository.saveMyArticleTemp(user, createArticleDto);
+  }
+
+  async findMyArticleTemp(user, last): Promise<Article[]> {
+    return this.myArticleRepository.findMyArticleTemp(user, last);
+  }
+
+  async findTempArticleNext(user, last): Promise<any> {
+    return this.myArticleRepository.findTempArticleNext(user, last);
+  }
+
+  async findMyArticleOne(articleId: string): Promise<Article> {
     return this.myArticleRepository.findMyArticleOne(articleId);
   }
 
@@ -21,7 +41,7 @@ export class MyArticleService {
     );
   }
 
-  async findMyArticleTemp(user): Promise<Article[]> {
-    return this.myArticleRepository.findMyArticleTemp(user);
+  async deleteMyArticle(user, articleId): Promise<any> {
+    return this.myArticleRepository.deleteMyArticle(user, articleId);
   }
 }

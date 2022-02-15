@@ -161,11 +161,11 @@ export class FeedController {
           .json({ articles, subscribeUserList, nextArticle });
       }
     } catch (e) {
-      this.logger.error('피드 전체 조회 ERR ' + e);
+      this.logger.error('구독 피드 전체 조회 ERR ' + e);
       if (e instanceof TypeError) {
         return res
-          .status(HttpStatus.OK)
-          .json({ message: '검색 결과가 없습니다.' });
+          .status(HttpStatus.NOT_FOUND)
+          .json({ message: '구독한 작가들이 없습니다.' });
       } else {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
       }
