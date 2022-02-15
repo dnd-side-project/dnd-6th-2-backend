@@ -30,13 +30,13 @@ import { CreateRelayDto } from './dto/create-relay.dto';
 import { UpdateRelayDto } from './dto/update-relay.dto';
 import { OrderBy, RelayService } from './relay.service';
 
-@ApiTags('relay')
 @ApiBearerAuth('accessToken')
 @Controller('relay')
 @UseGuards(AuthGuard())
 export class RelayController {
   constructor(private relayService: RelayService) {}
 
+  @ApiTags('relay')
   @ApiOperation({
     summary: '릴레이 방 전체를 조회하기 위한 엔드포인트입니다',
     description:
@@ -67,6 +67,7 @@ export class RelayController {
     return res.status(HttpStatus.OK).json(relays);
   }
 
+  @ApiTags('relay')
   @ApiOperation({
     summary: '자신이 참여한 릴레이 방을 조회하기 위한 엔드포인트입니다',
     description: '릴레이 메인페이지에서 참여한 방을 조회하는 엔드포인트입니다',
@@ -81,6 +82,7 @@ export class RelayController {
     return res.status(HttpStatus.OK).json(relays);
   }
 
+  @ApiTags('relay')
   @ApiOperation({
     summary: '릴레이 방을 생성하기 위한 엔드포인트입니다',
     description: '릴레이 방을 생성합니다',
@@ -100,6 +102,7 @@ export class RelayController {
     return res.status(HttpStatus.CREATED).json(relay);
   }
 
+  @ApiTags('relay')
   @ApiOperation({
     summary: '릴레이 방의 정보를 수정하기 위한 엔드포인트입니다',
     description:
@@ -130,6 +133,7 @@ export class RelayController {
     return res.status(HttpStatus.OK).json(relay);
   }
 
+  @ApiTags('relay')
   @ApiOperation({
     summary: '릴레이 방을 삭제하기 위한 엔드포입트입니다',
     description:
@@ -154,6 +158,7 @@ export class RelayController {
     return res.status(HttpStatus.OK).json({ message: '릴레이 방 삭제 성공' });
   }
 
+  @ApiTags('relay/notice')
   @ApiOperation({
     summary: '릴레이 방에 공지사항을 추가하기 위한 엔드포인트입니다',
     description:
@@ -185,6 +190,7 @@ export class RelayController {
     return res.status(HttpStatus.CREATED).json(Notice);
   }
 
+  @ApiTags('relay/notice')
   @ApiOperation({
     summary: '공지사항을 수정하기 위한 엔드포인트입니다',
     description: '해당 릴레이 방의 해당 공지사항을 수정할 수 있습니다',
@@ -220,6 +226,7 @@ export class RelayController {
     return res.status(HttpStatus.OK).json(Notice);
   }
 
+  @ApiTags('relay/notice')
   @ApiOperation({
     summary: '공지사항을 삭제하기 위한 엔드포인트입니다',
     description: '해당 릴레이 방의 해당 공지사항을 삭제할 수 있습니다',
@@ -248,6 +255,7 @@ export class RelayController {
     return res.status(HttpStatus.OK).json({ message: '공지사항 삭제 성공' });
   }
 
+  @ApiTags('relay')
   @ApiOperation({
     summary: '릴레이 방에 참여하기 위한 엔드포인트입니다',
     description: '해당 릴레이 방에 입장할 수 있습니다',
@@ -271,6 +279,7 @@ export class RelayController {
     return res.status(HttpStatus.OK).json({ message: '릴레이 방 입장 성공' });
   }
 
+  @ApiTags('relay')
   @ApiOperation({
     summary: '릴레이 방에서 퇴장하기 위한 엔드포인트입니다',
     description:
@@ -295,6 +304,7 @@ export class RelayController {
     return res.status(HttpStatus.OK).json({ message: '릴레이 방 퇴장 성공' });
   }
 
+  @ApiTags('relay/article')
   @ApiOperation({
     summary: '릴레이 글을 조회하기 위한 엔드포인트입니다',
     description: '해당 릴레이 방의 모든 릴레이 글을 조회할 수 있습니다',
@@ -317,6 +327,7 @@ export class RelayController {
     return res.status(HttpStatus.OK).json(relays);
   }
 
+  @ApiTags('relay/article')
   @ApiOperation({
     summary: '릴레이 글을 작성하기 위한 엔드포인트입니다',
     description: '해당 릴레이 방에 참여한 유저들이 글을 추가할 수 있습니다',
@@ -347,6 +358,7 @@ export class RelayController {
     return res.status(HttpStatus.CREATED).json(article);
   }
 
+  @ApiTags('relay/article')
   @ApiOperation({
     summary: '릴레이 글을 수정하기 위한 엔드포인트입니다',
     description:
@@ -383,6 +395,7 @@ export class RelayController {
     return res.status(HttpStatus.OK).json(article);
   }
 
+  @ApiTags('relay/article')
   @ApiOperation({
     summary: '릴레이 글을 삭제하기 위한 엔드포인트입니다',
     description:
