@@ -8,6 +8,14 @@ import { Relay } from './schemas/relay.schema';
 export class RelayService {
   constructor(private readonly relayRepository: RelayRepository) {}
 
+  async getAllRelay(tags: string[] | null, user: User) {
+    return await this.relayRepository.getAllRelay(tags, user);
+  }
+
+  async getJoinedRelay(user: User) {
+    return await this.relayRepository.getJoinedRelay(user);
+  }
+
   async createRelay(
     createRelayDto: CreateRelayDto,
     user: User,
@@ -17,5 +25,31 @@ export class RelayService {
 
   async deleteRelay(relayId: string, user: User) {
     return await this.relayRepository.deleteRelay(relayId, user);
+  }
+
+  async AddNoticeToRelay(relayId: string, notice: string, user: User) {
+    return await this.relayRepository.AddNoticeToRelay(relayId, notice, user);
+  }
+
+  async updateNoticeToRelay(
+    relayId: string,
+    noticeId: string,
+    notice: string,
+    user: User,
+  ) {
+    return await this.relayRepository.updateNoticeToRelay(
+      relayId,
+      noticeId,
+      notice,
+      user,
+    );
+  }
+
+  async deleteNoticeToRelay(relayId: string, noticeId: string, user: User) {
+    return await this.relayRepository.deleteNoticeToRelay(
+      relayId,
+      noticeId,
+      user,
+    );
   }
 }

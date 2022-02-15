@@ -7,6 +7,7 @@ import {
   Post,
   Res,
   UseGuards,
+  UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -30,6 +31,7 @@ import { SignUpDto } from './dto/signup.dto';
 import { User } from './schemas/user.schema';
 
 @ApiTags('auth')
+@UsePipes(ValidationPipe)
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}

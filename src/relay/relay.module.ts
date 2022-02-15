@@ -7,6 +7,7 @@ import { Like, LikeSchema } from 'src/feed/schemas/like.schema';
 import { RelayController } from './relay.controller';
 import { RelayService } from './relay.service';
 import { RelayRepository } from './repository/relay.repository';
+import { Notice, NoticeSchema } from './schemas/notice.schema';
 import { Relay, RelaySchema } from './schemas/relay.schema';
 
 @Module({
@@ -15,6 +16,7 @@ import { Relay, RelaySchema } from './schemas/relay.schema';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([{ name: Article.name, schema: ArticleSchema }]),
     MongooseModule.forFeature([{ name: Like.name, schema: LikeSchema }]),
+    MongooseModule.forFeature([{ name: Notice.name, schema: NoticeSchema }]),
     AuthModule,
   ],
   controllers: [RelayController],

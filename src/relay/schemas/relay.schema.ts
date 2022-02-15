@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import * as mongoose from 'mongoose';
 import { User } from 'src/auth/schemas/user.schema';
+import { Notice } from './notice.schema';
 
 export type RelayDocument = Relay & Document;
 
@@ -24,11 +25,15 @@ export class Relay {
   tags: string[];
 
   @ApiProperty({
-    type: String,
+    type: [Notice],
     description: '릴레이 방의 공지사항',
   })
-  @Prop()
-  notice: string;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    description: '릴레이 방의 공지사항 목록',
+    ref: 'Notice',
+  })
+  notice: Notice[];
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
@@ -59,6 +64,14 @@ export class Relay {
   })
   @Prop({ default: 1 })
   membersCount: number;
+
+  @ApiProperty({
+    type: Number,
+    description: '조회수',
+    default: 0,
+  })
+  @Prop({ default: 0 })
+  views: number;
 
   @Prop({ default: Date.now() })
   createdAt: Date;
