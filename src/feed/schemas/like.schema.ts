@@ -12,10 +12,9 @@ const options: SchemaOptions = {
 
 @Schema(options)
 export class Like {
-
   @ApiProperty({
     type: mongoose.Schema.Types.ObjectId,
-    description: '좋아요를 누른 유저 객체'
+    description: '좋아요를 누른 유저 객체',
   })
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
@@ -25,7 +24,7 @@ export class Like {
 
   @ApiProperty({
     type: mongoose.Schema.Types.ObjectId,
-    description: '좋아요를 누른 게시글'
+    description: '좋아요를 누른 게시글',
   })
   @Prop({
     type: mongoose.Schema.Types.ObjectId,

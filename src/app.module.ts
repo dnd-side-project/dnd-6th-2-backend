@@ -59,7 +59,7 @@ import DailyRotateFile = require('winston-daily-rotate-file');
     AuthModule,
     FeedModule,
     RelayModule,
-    MyArticleModule
+    MyArticleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

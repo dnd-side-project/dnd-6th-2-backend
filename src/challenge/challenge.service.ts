@@ -4,7 +4,6 @@ import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { ChallengeRepository } from './repository/challenge.repository';
 import { Article } from './schemas/article.schema';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { Tip } from './schemas/tip.schema';
 
 @Injectable()
 export class ChallengeService {

@@ -52,30 +52,46 @@ export class FeedController {
     description: '공개 설정된 모든 글들을 조회한다.(업데이트순)',
   })
   @ApiQuery({
-    name: 'page',
-    type: Number,
-    description: '페이지 넘버(한 페이지 당 글 10개)',
-    example: 1,
+    name: 'lastArticleId',
+    type: String,
+    description: '마지막 글 아이디(처음에는 null값 보냄)',
+    required: false,
   })
   @ApiQuery({
     name: 'tag',
     type: Array,
     description: '태그별로 분류해서 보여주기 위한 쿼리',
-    required: false
+    required: false,
   })
   async getMainFeed(@Query() query, @Res() res): Promise<Article[]> {
     try {
-      if (query.page < 1) {
-        return res
-          .status(HttpStatus.BAD_REQUEST)
-          .json({ message: '없는 페이지 입니다.' });
+      if (query.lastArticleId == null) {
+        query.lastArticleId = await this.feedService.findLast();
+        const articles: Article[] = await this.feedService.mainFeed(
+          query.lastArticleId,
+          query.tag,
+        );
+        const last = articles[articles.length - 1]._id;
+        const nextArticle = await this.feedService.findNext(query.tag, last);
+        return res.status(HttpStatus.OK).json({ articles, nextArticle });
       } else {
-        const article: Article[] = await this.feedService.mainFeed(query.page, query.tag);
-        return res.status(HttpStatus.OK).json(article);
+        const articles: Article[] = await this.feedService.mainFeed(
+          query.lastArticleId,
+          query.tag,
+        );
+        const last = articles[articles.length - 1]._id;
+        const nextArticle = await this.feedService.findNext(query.tag, last);
+        return res.status(HttpStatus.OK).json({ articles, nextArticle });
       }
     } catch (e) {
       this.logger.error('피드 전체 조회 ERR ' + e);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+      if (e instanceof TypeError) {
+        return res
+          .status(HttpStatus.OK)
+          .json({ message: '검색 결과가 없습니다.' });
+      } else {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+      }
     }
   }
 
@@ -86,37 +102,73 @@ export class FeedController {
     description: '구독한 작가들의 글과 구독목록을 조회한다.(업데이트순)',
   })
   @ApiQuery({
-    name: 'page',
-    description: '페이지 넘버(한 페이지 당 글 10개)',
-    example: 1,
-  })
-  @ApiQuery({
-    name: 'tag',
-    type: Array,
-    description: '태그별로 분류해서 보여주기 위한 쿼리',
-    required: false
+    name: 'lastArticleId',
+    type: String,
+    description: '마지막 글 아이디(처음에는 null값 보냄)',
+    required: false,
   })
   @ApiResponse({
     status: 200,
-    description: '구독한 작가들의 Article 객체 배열 , 구독한 작가들의 user 객체 배열 반환'
+    description:
+      '구독한 작가들의 Article 객체 배열 , 구독한 작가들의 user 객체 배열 반환',
   })
   async getSubFeed(
     @GetUser() user: User,
     @Query() query,
     @Res() res,
+    @Param('authorId') authorId,
   ): Promise<any[]> {
     try {
-      if (query.page < 1) {
+      const subscribeUserList: any[] = await this.feedService.findAllSubUser(
+        user,
+      );
+      if (query.lastArticleId == null) {
+        query.lastArticleId = await this.feedService.findLastSub(
+          user,
+          authorId,
+        );
+        const articles: Article[] = await this.feedService.subFeed(
+          user,
+          query.lastArticleId,
+        );
+        // console.log(articles[0][articles.length - 1])
+        // const last = articles[0][articles.length - 1]._id
+        const last = articles[articles.length - 1]._id;
+        const nextArticle = await this.feedService.findNextSub(
+          user,
+          last,
+          authorId,
+        );
         return res
-          .status(HttpStatus.BAD_REQUEST)
-          .json({ message: '없는 페이지 입니다.' });
+          .status(HttpStatus.OK)
+          .json({ articles, subscribeUserList, nextArticle });
       } else {
-        const feed: any[] = await this.feedService.subFeed(user, query.page, query.tag);
-        return res.status(HttpStatus.OK).json(feed);
+        const articles: Article[] = await this.feedService.subFeed(
+          user,
+          query.lastArticleId,
+        );
+        // console.log(articles);
+        const last = articles[articles.length - 1]._id;
+        // const last = articles[0][articles.length - 1]._id
+        // console.log(articles);
+        const nextArticle = await this.feedService.findNextSub(
+          user,
+          last,
+          authorId,
+        );
+        return res
+          .status(HttpStatus.OK)
+          .json({ articles, subscribeUserList, nextArticle });
       }
     } catch (e) {
       this.logger.error('피드 전체 조회 ERR ' + e);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+      if (e instanceof TypeError) {
+        return res
+          .status(HttpStatus.OK)
+          .json({ message: '검색 결과가 없습니다.' });
+      } else {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+      }
     }
   }
 
@@ -143,9 +195,10 @@ export class FeedController {
     description: '특정 구독 작가의 글과 나의 구독목록을 조회한다.(업데이트순)',
   })
   @ApiQuery({
-    name: 'page',
-    description: '페이지 넘버(한 페이지 당 글 10개)',
-    example: 1,
+    name: 'lastArticleId',
+    type: String,
+    description: '마지막 글 아이디(처음에는 null값 보냄)',
+    required: false,
   })
   async getSubFeedOne(
     @GetUser() user: User,
@@ -155,21 +208,48 @@ export class FeedController {
   ): Promise<any[]> {
     try {
       const check = await this.feedService.findSubUser(user, authorId);
-      if (query.page < 1) {
-        return res
-          .status(HttpStatus.BAD_REQUEST)
-          .json({ message: '없는 페이지 입니다.' });
-      } else if (check.length == 0) {
+      const subscribeUserList: any[] = await this.feedService.findAllSubUser(
+        user,
+      );
+      if (check.length == 0) {
         return res
           .status(HttpStatus.BAD_REQUEST)
           .json({ message: '구독한 작가가 아닙니다.' });
-      } else if (query.page >= 1 && check.length != 0) {
-        const feed: any[] = await this.feedService.subFeedOne(
+      } else if (query.lastArticleId == null && check.length != 0) {
+        query.lastArticleId = await this.feedService.findLastSub(
           user,
           authorId,
-          query.page,
         );
-        return res.status(HttpStatus.OK).json(feed);
+        const articles: any[] = await this.feedService.subFeedOne(
+          user,
+          authorId,
+          query.lastArticleId,
+        );
+        const last = articles[articles.length - 1]._id;
+        const nextArticle = await this.feedService.findNextSub(
+          user,
+          last,
+          authorId,
+        );
+        console.log(nextArticle);
+        return res
+          .status(HttpStatus.OK)
+          .json({ articles, subscribeUserList, nextArticle });
+      } else if (query.lastArticleId != null && check.length != 0) {
+        const articles: any[] = await this.feedService.subFeedOne(
+          user,
+          authorId,
+          query.lastArticleId,
+        );
+        const last = articles[articles.length - 1]._id;
+        const nextArticle = await this.feedService.findNextSub(
+          user,
+          last,
+          authorId,
+        );
+        return res
+          .status(HttpStatus.OK)
+          .json({ articles, subscribeUserList, nextArticle });
       }
     } catch (e) {
       this.logger.error('특정 구독 작가 글만 조회 ERR ' + e);
@@ -238,10 +318,10 @@ export class FeedController {
     description: '제목, 내용, 제목+내용으로 검색한다.',
   })
   @ApiQuery({
-    name: 'page',
+    name: 'lastArticleId',
     type: String,
-    description: '페이지 넘버(한 페이지 당 글 10개)',
-    example: 1,
+    description: '마지막 글 아이디(처음에는 null값 보냄)',
+    required: false,
   })
   @ApiQuery({
     name: 'option',
@@ -253,16 +333,22 @@ export class FeedController {
     @GetUser() user: User,
     @Query() query,
     @Res() res,
-  ): Promise<Article[]> {
+  ): Promise<any> {
     try {
+      await this.feedService.saveHistory(user, query.content);
       const articles = await this.feedService.searchArticle(
-        query.page,
+        query.lastArticleId,
         query.option,
         query.content,
       );
-      await this.feedService.saveHistory(user, query.content);
-      if (articles.length != 0) {
-        return res.status(HttpStatus.OK).json(articles);
+      if (articles != null) {
+        const last = articles[articles.length - 1]._id;
+        const nextArticle = await this.feedService.nextSearch(
+          query.option,
+          query.content,
+          last,
+        );
+        return res.status(HttpStatus.OK).json({ articles, nextArticle });
       } else {
         return res
           .status(HttpStatus.NOT_FOUND)
