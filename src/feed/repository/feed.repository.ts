@@ -30,83 +30,143 @@ export class FeedRepository {
     private HistoryModel: Model<HistoryDocument>,
   ) {}
 
-  async mainFeed(page: number, tag:[String]): Promise<Article[]> {
-    //공개 설정된 모든글
-    //업데이트순 정렬
-    if (tag != null){
-      return await this.ArticleModel.find({ public: true, tags:tag })
+  async findLast(): Promise<any> {
+    const maxId = await this.ArticleModel.find({ public: true })
       .sort({ _id: -1 })
-      .limit(10)
-      .skip((page - 1) * 10)
-      .populate('user')
-      .exec();
-    }
-    else {
-      return await this.ArticleModel.find({ public: true })
-      .sort({ _id: -1 })
-      .limit(10)
-      .skip((page - 1) * 10)
-      .populate('user')
-      .exec();
+      .limit(1);
+    return maxId[0]._id;
+  }
+
+  async findNext(tag, lastArticleId): Promise<any> {
+    if (tag != null) {
+      const next = await this.ArticleModel.find({
+        public: true,
+        tags: tag,
+        _id: { $lt: lastArticleId },
+      })
+        .sort({ _id: -1 })
+        .limit(1);
+      if (next.length == 0) {
+        return null;
+      } else {
+        return next[0]._id;
+      }
+    } else {
+      const next = await this.ArticleModel.find({
+        public: true,
+        _id: { $lt: lastArticleId },
+      })
+        .sort({ _id: -1 })
+        .limit(1);
+      if (next.length == 0) {
+        return null;
+      } else {
+        return next[0]._id;
+      }
     }
   }
 
-  async subFeed(user, page: number, tag:[string]): Promise<any[]> {
-    const result: any[] = [];
-    //내가 구독한 유저들
-    const subUserList: User[] = await this.UserModel.find({
-      _id: user.subscribeUser,
-    });
-    //구독한 유저들의 공개된 글들
+  async mainFeed(lastArticleId, tag: [string]): Promise<Article[]> {
+    //공개 설정된 모든글
     //업데이트순 정렬
-    if(tag != null){
-      const articles: Article[] = await this.ArticleModel.find({
-        user: user.subscribeUser,
+    if (tag != null) {
+      const articles = await this.ArticleModel.find({
         public: true,
-        tags: tag
+        tags: tag,
+        _id: { $lte: lastArticleId },
       })
         .sort({ _id: -1 })
-        .limit(10)
-        .skip((page - 1) * 10)
+        .limit(2)
         .populate('user')
         .exec();
-        result.push(articles, subUserList);
-        return result;
-    }
-    else{
-      const articles: Article[] = await this.ArticleModel.find({
-        user: user.subscribeUser,
+      return articles;
+    } else {
+      const articles = await this.ArticleModel.find({
         public: true,
+        _id: { $lte: lastArticleId },
       })
         .sort({ _id: -1 })
-        .limit(10)
-        .skip((page - 1) * 10)
+        .limit(2)
         .populate('user')
         .exec();
-        result.push(articles, subUserList);
-        return result;
+      return articles;
     }
+  }
+  async findLastSub(user, authorId): Promise<any> {
+    if (authorId == null) {
+      const maxId = await this.ArticleModel.find({
+        public: true,
+        user: user.subscribeUser,
+      })
+        .sort({ _id: -1 })
+        .limit(1);
+      return maxId[0]._id;
+    } else {
+      const maxIdOne = await this.ArticleModel.find({
+        publice: true,
+        user: authorId,
+      })
+        .sort({ _id: -1 })
+        .limit(1);
+      return maxIdOne[0]._id;
+    }
+  }
+
+  async findNextSub(user, lastArticleId, authorId): Promise<any> {
+    if (authorId == null) {
+      const next = await this.ArticleModel.find({
+        public: true,
+        user: user.subscribeUser,
+        _id: { $lt: lastArticleId },
+      })
+        .sort({ _id: -1 })
+        .limit(1);
+      if (next.length == 0) {
+        return null;
+      } else {
+        return next[0]._id;
+      }
+    } else {
+      const next = await this.ArticleModel.find({
+        publice: true,
+        user: authorId,
+        _id: { $lt: lastArticleId },
+      })
+        .sort({ _id: -1 })
+        .limit(1);
+      if (next.length == 0) {
+        return null;
+      } else {
+        return next[0]._id;
+      }
+    }
+  }
+
+  async subFeed(user, lastArticleId): Promise<any[]> {
+    const articles: Article[] = await this.ArticleModel.find({
+      user: user.subscribeUser,
+      public: true,
+      _id: { $lte: lastArticleId },
+    })
+      .sort({ _id: -1 })
+      .limit(2)
+      .populate('user')
+      .exec();
+    return articles;
   }
 
   //특정 구독작가의 글만 보기
-  async subFeedOne(user, authorId, page: number): Promise<any[]> {
-    const loginUser: User = await this.UserModel.findById(user._id);
-    const result: any[] = [];
+  async subFeedOne(user, authorId, lastArticleId): Promise<any[]> {
     const articles = await this.ArticleModel.find({
       user: authorId,
       public: true,
+      _id: { $lte: lastArticleId },
     })
       .sort({ _id: -1 })
-      .limit(10)
-      .skip((page - 1) * 10)
+      .limit(2)
       .populate('user')
       .exec();
-    //내가 구독한 유저들
-    const subUserList: User[] = await this.UserModel.find({
-      _id: loginUser.subscribeUser,
-    });
-    result.push(articles, subUserList);
-    return result;
+    return articles;
   }
 
   //구독한 유저인지 체크
@@ -138,7 +198,11 @@ export class FeedRepository {
     });
   }
 
-  async searchArticle(page:number, option: string, content: string): Promise<Article[]> {
+  async searchArticle(
+    lastArticleId,
+    option: string,
+    content: string,
+  ): Promise<any> {
     let options = [];
     if (option == 'title') {
       options = [{ title: new RegExp(content) }];
@@ -150,12 +214,56 @@ export class FeedRepository {
         { content: new RegExp(content) },
       ];
     }
-    return this.ArticleModel.find({ $or: options, public: true })
+    if (lastArticleId == null) {
+      const last = await this.ArticleModel.find({ $or: options, public: true })
+        .sort({ _id: -1 })
+        .limit(1);
+      if (last.length != 0) {
+        lastArticleId = last[0]._id;
+      } else {
+        lastArticleId == null;
+      }
+    }
+    const articles = await this.ArticleModel.find({
+      $or: options,
+      public: true,
+      _id: { $lte: lastArticleId },
+    })
       .sort({ _id: -1 })
-      .limit(10)
-      .skip((page - 1) * 10)
+      .limit(2)
       .populate('user')
       .exec();
+    if (articles.length != 0) {
+      return articles;
+    } else {
+      return null;
+    }
+  }
+
+  async nextSearch(option: string, content: string, last): Promise<any> {
+    let options = [];
+    if (option == 'title') {
+      options = [{ title: new RegExp(content) }];
+    } else if (option == 'content') {
+      options = [{ content: new RegExp(content) }];
+    } else if (option == 'title+content') {
+      options = [
+        { title: new RegExp(content) },
+        { content: new RegExp(content) },
+      ];
+    }
+    const next = await this.ArticleModel.find({
+      $or: options,
+      public: true,
+      _id: { $lt: last },
+    })
+      .sort({ _id: -1 })
+      .limit(1);
+    if (next.length == 0) {
+      return null;
+    } else {
+      return next[0]._id;
+    }
   }
 
   async findHistory(user): Promise<any[]> {

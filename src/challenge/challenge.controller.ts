@@ -90,7 +90,7 @@ export class ChallengeController {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
     }
   }
-  
+
   @Post('/article/temp')
   @ApiOperation({
     summary: '챌린지 글 임시저장 API',

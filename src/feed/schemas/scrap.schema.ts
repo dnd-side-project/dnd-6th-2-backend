@@ -12,10 +12,9 @@ const options: SchemaOptions = {
 
 @Schema(options)
 export class Scrap {
-
   @ApiProperty({
     type: mongoose.Schema.Types.ObjectId,
-    description: '스크랩을 한 유저'
+    description: '스크랩을 한 유저',
   })
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
@@ -25,7 +24,7 @@ export class Scrap {
 
   @ApiProperty({
     type: mongoose.Schema.Types.ObjectId,
-    description: '스크랩을 한 게시글'
+    description: '스크랩을 한 게시글',
   })
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
