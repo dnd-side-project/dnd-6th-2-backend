@@ -76,7 +76,7 @@ export class FeedRepository {
         _id: { $lte: lastArticleId },
       })
         .sort({ _id: -1 })
-        .limit(10)
+        .limit(3)
         .populate('user')
         .exec();
       return articles;
@@ -86,7 +86,7 @@ export class FeedRepository {
         _id: { $lte: lastArticleId },
       })
         .sort({ _id: -1 })
-        .limit(10)
+        .limit(3)
         .populate('user')
         .exec();
       return articles;
@@ -149,7 +149,7 @@ export class FeedRepository {
       _id: { $lte: lastArticleId },
     })
       .sort({ _id: -1 })
-      .limit(10)
+      .limit(3)
       .populate('user')
       .exec();
     return articles;
@@ -163,7 +163,7 @@ export class FeedRepository {
       _id: { $lte: lastArticleId },
     })
       .sort({ _id: -1 })
-      .limit(10)
+      .limit(3)
       .populate('user')
       .exec();
     return articles;
@@ -230,7 +230,7 @@ export class FeedRepository {
       _id: { $lte: lastArticleId },
     })
       .sort({ _id: -1 })
-      .limit(10)
+      .limit(3)
       .populate('user')
       .exec();
     if (articles.length != 0) {
