@@ -73,6 +73,10 @@ export class Relay {
   @Prop({ default: 0 })
   views: number;
 
+  @ApiProperty({
+    type: Date,
+    description: '작성 날짜와 시간',
+  })
   @Prop({ default: Date.now() })
   createdAt: Date;
 }

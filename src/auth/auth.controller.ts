@@ -135,7 +135,7 @@ export class AuthController {
     description: '로그아웃 성공',
   })
   @ApiBearerAuth('accessToken')
-  @Delete('/logout')
+  @Patch('/logout')
   @UseGuards(AuthGuard())
   async logOut(
     @GetUser() user: User,

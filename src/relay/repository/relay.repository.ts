@@ -29,6 +29,7 @@ export class RelayRepository {
   }
 
   async checkUser(relayId: string, userId: string) {
+    // 호스트인지 판별
     const relay = await this.findRelayById(relayId);
 
     if (relay.host._id.toString() !== userId.toString()) {
@@ -153,18 +154,15 @@ export class RelayRepository {
     return Notice;
   }
 
-  async updateNoticeToRelay(
-    relayId: string,
-    noticeId: string,
-    notice: string,
-    user: User,
-  ) {
+  async updateNoticeToRelay(param, notice: string, user: User) {
+    const { relayId, noticeId } = param;
     await this.checkUser(relayId, user._id);
 
     return await this.noticeModel.findByIdAndUpdate(noticeId, { notice });
   }
 
-  async deleteNoticeToRelay(relayId: string, noticeId: string, user: User) {
+  async deleteNoticeToRelay(param, user: User) {
+    const { relayId, noticeId } = param;
     await this.checkUser(relayId, user._id);
 
     await this.noticeModel.findByIdAndDelete(noticeId);

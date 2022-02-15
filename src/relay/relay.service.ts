@@ -2,12 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { User } from 'src/auth/schemas/user.schema';
 import { CreateRelayDto } from './dto/create-relay.dto';
 import { UpdateRelayDto } from './dto/update-relay.dto';
+import { RelayArticleRepository } from './repository/relay-article.repository';
 import { RelayRepository } from './repository/relay.repository';
 import { Relay } from './schemas/relay.schema';
 
 @Injectable()
 export class RelayService {
-  constructor(private readonly relayRepository: RelayRepository) {}
+  constructor(
+    private readonly relayRepository: RelayRepository,
+    private readonly relayArticleRepository: RelayArticleRepository,
+  ) {}
 
   async getAllRelay(tags: string[] | null, user: User) {
     return await this.relayRepository.getAllRelay(tags, user);
@@ -44,26 +48,12 @@ export class RelayService {
     return await this.relayRepository.AddNoticeToRelay(relayId, notice, user);
   }
 
-  async updateNoticeToRelay(
-    relayId: string,
-    noticeId: string,
-    notice: string,
-    user: User,
-  ) {
-    return await this.relayRepository.updateNoticeToRelay(
-      relayId,
-      noticeId,
-      notice,
-      user,
-    );
+  async updateNoticeToRelay(param, notice: string, user: User) {
+    return await this.relayRepository.updateNoticeToRelay(param, notice, user);
   }
 
-  async deleteNoticeToRelay(relayId: string, noticeId: string, user: User) {
-    return await this.relayRepository.deleteNoticeToRelay(
-      relayId,
-      noticeId,
-      user,
-    );
+  async deleteNoticeToRelay(param, user: User) {
+    return await this.relayRepository.deleteNoticeToRelay(param, user);
   }
 
   async joinRelay(relayId: string, user: User) {
@@ -72,5 +62,25 @@ export class RelayService {
 
   async exitRelay(relayId: string, user: User) {
     return await this.relayRepository.exitRelay(relayId, user);
+  }
+
+  async createRelayArticle(relayId: string, content: string, user: User) {
+    return await this.relayArticleRepository.createRelayArticle(
+      relayId,
+      content,
+      user,
+    );
+  }
+
+  async updateRelayArticle(param, content: string, user: User) {
+    return await this.relayArticleRepository.updateRelayArticle(
+      param,
+      content,
+      user,
+    );
+  }
+
+  async deleteRelayArticle(param, user: User) {
+    return await this.relayArticleRepository.deleteRelayArticle(param, user);
   }
 }

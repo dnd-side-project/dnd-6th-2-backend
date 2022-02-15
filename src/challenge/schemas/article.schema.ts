@@ -105,7 +105,7 @@ export class Article {
 
   @ApiProperty({
     type: [mongoose.Schema.Types.ObjectId],
-    description: '댓글 객체 배열'
+    description: '댓글 객체 배열',
   })
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
@@ -115,7 +115,7 @@ export class Article {
   comments: Comment[];
 
   @Prop({
-    type: [mongoose.Schema.Types.ObjectId],
+    type: mongoose.Schema.Types.ObjectId,
     description: '릴레이 방에서 쓰인 글이면 해당 릴레이 방의 id 저장',
     ref: 'Relay',
   })
@@ -124,12 +124,12 @@ export class Article {
   /* timestamps */
   @ApiProperty({
     type: Date,
-    description: '작성 날짜'
+    description: '작성 날짜',
   })
   createdAt: Date;
   @ApiProperty({
     type: Date,
-    description: '수정 날짜'
+    description: '수정 날짜',
   })
   updatedAt: Date;
 }

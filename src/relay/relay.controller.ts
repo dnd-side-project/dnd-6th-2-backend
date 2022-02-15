@@ -25,6 +25,7 @@ import { Response } from 'express';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { User } from 'src/auth/schemas/user.schema';
 import { AddNoticeDto } from './dto/add-notice.dto';
+import { RelayArticleDto } from './dto/relay-article.dto';
 import { CreateRelayDto } from './dto/create-relay.dto';
 import { UpdateRelayDto } from './dto/update-relay.dto';
 import { RelayService } from './relay.service';
@@ -218,11 +219,9 @@ export class RelayController {
     @GetUser() user: User,
     @Res() res: Response,
   ) {
-    const { relayId, noticeId } = param;
     const { notice } = addNoticeDto;
     const Notice = await this.relayService.updateNoticeToRelay(
-      relayId,
-      noticeId,
+      param,
       notice,
       user,
     );
@@ -253,9 +252,7 @@ export class RelayController {
     @GetUser() user: User,
     @Res() res: Response,
   ) {
-    const { relayId, noticeId } = param;
-    await this.relayService.deleteNoticeToRelay(relayId, noticeId, user);
-
+    await this.relayService.deleteNoticeToRelay(param, user);
     return res.status(HttpStatus.OK).json({ message: '공지사항 삭제 성공' });
   }
 
@@ -304,5 +301,100 @@ export class RelayController {
   ) {
     await this.relayService.exitRelay(relayId, user);
     return res.status(HttpStatus.OK).json({ message: '릴레이 방 퇴장 성공' });
+  }
+
+  @ApiOperation({
+    summary: '릴레이 글을 작성하기 위한 엔드포인트입니다',
+    description: '해당 릴레이 방에 참여한 유저들이 글을 추가할 수 있습니다',
+  })
+  @ApiParam({
+    name: 'relayId',
+    required: true,
+    description: '글을 작성할 릴레이 방 id',
+  })
+  @ApiBody({ type: RelayArticleDto })
+  @ApiResponse({
+    status: 201,
+    description: '릴레이 글 생성 성공',
+  })
+  @Post('/:relayId/article')
+  async createRelayArticle(
+    @Param('relayId') relayId: string,
+    @Body() relayArticleDto: RelayArticleDto,
+    @GetUser() user: User,
+    @Res() res: Response,
+  ) {
+    const { content } = relayArticleDto;
+    const article = await this.relayService.createRelayArticle(
+      relayId,
+      content,
+      user,
+    );
+    return res.status(HttpStatus.CREATED).json(article);
+  }
+
+  @ApiOperation({
+    summary: '릴레이 글을 수정하기 위한 엔드포인트입니다',
+    description:
+      '호스트를 포함하여 오직 해당 글의 작성자만 자신의 글을 수정할 수 있는 권한이 있습니다',
+  })
+  @ApiParam({
+    name: 'relayId',
+    required: true,
+    description: '글을 수정할 릴레이 방 id',
+  })
+  @ApiParam({
+    name: 'articleId',
+    required: true,
+    description: '수정할 릴레이 글의 id',
+  })
+  @ApiBody({ type: RelayArticleDto })
+  @ApiResponse({
+    status: 200,
+    description: '릴레이 글 수정 성공',
+  })
+  @Patch('/:relayId/article/:articleId')
+  async updateRelayArticle(
+    @Param() param,
+    @Body() relayArticleDto: RelayArticleDto,
+    @GetUser() user: User,
+    @Res() res: Response,
+  ) {
+    const { content } = relayArticleDto;
+    const article = await this.relayService.updateRelayArticle(
+      param,
+      content,
+      user,
+    );
+    return res.status(HttpStatus.OK).json(article);
+  }
+
+  @ApiOperation({
+    summary: '릴레이 글을 삭제하기 위한 엔드포인트입니다',
+    description:
+      '오직 해당 글의 작성자만 삭제가 가능합니다. 단, 호스트는 예외적으로 모든 글을 삭제할 수 있습니다.',
+  })
+  @ApiParam({
+    name: 'relayId',
+    required: true,
+    description: '글을 삭제할 릴레이 방 id',
+  })
+  @ApiParam({
+    name: 'articleId',
+    required: true,
+    description: '삭제할 릴레이 글의 id',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '릴레이 글 삭제 성공',
+  })
+  @Delete('/:relayId/article/:articleId')
+  async deleteRelayArticle(
+    @Param() param,
+    @GetUser() user: User,
+    @Res() res: Response,
+  ) {
+    await this.relayService.deleteRelayArticle(param, user);
+    return res.status(HttpStatus.OK).json({ message: '릴레이 글 삭제 성공' });
   }
 }
