@@ -6,6 +6,11 @@ import { RelayArticleRepository } from './repository/relay-article.repository';
 import { RelayRepository } from './repository/relay.repository';
 import { Relay } from './schemas/relay.schema';
 
+export enum OrderBy {
+  LATEST = '최신순',
+  POPULAR = '인기순',
+}
+
 @Injectable()
 export class RelayService {
   constructor(
@@ -13,8 +18,8 @@ export class RelayService {
     private readonly relayArticleRepository: RelayArticleRepository,
   ) {}
 
-  async getAllRelay(tags: string[] | null, user: User) {
-    return await this.relayRepository.getAllRelay(tags, user);
+  async getAllRelay(query, user: User) {
+    return await this.relayRepository.getAllRelay(query, user);
   }
 
   async getJoinedRelay(user: User) {
@@ -62,6 +67,10 @@ export class RelayService {
 
   async exitRelay(relayId: string, user: User) {
     return await this.relayRepository.exitRelay(relayId, user);
+  }
+
+  async getRelayArticle(relayId: string) {
+    return await this.relayArticleRepository.getRelayArticle(relayId);
   }
 
   async createRelayArticle(relayId: string, content: string, user: User) {

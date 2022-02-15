@@ -28,7 +28,7 @@ import { AddNoticeDto } from './dto/add-notice.dto';
 import { RelayArticleDto } from './dto/relay-article.dto';
 import { CreateRelayDto } from './dto/create-relay.dto';
 import { UpdateRelayDto } from './dto/update-relay.dto';
-import { RelayService } from './relay.service';
+import { OrderBy, RelayService } from './relay.service';
 
 @ApiTags('relay')
 @ApiBearerAuth('accessToken')
@@ -40,7 +40,7 @@ export class RelayController {
   @ApiOperation({
     summary: '릴레이 방 전체를 조회하기 위한 엔드포인트입니다',
     description:
-      '릴레이 메인페이지에서 릴레이 방 전체를 조회하는 엔드포인트입니다. (현재 정렬 기준도 확실하지 않고 페이지네이션 되어 있지 않은 상태라서 추후에 수정할 예정)',
+      '릴레이 메인페이지에서 릴레이 방 전체를 조회하는 엔드포인트입니다. (페이지네이션 되어 있지 않은 상태라서 추후에 수정할 예정)',
   })
   @ApiQuery({
     name: 'tags',
@@ -49,11 +49,9 @@ export class RelayController {
     description: '필터링을 하기 위한 태그 목록',
   })
   @ApiQuery({
-    name: 'sort',
-    required: true,
-    example: '최신순',
-    description:
-      '정렬 기준 (아직 어떤 정렬 기준이 있는지 확실하지 않아 해당 부분은 추가하지 않았으니 참고해서 테스트해주세요!)',
+    name: 'orderBy',
+    enum: OrderBy,
+    description: '정렬 기준 (default: 최신순)',
   })
   @ApiResponse({
     status: 200,
@@ -65,12 +63,7 @@ export class RelayController {
     @GetUser() user: User,
     @Res() res: Response,
   ) {
-    let relays;
-    if (query.tags) {
-      relays = await this.relayService.getAllRelay(query.tags, user);
-    } else {
-      relays = await this.relayService.getAllRelay(null, user);
-    }
+    const relays = await this.relayService.getAllRelay(query, user);
     return res.status(HttpStatus.OK).json(relays);
   }
 
@@ -301,6 +294,29 @@ export class RelayController {
   ) {
     await this.relayService.exitRelay(relayId, user);
     return res.status(HttpStatus.OK).json({ message: '릴레이 방 퇴장 성공' });
+  }
+
+  @ApiOperation({
+    summary: '릴레이 글을 조회하기 위한 엔드포인트입니다',
+    description:
+      '해당 릴레이 방의 모든 릴레이 글을 조회할 수 있습니다. (페이지네이션 추후 추가 예정)',
+  })
+  @ApiParam({
+    name: 'relayId',
+    required: true,
+    description: '글을 조회할 릴레이 방 id',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '릴레이 글 조회 성공',
+  })
+  @Get('/:relayId/article')
+  async getRelayArticle(
+    @Param('relayId') relayId: string,
+    @Res() res: Response,
+  ) {
+    const relays = await this.relayService.getRelayArticle(relayId);
+    return res.status(HttpStatus.OK).json(relays);
   }
 
   @ApiOperation({

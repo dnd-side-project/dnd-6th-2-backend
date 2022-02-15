@@ -28,7 +28,7 @@ export class SignUpDto {
   readonly nickname: string;
 
   @ApiProperty({
-    type: Array,
+    type: [String],
     description: '사용자의 관심 장르',
   })
   @IsNotEmpty()

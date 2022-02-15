@@ -69,17 +69,20 @@ export class RelayRepository {
     }
   }
 
-  async getAllRelay(tags: string[] | null, user: User) {
+  async getAllRelay(query, user: User) {
     // TODO: 정렬 기준 추가 + 페이지네이션 추가
+    const { tags, orderBy } = query;
     if (tags) {
       return await this.relayModel
         .find({ members: { $ne: user._id }, tags: { $in: tags } })
         .sort({ createdAt: -1 })
+        .populate(['notice', 'host'])
         .exec();
     } else {
       return await this.relayModel
         .find({ members: { $ne: user._id } })
         .sort({ createdAt: -1 })
+        .populate(['notice', 'host'])
         .exec();
     }
   }
@@ -89,6 +92,7 @@ export class RelayRepository {
     return await this.relayModel
       .find({ members: user._id })
       .sort({ createdAt: -1 })
+      .populate(['notice', 'host'])
       .exec();
   }
 

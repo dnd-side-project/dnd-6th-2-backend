@@ -35,6 +35,15 @@ export class RelayArticleRepository {
     }
   }
 
+  async getRelayArticle(relayId: string) {
+    // TODO: 페이지네이션 추가
+    return await this.articleModel
+      .find({ relay: relayId })
+      .sort({ createdAt: 1 })
+      .populate('user')
+      .exec();
+  }
+
   async createRelayArticle(relayId: string, content: string, user: User) {
     await this.checkMember(relayId, user._id);
 
