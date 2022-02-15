@@ -10,16 +10,32 @@ import { User } from 'src/auth/schemas/user.schema';
 export class FeedService {
   constructor(private readonly feedRepository: FeedRepository) {}
 
-  async mainFeed(page: number, tag:[string]): Promise<Article[]> {
-    return this.feedRepository.mainFeed(page, tag);
+  async findLast(): Promise<any> {
+    return this.feedRepository.findLast();
   }
 
-  async subFeed(user, page: number, tag:[string]): Promise<any[]> {
-    return this.feedRepository.subFeed(user, page, tag);
+  async findNext(tag, lastArticleId): Promise<any> {
+    return this.feedRepository.findNext(tag, lastArticleId);
   }
 
-  async subFeedOne(user, authorId, page: number): Promise<any[]> {
-    return this.feedRepository.subFeedOne(user, authorId, page);
+  async mainFeed(lastArticleId, tag: [string]): Promise<Article[]> {
+    return this.feedRepository.mainFeed(lastArticleId, tag);
+  }
+
+  async findLastSub(user, authorId): Promise<any> {
+    return this.feedRepository.findLastSub(user, authorId);
+  }
+
+  async findNextSub(user, lastArticleId, authorId): Promise<any> {
+    return this.feedRepository.findNextSub(user, lastArticleId, authorId);
+  }
+
+  async subFeed(user, lastArticleId): Promise<any[]> {
+    return this.feedRepository.subFeed(user, lastArticleId);
+  }
+
+  async subFeedOne(user, authorId, lastArticleId): Promise<any[]> {
+    return this.feedRepository.subFeedOne(user, authorId, lastArticleId);
   }
 
   async findSubUser(user, authorId): Promise<any[]> {
@@ -38,8 +54,16 @@ export class FeedService {
     return this.feedRepository.updateSubUser(user, authorId);
   }
 
-  async searchArticle(page:number, option: string, content: string): Promise<Article[]> {
-    return this.feedRepository.searchArticle(page, option, content);
+  async searchArticle(
+    lastArticleId,
+    option: string,
+    content: string,
+  ): Promise<any> {
+    return this.feedRepository.searchArticle(lastArticleId, option, content);
+  }
+
+  async nextSearch(option: string, content: string, last) {
+    return this.feedRepository.nextSearch(option, content, last);
   }
 
   async findHistory(user): Promise<any[]> {

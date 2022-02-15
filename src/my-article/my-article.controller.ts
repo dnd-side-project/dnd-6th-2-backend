@@ -1,4 +1,13 @@
-import { Controller, UseGuards, Logger, Inject, Get, Param, Patch, Body } from '@nestjs/common';
+import {
+  Controller,
+  UseGuards,
+  Logger,
+  Inject,
+  Get,
+  Param,
+  Patch,
+  Body,
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { MyArticleService } from './my-article.service';
@@ -19,27 +28,35 @@ export class MyArticleController {
   ) {}
 
   @Get()
-  async getMyArticle(@GetUser()user : User): Promise<Article[]>{
-      return await this.myArticleService.findMyArticle(user);
+  async getMyArticle(@GetUser() user: User): Promise<Article[]> {
+    return await this.myArticleService.findMyArticle(user);
   }
 
   @Get('/articleId')
-  async getMyArticleOne(@Param('articleId') articleId: String): Promise<Article>{
-      return await this.myArticleService.findMyArticleOne(articleId);
+  async getMyArticleOne(
+    @Param('articleId') articleId: string,
+  ): Promise<Article> {
+    return await this.myArticleService.findMyArticleOne(articleId);
   }
 
   @Patch('/articleId')
-  async updateMyArticle(@Param('articleId') articleId: String, @Body() updateArticleDto: UpdateArticleDto,): Promise<Article>{
-      return await this.myArticleService.updateMyArticle(articleId, updateArticleDto);
+  async updateMyArticle(
+    @Param('articleId') articleId: string,
+    @Body() updateArticleDto: UpdateArticleDto,
+  ): Promise<Article> {
+    return await this.myArticleService.updateMyArticle(
+      articleId,
+      updateArticleDto,
+    );
   }
 
-//   @Patch('/articleId/public')
-//   async publicMyArticle(@Param('articleId') articleId: String, updateArticleDto: UpdateArticleDto): Promise<Article> {
-//     return await this.myArticleService.updateMyArticle(articleId, updateArticleDto);
-//   }
+  //   @Patch('/articleId/public')
+  //   async publicMyArticle(@Param('articleId') articleId: String, updateArticleDto: UpdateArticleDto): Promise<Article> {
+  //     return await this.myArticleService.updateMyArticle(articleId, updateArticleDto);
+  //   }
 
   @Get('/temp')
-  async getMyArticleTemp(@GetUser()user : User): Promise<Article[]> {
-      return await this.myArticleService.findMyArticleTemp(user);
+  async getMyArticleTemp(@GetUser() user: User): Promise<Article[]> {
+    return await this.myArticleService.findMyArticleTemp(user);
   }
 }
