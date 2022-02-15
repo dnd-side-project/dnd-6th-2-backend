@@ -1,17 +1,22 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserDocument } from 'src/auth/schemas/user.schema';
+import { User } from 'src/auth/schemas/user.schema';
 import { Article, ArticleDocument } from 'src/challenge/schemas/article.schema';
 import { CreateRelayDto } from '../dto/create-relay.dto';
-import { Notice } from '../schemas/notice.schema';
+import { UpdateRelayDto } from '../dto/update-relay.dto';
+import { Notice, NoticeDocument } from '../schemas/notice.schema';
 import { Relay, RelayDocument } from '../schemas/relay.schema';
 
 export class RelayRepository {
   constructor(
     @InjectModel(Relay.name) private relayModel: Model<RelayDocument>,
     @InjectModel(Article.name) private articleModel: Model<ArticleDocument>,
-    @InjectModel(Notice.name) private noticeModel: Model<RelayDocument>,
+    @InjectModel(Notice.name) private noticeModel: Model<NoticeDocument>,
   ) {}
 
   async findRelayById(id: string): Promise<Relay> {
@@ -31,13 +36,36 @@ export class RelayRepository {
     }
   }
 
-  async joinRelay(id: string, user: User) {
+  async joinRelay(relayId: string, user: User) {
     // user를 id에 해당하는 relay의 members 객체에 추가
-    return await this.relayModel.findByIdAndUpdate(id, {
-      $push: {
-        members: user,
-      },
-    });
+    const relay = await this.findRelayById(relayId);
+
+    if (relay.membersCount < relay.headCount) {
+      return await this.relayModel.findByIdAndUpdate(relayId, {
+        $push: { members: user },
+        $inc: { membersCount: 1 },
+      });
+    } else {
+      throw new ForbiddenException('정원 제한으로 인해 입장할 수 없습니다.');
+    }
+  }
+
+  async exitRelay(relayId: string, user: User) {
+    const relay = await this.findRelayById(relayId);
+
+    if (relay.host._id.toString() === user._id.toString()) {
+      throw new ForbiddenException('호스트는 퇴장할 수 없습니다.');
+    }
+    try {
+      return await this.relayModel.findByIdAndUpdate(relayId, {
+        $pull: { members: user._id },
+        $inc: { membersCount: -1 },
+      });
+    } catch (e) {
+      throw new NotFoundException(
+        '해당 릴레이 방의 참여자만 퇴장 기능을 이용할 수 있습니다.',
+      );
+    }
   }
 
   async getAllRelay(tags: string[] | null, user: User) {
@@ -85,6 +113,28 @@ export class RelayRepository {
     return relay;
   }
 
+  async updateRelay(
+    relayId: string,
+    updateRelayDto: UpdateRelayDto,
+    user: User,
+  ) {
+    const relay = await this.findRelayById(relayId);
+    if (relay.host._id.toString() !== user._id.toString()) {
+      throw new ForbiddenException('권한이 없습니다.');
+    }
+    if (
+      updateRelayDto.headCount &&
+      updateRelayDto.headCount < relay.membersCount
+    ) {
+      throw new BadRequestException(
+        '현재 정원보다 적은 인원수로 수정할 수 없습니다.',
+      );
+    }
+    return await this.relayModel.findByIdAndUpdate(relayId, updateRelayDto, {
+      new: true,
+    });
+  }
+
   async deleteRelay(relayId: string, user: User) {
     await this.checkUser(relayId, user._id);
     // TODO: deleteLike
@@ -92,14 +142,15 @@ export class RelayRepository {
     return await this.relayModel.findByIdAndDelete(relayId);
   }
 
-  async AddNoticeToRelay(id: string, notice: string, user: User) {
-    await this.checkUser(id, user._id);
+  async AddNoticeToRelay(relayId: string, notice: string, user: User) {
+    await this.checkUser(relayId, user._id);
 
     const Notice = new this.noticeModel({ notice });
     await Notice.save();
-    return await this.relayModel.findByIdAndUpdate(id, {
+    await this.relayModel.findByIdAndUpdate(relayId, {
       $push: { notice: Notice },
     });
+    return Notice;
   }
 
   async updateNoticeToRelay(

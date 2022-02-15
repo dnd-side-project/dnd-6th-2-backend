@@ -3,13 +3,13 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
   Patch,
   Post,
   Query,
+  Res,
   UseGuards,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -21,18 +21,18 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { Response } from 'express';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { User } from 'src/auth/schemas/user.schema';
 import { AddNoticeDto } from './dto/add-notice.dto';
 import { CreateRelayDto } from './dto/create-relay.dto';
+import { UpdateRelayDto } from './dto/update-relay.dto';
 import { RelayService } from './relay.service';
-import { Relay } from './schemas/relay.schema';
 
 @ApiTags('relay')
 @ApiBearerAuth('accessToken')
 @Controller('relay')
 @UseGuards(AuthGuard())
-@UsePipes(ValidationPipe)
 export class RelayController {
   constructor(private relayService: RelayService) {}
 
@@ -59,12 +59,18 @@ export class RelayController {
     description: '릴레이 방 전체 조회 성공',
   })
   @Get('/')
-  getAllRelay(@Query() query, @GetUser() user: User) {
+  async getAllRelay(
+    @Query() query,
+    @GetUser() user: User,
+    @Res() res: Response,
+  ) {
+    let relays;
     if (query.tags) {
-      return this.relayService.getAllRelay(query.tags, user);
+      relays = await this.relayService.getAllRelay(query.tags, user);
     } else {
-      return this.relayService.getAllRelay(null, user);
+      relays = await this.relayService.getAllRelay(null, user);
     }
+    return res.status(HttpStatus.OK).json(relays);
   }
 
   @ApiOperation({
@@ -77,8 +83,9 @@ export class RelayController {
     description: '참여한 릴레이 방 조회 성공',
   })
   @Get('/user')
-  getJoinedRelay(@GetUser() user: User) {
-    return this.relayService.getJoinedRelay(user);
+  async getJoinedRelay(@GetUser() user: User, @Res() res: Response) {
+    const relays = await this.relayService.getJoinedRelay(user);
+    return res.status(HttpStatus.OK).json(relays);
   }
 
   @ApiOperation({
@@ -91,11 +98,43 @@ export class RelayController {
     description: '릴레이 방 생성 성공',
   })
   @Post('/')
-  createRelay(
+  async createRelay(
     @Body() createRelayDto: CreateRelayDto,
     @GetUser() user: User,
-  ): Promise<Relay> {
-    return this.relayService.createRelay(createRelayDto, user);
+    @Res() res: Response,
+  ) {
+    const relay = await this.relayService.createRelay(createRelayDto, user);
+    return res.status(HttpStatus.CREATED).json(relay);
+  }
+
+  @ApiOperation({
+    summary: '릴레이 방의 정보를 수정하기 위한 엔드포인트입니다',
+    description:
+      '제목, 태그, 인원수를 수정할 수 있습니다. 인원수는 현재 참여한 정원보다 적게 수정할 수 없습니다.',
+  })
+  @ApiParam({
+    name: 'relayId',
+    required: true,
+    description: '수정할 릴레이 방의 id',
+  })
+  @ApiBody({ type: UpdateRelayDto })
+  @ApiResponse({
+    status: 200,
+    description: '릴레이 방 수정 성공',
+  })
+  @Patch('/:relayId')
+  async updateRelay(
+    @Param('relayId') relayId: string,
+    @Body() updateRelayDto: UpdateRelayDto,
+    @GetUser() user: User,
+    @Res() res: Response,
+  ) {
+    const relay = await this.relayService.updateRelay(
+      relayId,
+      updateRelayDto,
+      user,
+    );
+    return res.status(HttpStatus.OK).json(relay);
   }
 
   @ApiOperation({
@@ -113,12 +152,18 @@ export class RelayController {
     description: '릴레이 방 삭제 성공',
   })
   @Delete('/:relayId')
-  deleteRelay(@Param('relayId') relayId: string, @GetUser() user: User) {
-    return this.relayService.deleteRelay(relayId, user);
+  async deleteRelay(
+    @Param('relayId') relayId: string,
+    @GetUser() user: User,
+    @Res() res: Response,
+  ) {
+    await this.relayService.deleteRelay(relayId, user);
+    return res.status(HttpStatus.OK).json({ message: '릴레이 방 삭제 성공' });
   }
 
   @ApiOperation({
-    summary: '릴레이 방에 공지사항을 추가하기 위한 엔드포인트입니다',
+    summary:
+      '릴레이 방에 공지사항을 추가하기 위한 엔드포인트입니다. 공지사항 관리는 호스트에게만 권한이 있습니다.',
     description: '해당 릴레이 방에 공지사항을 추가할 수 있습니다',
   })
   @ApiParam({
@@ -132,13 +177,19 @@ export class RelayController {
     description: '공지사항 추가 성공',
   })
   @Post('/:relayId/notice')
-  AddNoticeToRelay(
+  async AddNoticeToRelay(
     @Body() addNoticeDto: AddNoticeDto,
     @Param('relayId') relayId: string,
     @GetUser() user: User,
+    @Res() res: Response,
   ) {
     const { notice } = addNoticeDto;
-    return this.relayService.AddNoticeToRelay(relayId, notice, user);
+    const Notice = await this.relayService.AddNoticeToRelay(
+      relayId,
+      notice,
+      user,
+    );
+    return res.status(HttpStatus.CREATED).json(Notice);
   }
 
   @ApiOperation({
@@ -161,19 +212,21 @@ export class RelayController {
     description: '공지사항 수정 성공',
   })
   @Patch('/:relayId/notice/:noticeId')
-  UpdateNoticeToRelay(
+  async UpdateNoticeToRelay(
     @Body() addNoticeDto: AddNoticeDto,
     @Param() param,
     @GetUser() user: User,
+    @Res() res: Response,
   ) {
     const { relayId, noticeId } = param;
     const { notice } = addNoticeDto;
-    return this.relayService.updateNoticeToRelay(
+    const Notice = await this.relayService.updateNoticeToRelay(
       relayId,
       noticeId,
       notice,
       user,
     );
+    return res.status(HttpStatus.OK).json(Notice);
   }
 
   @ApiOperation({
@@ -195,8 +248,61 @@ export class RelayController {
     description: '공지사항 삭제 성공',
   })
   @Delete('/:relayId/notice/:noticeId')
-  deleteNoticeToRelay(@Param() param, @GetUser() user: User) {
+  async deleteNoticeToRelay(
+    @Param() param,
+    @GetUser() user: User,
+    @Res() res: Response,
+  ) {
     const { relayId, noticeId } = param;
-    return this.relayService.deleteNoticeToRelay(relayId, noticeId, user);
+    await this.relayService.deleteNoticeToRelay(relayId, noticeId, user);
+
+    return res.status(HttpStatus.OK).json({ message: '공지사항 삭제 성공' });
+  }
+
+  @ApiOperation({
+    summary: '릴레이 방에 참여하기 위한 엔드포인트입니다',
+    description: '해당 릴레이 방에 입장할 수 있습니다',
+  })
+  @ApiParam({
+    name: 'relayId',
+    required: true,
+    description: '참여할 릴레이 방의 id',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '릴레이 방 입장 성공',
+  })
+  @Post('/:relayId/join')
+  async joinRelay(
+    @Param('relayId') relayId: string,
+    @GetUser() user: User,
+    @Res() res: Response,
+  ) {
+    await this.relayService.joinRelay(relayId, user);
+    return res.status(HttpStatus.OK).json({ message: '릴레이 방 입장 성공' });
+  }
+
+  @ApiOperation({
+    summary: '릴레이 방에서 퇴장하기 위한 엔드포인트입니다',
+    description:
+      '해당 릴레이 방에서 퇴장할 수 있습니다. 호스트는 퇴장할 수 없습니다. (삭제만 가능)',
+  })
+  @ApiParam({
+    name: 'relayId',
+    required: true,
+    description: '퇴장할 릴레이 방의 id',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '릴레이 방 퇴장 성공',
+  })
+  @Delete('/:relayId/join')
+  async exitRelay(
+    @Param('relayId') relayId: string,
+    @GetUser() user: User,
+    @Res() res: Response,
+  ) {
+    await this.relayService.exitRelay(relayId, user);
+    return res.status(HttpStatus.OK).json({ message: '릴레이 방 퇴장 성공' });
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { User } from 'src/auth/schemas/user.schema';
 import { CreateRelayDto } from './dto/create-relay.dto';
+import { UpdateRelayDto } from './dto/update-relay.dto';
 import { RelayRepository } from './repository/relay.repository';
 import { Relay } from './schemas/relay.schema';
 
@@ -21,6 +22,18 @@ export class RelayService {
     user: User,
   ): Promise<Relay> {
     return await this.relayRepository.createRelay(createRelayDto, user);
+  }
+
+  async updateRelay(
+    relayId: string,
+    updateRelayDto: UpdateRelayDto,
+    user: User,
+  ) {
+    return await this.relayRepository.updateRelay(
+      relayId,
+      updateRelayDto,
+      user,
+    );
   }
 
   async deleteRelay(relayId: string, user: User) {
@@ -51,5 +64,13 @@ export class RelayService {
       noticeId,
       user,
     );
+  }
+
+  async joinRelay(relayId: string, user: User) {
+    return await this.relayRepository.joinRelay(relayId, user);
+  }
+
+  async exitRelay(relayId: string, user: User) {
+    return await this.relayRepository.exitRelay(relayId, user);
   }
 }

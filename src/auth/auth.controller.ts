@@ -3,12 +3,11 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Patch,
   Post,
   Res,
   UseGuards,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -22,16 +21,11 @@ import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { GetUser } from './decorators/get-user.decorator';
 import { AuthCredentialDto } from './dto/auth.dto';
-import {
-  AuthCodeDto,
-  MailAuthDto,
-  PasswordDto,
-} from './dto/change-password.dto';
+import { AuthCodeDto, MailAuthDto } from './dto/change-password.dto';
 import { SignUpDto } from './dto/signup.dto';
 import { User } from './schemas/user.schema';
 
 @ApiTags('auth')
-@UsePipes(ValidationPipe)
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -47,8 +41,9 @@ export class AuthController {
     description: '회원가입 성공',
   })
   @Post('/signup')
-  signUp(@Body() signUpDto: SignUpDto): Promise<User> {
-    return this.authService.signUp(signUpDto);
+  async signUp(@Body() signUpDto: SignUpDto, @Res() res: Response) {
+    const user = await this.authService.signUp(signUpDto);
+    return res.status(HttpStatus.CREATED).json(user);
   }
 
   @ApiOperation({
@@ -73,6 +68,7 @@ export class AuthController {
 
     res.cookie('auth', { accessToken, refreshToken });
     return accessToken; // test
+    // return res.status(HttpStatus.OK).json({ message: '로그인 성공' });
   }
 
   @ApiOperation({
@@ -86,9 +82,13 @@ export class AuthController {
     description: '인증 메일 전송 성공',
   })
   @Post('/email')
-  sendEmail(@Body() mailAuthDto: MailAuthDto): Promise<number> {
+  async sendEmail(@Body() mailAuthDto: MailAuthDto, @Res() res: Response) {
     const { email } = mailAuthDto;
-    return this.authService.sendEmail(email);
+    const authCode = await this.authService.sendEmail(email);
+
+    return res
+      .status(HttpStatus.OK)
+      .json({ authCode, message: '인증 메일 전송 성공 ' });
   }
 
   @ApiOperation({
@@ -102,8 +102,9 @@ export class AuthController {
     description: '인증 성공',
   })
   @Post('/email/check')
-  verifyAuthCode(@Body() authCodeDto: AuthCodeDto): Promise<boolean> {
-    return this.authService.verifyAuthCode(authCodeDto);
+  async verifyAuthCode(@Body() authCodeDto: AuthCodeDto, @Res() res: Response) {
+    const result = await this.authService.verifyAuthCode(authCodeDto);
+    return res.status(HttpStatus.OK).json({ result, message: '인증 성공' });
   }
 
   @ApiOperation({
@@ -111,14 +112,18 @@ export class AuthController {
     description:
       '인증 메일로 받은 인증코드로 인증을 한 뒤, 비밀번호를 받아 재설정합니다. 해당 엔드포인트도 현재는 로그인 여부에 상관없이 가능하도록 구현했습니다.',
   })
-  @ApiBody({ type: PasswordDto })
+  @ApiBody({ type: AuthCredentialDto })
   @ApiResponse({
     status: 200,
     description: '비밀번호 재설정 성공',
   })
   @Patch('/password')
-  changePassword(@Body() passwordDto: PasswordDto): Promise<User> {
-    return this.authService.changePassword(passwordDto);
+  async changePassword(
+    @Body() authCredentialDto: AuthCredentialDto,
+    @Res() res: Response,
+  ) {
+    const user = await this.authService.changePassword(authCredentialDto);
+    return res.status(HttpStatus.OK).json(user);
   }
 
   @ApiOperation({
@@ -132,10 +137,14 @@ export class AuthController {
   @ApiBearerAuth('accessToken')
   @Delete('/logout')
   @UseGuards(AuthGuard())
-  logOut(@GetUser() user: User, @Res({ passthrough: true }) res: Response) {
-    this.authService.logOut(user.email);
+  async logOut(
+    @GetUser() user: User,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.authService.logOut(user.email);
     res.clearCookie('auth');
-    return '로그아웃 성공'; // test
+    return '로그아웃 성공';
+    // return res.status(HttpStatus.OK).json({ message: '로그아웃 성공' });
   }
 
   // test

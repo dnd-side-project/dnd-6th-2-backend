@@ -62,7 +62,7 @@ export class Relay {
     description: '현재 참여 인원수',
     default: 1,
   })
-  @Prop({ default: 1 })
+  @Prop({ default: 0 })
   membersCount: number;
 
   @ApiProperty({
