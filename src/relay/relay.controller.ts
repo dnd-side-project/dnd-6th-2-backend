@@ -40,7 +40,7 @@ export class RelayController {
   @ApiOperation({
     summary: '릴레이 방 전체를 조회하기 위한 엔드포인트입니다',
     description:
-      '릴레이 메인페이지에서 릴레이 방 전체를 조회하는 엔드포인트입니다. (페이지네이션 되어 있지 않은 상태라서 추후에 수정할 예정)',
+      '릴레이 메인페이지에서 릴레이 방 전체를 조회하는 엔드포인트입니다',
   })
   @ApiQuery({
     name: 'tags',
@@ -69,8 +69,7 @@ export class RelayController {
 
   @ApiOperation({
     summary: '자신이 참여한 릴레이 방을 조회하기 위한 엔드포인트입니다',
-    description:
-      '릴레이 메인페이지에서 참여한 방을 조회하는 엔드포인트입니다. (페이지네이션은 추후 추가할 예정)',
+    description: '릴레이 메인페이지에서 참여한 방을 조회하는 엔드포인트입니다',
   })
   @ApiResponse({
     status: 200,
@@ -156,9 +155,9 @@ export class RelayController {
   }
 
   @ApiOperation({
-    summary:
-      '릴레이 방에 공지사항을 추가하기 위한 엔드포인트입니다. 공지사항 관리는 호스트에게만 권한이 있습니다.',
-    description: '해당 릴레이 방에 공지사항을 추가할 수 있습니다',
+    summary: '릴레이 방에 공지사항을 추가하기 위한 엔드포인트입니다',
+    description:
+      '해당 릴레이 방에 공지사항을 추가할 수 있습니다. 공지사항 관리는 호스트에게만 권한이 있습니다.',
   })
   @ApiParam({
     name: 'relayId',
@@ -298,8 +297,7 @@ export class RelayController {
 
   @ApiOperation({
     summary: '릴레이 글을 조회하기 위한 엔드포인트입니다',
-    description:
-      '해당 릴레이 방의 모든 릴레이 글을 조회할 수 있습니다. (페이지네이션 추후 추가 예정)',
+    description: '해당 릴레이 방의 모든 릴레이 글을 조회할 수 있습니다',
   })
   @ApiParam({
     name: 'relayId',
