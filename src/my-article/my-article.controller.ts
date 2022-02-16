@@ -173,7 +173,6 @@ export class MyArticleController {
     @Param('articleId') articleId: string,
     @Body() updateArticleDto: UpdateArticleDto,
   ): Promise<Article> {
-    console.log(articleId.length)
     return await this.myArticleService.updateMyArticle(
       articleId,
       updateArticleDto,
@@ -187,7 +186,7 @@ export class MyArticleController {
   })
   async deleteArticle(
     @GetUser() user: User,
-    @Param('articleId') articleId: [String]
+    @Param('articleId') articleId: [string],
   ): Promise<any> {
     return await this.myArticleService.deleteMyArticle(user, articleId);
   }
