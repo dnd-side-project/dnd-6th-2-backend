@@ -9,6 +9,7 @@ import { User } from 'src/auth/schemas/user.schema';
 import { Article, ArticleDocument } from 'src/challenge/schemas/article.schema';
 import { CreateRelayDto } from '../dto/create-relay.dto';
 import { UpdateRelayDto } from '../dto/update-relay.dto';
+import { OrderBy } from '../relay.service';
 import { Notice, NoticeDocument } from '../schemas/notice.schema';
 import { Relay, RelayDocument } from '../schemas/relay.schema';
 
@@ -69,31 +70,159 @@ export class RelayRepository {
     }
   }
 
-  async getAllRelay(query, user: User) {
-    // TODO: 정렬 기준 추가 + 페이지네이션 추가
-    const { tags, orderBy } = query;
-    if (tags) {
+  async getPagedRelay(filter, orderBy: OrderBy, populate_list) {
+    if (orderBy === OrderBy.LATEST) {
       return await this.relayModel
-        .find({ members: { $ne: user._id }, tags: { $in: tags } })
-        .sort({ createdAt: -1 })
-        .populate(['notice', 'host'])
+        .find(filter)
+        .sort({ _id: -1 })
+        .limit(15)
+        .populate(populate_list)
         .exec();
-    } else {
+    } else if (orderBy === OrderBy.POPULAR) {
       return await this.relayModel
-        .find({ members: { $ne: user._id } })
-        .sort({ createdAt: -1 })
-        .populate(['notice', 'host'])
+        .find(filter)
+        .sort({ likeCount: -1, _id: -1 })
+        .limit(15)
+        .populate(populate_list)
         .exec();
     }
   }
 
-  async getJoinedRelay(user: User) {
-    // TODO: 페이지네이션 추가
+  async findAllLastRelay(orderBy: OrderBy, filter) {
+    const { user, tags } = filter;
+    if (tags) {
+      if (orderBy === OrderBy.LATEST) {
+        return await this.relayModel
+          .find({ members: { $ne: user._id }, tags: { $in: tags } })
+          .sort({ _id: -1 })
+          .limit(1);
+      } else if (orderBy === OrderBy.POPULAR) {
+        return await this.relayModel
+          .find({ members: { $ne: user._id }, tags: { $in: tags } })
+          .sort({ likeCount: -1, _id: -1 })
+          .limit(1);
+      }
+    } else {
+      if (orderBy === OrderBy.LATEST) {
+        return await this.relayModel
+          .find({ members: { $ne: user._id } })
+          .sort({ _id: -1 })
+          .limit(1);
+      } else if (orderBy === OrderBy.POPULAR) {
+        return await this.relayModel
+          .find({ members: { $ne: user._id } })
+          .sort({ likeCount: -1, _id: -1 })
+          .limit(1);
+      }
+    }
+  }
+
+  async getAllRelay(query, user: User) {
+    const { tags, orderBy, cursor } = query;
+    const populate_list = ['notice', 'host'];
+
+    if (!cursor) {
+      const last = await this.findAllLastRelay(orderBy, { user, tags });
+      const lastId = last[0]._id;
+      const lastCount = last[0].likeCount;
+      if (orderBy === OrderBy.LATEST) {
+        let filter;
+        if (tags) {
+          filter = {
+            members: { $ne: user._id },
+            tags: { $in: tags },
+            _id: { $lte: lastId },
+          };
+        } else {
+          filter = {
+            members: { $ne: user._id },
+            _id: { $lte: lastId },
+          };
+        }
+        return await this.getPagedRelay(filter, OrderBy.LATEST, populate_list);
+      } else if (orderBy === OrderBy.POPULAR) {
+        let filter;
+        if (tags) {
+          filter = {
+            members: { $ne: user._id },
+            tags: { $in: tags },
+            $or: [
+              { likeCount: { $lt: lastCount } },
+              { likeCount: lastCount, _id: { $lte: lastId } },
+            ],
+          };
+        } else {
+          filter = {
+            members: { $ne: user._id },
+            $or: [
+              { likeCount: { $lt: lastCount } },
+              { likeCount: lastCount, _id: { $lte: lastId } },
+            ],
+          };
+        }
+        return await this.getPagedRelay(filter, OrderBy.POPULAR, populate_list);
+      }
+    } else {
+      const { nextId, nextCount } = cursor;
+      if (orderBy === OrderBy.LATEST) {
+        let filter;
+        if (tags) {
+          filter = {
+            members: { $ne: user._id },
+            tags: { $in: tags },
+            _id: { $lt: nextId },
+          };
+        } else {
+          filter = {
+            members: { $ne: user._id },
+            _id: { $lt: nextId },
+          };
+        }
+        return await this.getPagedRelay(filter, OrderBy.LATEST, populate_list);
+      } else if (orderBy === OrderBy.POPULAR) {
+        let filter;
+        if (tags) {
+          filter = {
+            members: { $ne: user._id },
+            tags: { $in: tags },
+            $or: [
+              { likeCount: { $lt: nextCount } },
+              { likeCount: nextCount, _id: { $lt: nextId } },
+            ],
+          };
+        } else {
+          filter = {
+            members: { $ne: user._id },
+            $or: [
+              { likeCount: { $lt: nextCount } },
+              { likeCount: nextCount, _id: { $lt: nextId } },
+            ],
+          };
+        }
+        return await this.getPagedRelay(filter, OrderBy.POPULAR, populate_list);
+      }
+    }
+  }
+
+  async findJoinedLastRelay(user: User) {
     return await this.relayModel
       .find({ members: user._id })
-      .sort({ createdAt: -1 })
-      .populate(['notice', 'host'])
-      .exec();
+      .sort({ _id: -1 })
+      .limit(1);
+  }
+
+  async getJoinedRelay(cursor, user: User) {
+    let filter;
+    const populate_list = ['notice', 'host'];
+    if (!cursor) {
+      const last = await this.findJoinedLastRelay(user);
+      const lastId = last[0]._id;
+      filter = { members: user._id, _id: { $lte: lastId } };
+    } else {
+      const { nextId, nextCount } = cursor.split('_');
+      filter = { members: user._id, _id: { $lt: nextId } };
+    }
+    return await this.getPagedRelay(filter, OrderBy.LATEST, populate_list);
   }
 
   async createRelay(
