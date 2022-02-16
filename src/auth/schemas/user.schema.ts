@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import * as mongoose from 'mongoose';
 import { Article } from 'src/challenge/schemas/article.schema';
+import { Comment } from 'src/feed/schemas/comment.schema';
 
 export type UserDocument = User & Document;
 

@@ -18,12 +18,20 @@ export class RelayService {
     private readonly relayArticleRepository: RelayArticleRepository,
   ) {}
 
+  async findAllLastRelay(orderBy: OrderBy, filter) {
+    return await this.relayRepository.findAllLastRelay(orderBy, filter);
+  }
+
   async getAllRelay(query, user: User) {
     return await this.relayRepository.getAllRelay(query, user);
   }
 
-  async getJoinedRelay(user: User) {
-    return await this.relayRepository.getJoinedRelay(user);
+  async findJoinedLastRelay(user: User) {
+    return await this.relayRepository.findJoinedLastRelay(user);
+  }
+
+  async getJoinedRelay(cursor, user: User) {
+    return await this.relayRepository.getJoinedRelay(cursor, user);
   }
 
   async createRelay(
@@ -69,8 +77,8 @@ export class RelayService {
     return await this.relayRepository.exitRelay(relayId, user);
   }
 
-  async getRelayArticle(relayId: string) {
-    return await this.relayArticleRepository.getRelayArticle(relayId);
+  async getRelayArticle(relayId: string, cursor: string) {
+    return await this.relayArticleRepository.getRelayArticle(relayId, cursor);
   }
 
   async createRelayArticle(relayId: string, content: string, user: User) {

@@ -53,9 +53,16 @@ export class RelayController {
     enum: OrderBy,
     description: '정렬 기준 (default: 최신순)',
   })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    description:
+      '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
+  })
   @ApiResponse({
     status: 200,
-    description: '릴레이 방 전체 조회 성공',
+    description:
+      '릴레이 객체 배열과 함께 다음 페이지 요청을 위한 next_cursor 를 반환합니다. next_cursor 가 null 이면, 더 이상의 페이지는 없습니다.',
   })
   @Get('/')
   async getAllRelay(
@@ -64,7 +71,15 @@ export class RelayController {
     @Res() res: Response,
   ) {
     const relays = await this.relayService.getAllRelay(query, user);
-    return res.status(HttpStatus.OK).json(relays);
+    if (relays.length === 0) {
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
+    } else {
+      const last = relays[relays.length - 1];
+      const next_cursor = `${last._id}_${last.likeCount}`;
+      return res.status(HttpStatus.OK).json({ relays, next_cursor });
+    }
   }
 
   @ApiTags('relay')
@@ -72,14 +87,33 @@ export class RelayController {
     summary: '자신이 참여한 릴레이 방을 조회하기 위한 엔드포인트입니다',
     description: '릴레이 메인페이지에서 참여한 방을 조회하는 엔드포인트입니다',
   })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    description:
+      '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
+  })
   @ApiResponse({
     status: 200,
-    description: '참여한 릴레이 방 조회 성공',
+    description:
+      '참여한 릴레이 객체 배열과 함께 다음 페이지 요청을 위한 next_cursor 를 반환합니다. next_cursor 가 null 이면, 더 이상의 페이지는 없습니다.',
   })
   @Get('/user')
-  async getJoinedRelay(@GetUser() user: User, @Res() res: Response) {
-    const relays = await this.relayService.getJoinedRelay(user);
-    return res.status(HttpStatus.OK).json(relays);
+  async getJoinedRelay(
+    @Query('cursor') cursor,
+    @GetUser() user: User,
+    @Res() res: Response,
+  ) {
+    const relays = await this.relayService.getJoinedRelay(cursor, user);
+    if (relays.length === 0) {
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
+    } else {
+      const last = relays[relays.length - 1];
+      const next_cursor = `${last._id}_${last.likeCount}`;
+      return res.status(HttpStatus.OK).json({ relays, next_cursor });
+    }
   }
 
   @ApiTags('relay')
@@ -314,17 +348,35 @@ export class RelayController {
     required: true,
     description: '글을 조회할 릴레이 방 id',
   })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    description:
+      '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
+  })
   @ApiResponse({
     status: 200,
-    description: '릴레이 글 조회 성공',
+    description:
+      '릴레이 글 객체 배열과 함께 다음 페이지 요청을 위한 next_cursor 를 반환합니다. next_cursor 가 null 이면, 더 이상의 페이지는 없습니다.',
   })
   @Get('/:relayId/article')
   async getRelayArticle(
     @Param('relayId') relayId: string,
+    @Query('cursor') cursor,
     @Res() res: Response,
   ) {
-    const relays = await this.relayService.getRelayArticle(relayId);
-    return res.status(HttpStatus.OK).json(relays);
+    const relayArticles = await this.relayService.getRelayArticle(
+      relayId,
+      cursor,
+    );
+    if (relayArticles.length === 0) {
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
+    } else {
+      const next_cursor = relayArticles[relayArticles.length - 1]._id;
+      return res.status(HttpStatus.OK).json({ relayArticles, next_cursor });
+    }
   }
 
   @ApiTags('relay/article')
