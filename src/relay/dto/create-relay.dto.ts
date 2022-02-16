@@ -11,7 +11,7 @@ export class CreateRelayDto {
   title: string;
 
   @ApiProperty({
-    type: Array,
+    type: [String],
     description: '릴레이 방에 추가한 태그 목록',
   })
   @IsArray()

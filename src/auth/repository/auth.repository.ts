@@ -3,13 +3,9 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { AuthCredentialDto } from '../dto/auth.dto';
 import { User, UserDocument } from '../schemas/user.schema';
-import {
-  ForbiddenException,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AuthCodeDto, PasswordDto } from '../dto/change-password.dto';
+import { AuthCodeDto } from '../dto/change-password.dto';
 import { SignUpDto } from '../dto/signup.dto';
 
 export class AuthRepository {
@@ -119,7 +115,7 @@ export class AuthRepository {
 
       return { accessToken, refreshToken };
     } else {
-      throw new ForbiddenException('로그인에 실패했습니다.');
+      throw new UnauthorizedException('로그인에 실패했습니다.');
     }
   }
 
@@ -155,8 +151,8 @@ export class AuthRepository {
     }
   }
 
-  async changePassword(passwordDto: PasswordDto): Promise<User> {
-    const { email, password } = passwordDto;
+  async changePassword(authCredentialDto: AuthCredentialDto): Promise<User> {
+    const { email, password } = authCredentialDto;
 
     try {
       const salt = await bcrypt.genSalt();
