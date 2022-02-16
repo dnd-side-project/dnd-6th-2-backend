@@ -102,12 +102,20 @@ export class FeedService {
     return this.feedRepository.saveComment(user, articleId, createCommentDto);
   }
 
-  async updateComment(commentId: string, updateCommentDto): Promise<Comment> {
-    return this.feedRepository.updateComment(commentId, updateCommentDto);
+  async updateComment(
+    articleId: string,
+    commentId: string,
+    updateCommentDto,
+  ): Promise<Comment> {
+    return this.feedRepository.updateComment(
+      articleId,
+      commentId,
+      updateCommentDto,
+    );
   }
 
-  async deleteComment(commentId): Promise<any> {
-    return this.feedRepository.deleteComment(commentId);
+  async deleteComment(articleId, commentId): Promise<any> {
+    return this.feedRepository.deleteComment(articleId, commentId);
   }
 
   async findScrap(user, articleId: string): Promise<Scrap[]> {
