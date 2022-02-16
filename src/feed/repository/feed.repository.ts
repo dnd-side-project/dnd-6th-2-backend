@@ -320,7 +320,7 @@ export class FeedRepository {
   }
 
   async deleteArticle(user, id): Promise<any> {
-    console.log(user)
+    console.log(user);
     await this.CommentModel.deleteMany({ article: id });
     await this.UserModel.findByIdAndUpdate(user._id, {
       $pull: {
@@ -400,19 +400,19 @@ export class FeedRepository {
   }
 
   async updateComment(
+    articleId: string,
     commentId: string,
     updateCommentDto: UpdateCommentDto,
   ): Promise<Comment> {
-    return await this.CommentModel.findByIdAndUpdate(
-      commentId,
+    return await this.CommentModel.findOneAndUpdate(
+      { article: articleId, _id: commentId },
       updateCommentDto,
       { new: true },
     );
   }
 
-  async deleteComment(commentId): Promise<any> {
-    const comment = await this.CommentModel.findById(commentId);
-    await this.ArticleModel.findByIdAndUpdate(comment.article, {
+  async deleteComment(articleId, commentId): Promise<any> {
+    await this.ArticleModel.findByIdAndUpdate(articleId, {
       $inc: {
         commentNum: -1,
       },

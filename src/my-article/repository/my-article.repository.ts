@@ -165,7 +165,7 @@ export class MyArticleRepository {
 
   async deleteMyArticle(user, articleId): Promise<any> {
     await this.CommentModel.deleteMany({ article: articleId });
-    for(var i=0; i<articleId.length; i++){
+    for (let i = 0; i < articleId.length; i++) {
       await this.UserModel.findByIdAndUpdate(user._id, {
         $pull: {
           articles: articleId[i],

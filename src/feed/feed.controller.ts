@@ -20,6 +20,7 @@ import {
   ApiQuery,
   ApiBearerAuth,
   ApiResponse,
+  ApiParam,
 } from '@nestjs/swagger';
 import { CreateArticleDto } from 'src/challenge/dto/create-article.dto';
 import { UpdateArticleDto } from 'src/challenge/dto/update-article.dto';
@@ -131,8 +132,6 @@ export class FeedController {
           user,
           query.lastArticleId,
         );
-        // console.log(articles[0][articles.length - 1])
-        // const last = articles[0][articles.length - 1]._id
         const last = articles[articles.length - 1]._id;
         const nextArticle = await this.feedService.findNextSub(
           user,
@@ -147,10 +146,7 @@ export class FeedController {
           user,
           query.lastArticleId,
         );
-        // console.log(articles);
         const last = articles[articles.length - 1]._id;
-        // const last = articles[0][articles.length - 1]._id
-        // console.log(articles);
         const nextArticle = await this.feedService.findNextSub(
           user,
           last,
@@ -199,6 +195,10 @@ export class FeedController {
     type: String,
     description: '마지막 글 아이디(처음에는 null값 보냄)',
     required: false,
+  })
+  @ApiParam({
+    name: 'authorId',
+    description: '구독작가의 id',
   })
   async getSubFeedOne(
     @GetUser() user: User,
@@ -263,6 +263,10 @@ export class FeedController {
     summary: '구독하기 API',
     description: '작가를 구독한다.',
   })
+  @ApiParam({
+    name: 'authorId',
+    description: '구독할 작가(글쓴이)의 id',
+  })
   async subUser(
     @GetUser() user: User,
     @Param('authorId') authorId: string,
@@ -285,10 +289,14 @@ export class FeedController {
   }
 
   @ApiTags('feed/subscribe')
-  @Patch('subscribe/cancel/:authorId')
+  @Patch('subscribe/:authorId/cancel')
   @ApiOperation({
     summary: '구독 취소 API',
     description: '구독을 취소한다.',
+  })
+  @ApiParam({
+    name: 'authorId',
+    description: '구독을 취소할 작가(글쓴이)의 id',
   })
   async updateSubUser(
     @GetUser() user: User,
@@ -381,6 +389,10 @@ export class FeedController {
     summary: '검색창에서 최근 검색어 삭제하기',
     description: '최근 검색어를 삭제한다.',
   })
+  @ApiParam({
+    name: 'historyId',
+    description: '삭제할 검색어의 ID',
+  })
   async deleteHistory(
     @GetUser() user: User,
     @Param('historyId') historyId: string,
@@ -402,6 +414,10 @@ export class FeedController {
     summary: '피드 글 상세페이지 조회 API',
     description: '피드의 특정 글 1개의 상세페이지를 조회한다.',
   })
+  @ApiParam({
+    name: 'articleId',
+    description: '상세 페이지를 조회할 글의 id',
+  })
   getOneArticle(@Param('articleId') articleId: string): Promise<Article> {
     return this.feedService.getOneArticle(articleId);
   }
@@ -411,6 +427,10 @@ export class FeedController {
   @ApiOperation({
     summary: '피드 글 삭제 API',
     description: '(자신의 글일 경우) 글을 삭제한다.',
+  })
+  @ApiParam({
+    name: 'articleId',
+    description: '삭제할 글의 id',
   })
   async deleteArticle(
     @GetUser() user: User,
@@ -439,6 +459,10 @@ export class FeedController {
     summary: '피드 글 수정 API',
     description: '(자신의 글일 경우) 글을 수정한다.',
   })
+  @ApiParam({
+    name: 'articleId',
+    description: '수정할 글의 id',
+  })
   @ApiBody({ type: CreateArticleDto })
   async updateArticle(
     @GetUser() user: User,
@@ -465,11 +489,15 @@ export class FeedController {
     }
   }
 
-  @ApiTags('feed/comment')
-  @Post('/comment/:articleId')
+  @ApiTags('feed/{articleId}/comment')
+  @Post('/:articleId/comment')
   @ApiOperation({
     summary: '댓글 작성 API',
     description: '글 상세페이지에서 댓글을 작성한다.',
+  })
+  @ApiParam({
+    name: 'articleId',
+    description: '댓글을 작성하는 글의 아이디',
   })
   @ApiResponse({
     status: 201,
@@ -483,15 +511,24 @@ export class FeedController {
     return this.feedService.addComment(user, articleId, createCommentDto);
   }
 
-  @ApiTags('feed/comment')
-  @Patch('/comment/:commentId')
+  @ApiTags('feed/{articleId}/comment')
+  @Patch('/:articleId/comment/:commentId')
   @ApiOperation({
     summary: '댓글 수정 API',
     description: '글 상세페이지에서 댓글을 수정한다.',
   })
+  @ApiParam({
+    name: 'articleId',
+    description: '수정할 댓글이 작성된 글의 아이디',
+  })
+  @ApiParam({
+    name: 'commentId',
+    description: '수정하려는 댓글의 아이디',
+  })
   @ApiBody({ type: CreateCommentDto })
   async updateComment(
     @GetUser() user: User,
+    @Param('articleId') articleId: string,
     @Param('commentId') commentId: string,
     @Body() updateCommentDto: UpdateCommentDto,
     @Res() res,
@@ -500,6 +537,7 @@ export class FeedController {
       const comment = await this.feedService.findComment(commentId);
       if (JSON.stringify(comment.user) == JSON.stringify(user._id)) {
         const updateComment = await this.feedService.updateComment(
+          articleId,
           commentId,
           updateCommentDto,
         );
@@ -515,21 +553,30 @@ export class FeedController {
     }
   }
 
-  @ApiTags('feed/comment')
-  @Delete('/comment/:commentId')
+  @ApiTags('feed/{articleId}/comment')
+  @Delete('/:articleId/comment/:commentId')
   @ApiOperation({
     summary: '댓글 삭제 API',
     description: '댓글을 삭제한다.',
   })
+  @ApiParam({
+    name: 'articleId',
+    description: '삭제할 댓글이 작성된 글의 아이디',
+  })
+  @ApiParam({
+    name: 'commentId',
+    description: '삭제하려는 댓글의 아이디',
+  })
   async deleteComment(
     @GetUser() user: User,
+    @Param('articleId') articleId: string,
     @Param('commentId') commentId: string,
     @Res() res,
   ): Promise<any> {
     try {
       const comment = await this.feedService.findComment(commentId);
       if (JSON.stringify(comment.user) == JSON.stringify(user._id)) {
-        await this.feedService.deleteComment(commentId);
+        await this.feedService.deleteComment(articleId, commentId);
         return res.status(HttpStatus.OK).json({ message: '삭제 완료' });
       } else {
         return res
@@ -543,10 +590,14 @@ export class FeedController {
   }
 
   @ApiTags('feed')
-  @Post('/scrap/:articleId')
+  @Post('/:articleId/scrap')
   @ApiOperation({
     summary: '스크랩 API',
     description: '특정 글을 스크랩한다',
+  })
+  @ApiParam({
+    name: 'articleId',
+    description: '스크랩할 글의 id',
   })
   @ApiResponse({
     status: 201,
@@ -579,10 +630,14 @@ export class FeedController {
   }
 
   @ApiTags('feed')
-  @Delete('/scrap/:articleId')
+  @Delete('/:articleId/scrap')
   @ApiOperation({
     summary: '스크랩 취소 API',
     description: '스크랩을 취소한다.',
+  })
+  @ApiParam({
+    name: 'articleId',
+    description: '스크랩을 취소할 글의 id',
   })
   async deleteScrap(
     @GetUser() user: User,
@@ -606,10 +661,14 @@ export class FeedController {
   }
 
   @ApiTags('feed')
-  @Post('/like/:articleId')
+  @Post('/:articleId/like')
   @ApiOperation({
     summary: '좋아요 API',
     description: '특정 글에 좋아요를 한다.',
+  })
+  @ApiParam({
+    name: 'articleId',
+    description: '좋아요 할 글의 id',
   })
   @ApiResponse({
     status: 201,
@@ -638,10 +697,14 @@ export class FeedController {
   }
 
   @ApiTags('feed')
-  @Delete('/like/:articleId')
+  @Delete('/:articleId/like')
   @ApiOperation({
     summary: '좋아요 취소 API',
     description: '좋아요를 취소한다.',
+  })
+  @ApiParam({
+    name: 'articleId',
+    description: '좋아요를 취소할 글의 id',
   })
   async deleteLike(
     @GetUser() user: User,
