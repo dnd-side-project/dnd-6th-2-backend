@@ -76,7 +76,7 @@ export class FeedRepository {
         _id: { $lte: lastArticleId },
       })
         .sort({ _id: -1 })
-        .limit(3)
+        .limit(15)
         .populate('user')
         .exec();
       return articles;
@@ -86,7 +86,7 @@ export class FeedRepository {
         _id: { $lte: lastArticleId },
       })
         .sort({ _id: -1 })
-        .limit(3)
+        .limit(15)
         .populate('user')
         .exec();
       return articles;
@@ -149,7 +149,7 @@ export class FeedRepository {
       _id: { $lte: lastArticleId },
     })
       .sort({ _id: -1 })
-      .limit(3)
+      .limit(15)
       .populate('user')
       .exec();
     return articles;
@@ -163,7 +163,7 @@ export class FeedRepository {
       _id: { $lte: lastArticleId },
     })
       .sort({ _id: -1 })
-      .limit(3)
+      .limit(15)
       .populate('user')
       .exec();
     return articles;
@@ -230,7 +230,7 @@ export class FeedRepository {
       _id: { $lte: lastArticleId },
     })
       .sort({ _id: -1 })
-      .limit(3)
+      .limit(15)
       .populate('user')
       .exec();
     if (articles.length != 0) {
@@ -320,6 +320,7 @@ export class FeedRepository {
   }
 
   async deleteArticle(user, id): Promise<any> {
+    console.log(user)
     await this.CommentModel.deleteMany({ article: id });
     await this.UserModel.findByIdAndUpdate(user._id, {
       $pull: {
@@ -337,8 +338,21 @@ export class FeedRepository {
       user: user._id,
       keyWord: keyWord.content,
     });
+    const today = new Date().toDateString();
+    const todayKeyWord = await this.KeyWordModel.findOne({ updateDay: today });
     //마지막 챌린지 글을 삭제할 때
-    if (challenge.length == 1) {
+    if (challenge.length == 1 && challenge[0].keyWord != todayKeyWord.content) {
+      await this.UserModel.findByIdAndUpdate(user._id, {
+        $inc: {
+          stampCount: -1,
+        },
+      });
+    }
+    //글감이 오늘자 글감이면 state까지 바꿔줌
+    else if (
+      challenge.length == 1 &&
+      challenge[0].keyWord == todayKeyWord.content
+    ) {
       await this.UserModel.findByIdAndUpdate(user._id, {
         $set: {
           state: false,

@@ -1,9 +1,7 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Article, ArticleDocument } from 'src/challenge/schemas/article.schema';
 import { Comment, CommentDocument } from 'src/feed/schemas/comment.schema';
-import { Scrap, ScrapDocument } from 'src/feed/schemas/scrap.schema';
 import { User, UserDocument } from 'src/auth/schemas/user.schema';
-import { Like, LikeDocument } from 'src/feed/schemas/like.schema';
 import { KeyWord, KeyWordDocument } from 'src/challenge/schemas/keyword.schema';
 import { Model } from 'mongoose';
 import { UpdateArticleDto } from 'src/challenge/dto/update-article.dto';
@@ -15,12 +13,8 @@ export class MyArticleRepository {
     private ArticleModel: Model<ArticleDocument>,
     @InjectModel(Comment.name)
     private CommentModel: Model<CommentDocument>,
-    @InjectModel(Scrap.name)
-    private ScrapModel: Model<ScrapDocument>,
     @InjectModel(User.name)
     private UserModel: Model<UserDocument>,
-    @InjectModel(Like.name)
-    private LikeModel: Model<LikeDocument>,
     @InjectModel(KeyWord.name)
     private KeyWordModel: Model<KeyWordDocument>,
   ) {}
@@ -29,34 +23,34 @@ export class MyArticleRepository {
     if (last == null) {
       const lastArticle = await this.ArticleModel.find({
         user: user._id,
-        state: true,
+        $or: [{ state: true }, { free: true }],
       })
         .sort({ _id: -1 })
         .limit(1);
       last = lastArticle[0]._id;
       const articles = await this.ArticleModel.find({
         user: user._id,
-        state: true,
+        $or: [{ state: true }, { free: true }],
         _id: { $lte: last },
       })
         .sort({ _id: -1 })
-        .limit(3);
+        .limit(15);
       return articles;
     } else {
       const articles = await this.ArticleModel.find({
         user: user._id,
-        state: true,
+        $or: [{ state: true }, { free: true }],
         _id: { $lte: last },
       })
         .sort({ _id: -1 })
-        .limit(3);
+        .limit(15);
       return articles;
     }
   }
 
   async findMyArticleNext(user, last): Promise<any> {
     const next = await this.ArticleModel.find({
-      state: true,
+      $or: [{ state: true }, { free: true }],
       user: user._id,
       _id: { $lt: last },
     })
@@ -76,6 +70,7 @@ export class MyArticleRepository {
     createArticleDto.user = user._id;
     createArticleDto.keyWord = null;
     createArticleDto.state = false;
+    createArticleDto.free = true;
     const article = await new this.ArticleModel(createArticleDto);
     await this.UserModel.findByIdAndUpdate(user._id, {
       $push: {
@@ -118,7 +113,7 @@ export class MyArticleRepository {
         _id: { $lte: last },
       })
         .sort({ _id: -1 })
-        .limit(3);
+        .limit(15);
       return articles;
     } else {
       const articles = await this.ArticleModel.find({
@@ -128,7 +123,7 @@ export class MyArticleRepository {
         _id: { $lte: last },
       })
         .sort({ _id: -1 })
-        .limit(3);
+        .limit(15);
       return articles;
     }
   }
@@ -170,24 +165,57 @@ export class MyArticleRepository {
 
   async deleteMyArticle(user, articleId): Promise<any> {
     await this.CommentModel.deleteMany({ article: articleId });
-    await this.UserModel.findByIdAndUpdate(user._id, {
-      $pull: {
-        articles: articleId,
-      },
-      $inc: {
-        challenge: -1,
-      },
+    for(var i=0; i<articleId.length; i++){
+      await this.UserModel.findByIdAndUpdate(user._id, {
+        $pull: {
+          articles: articleId[i],
+        },
+      });
+    }
+
+    //챌린지 글은 챌린지 카운트 차감해줘야되니까 따로 찾아줌
+    const challengeArticle = await this.ArticleModel.find({
+      _id: articleId,
+      keyWord: { $ne: null },
     });
-    const article = await this.ArticleModel.findById(articleId);
-    const keyWord = await this.KeyWordModel.findOne({
-      updateDay: article.createdAt.toDateString(),
+    const articleCount: number = challengeArticle.length;
+    //삭제하는 글 중에 챌린지 글이 있으면 삭제하는 챌린지 글 수만큼 챌린지 카운트 차감
+    if (challengeArticle) {
+      await this.UserModel.findByIdAndUpdate(user._id, {
+        $inc: {
+          challenge: -articleCount,
+        },
+      });
+    }
+    const articles = await this.ArticleModel.find({ _id: articleId });
+
+    //삭제하는 글들에 해당하는 글감 찾아줌
+    const keyWord = await this.KeyWordModel.find({
+      updateDay: articles[0].createdAt.toDateString(),
     });
+
+    const today = new Date().toDateString();
+    const todayKeyWord = await this.KeyWordModel.findOne({ updateDay: today });
+
+    //유저가 해당 글감에 쓴 글들을 찾아줌
     const challenge = await this.ArticleModel.find({
       user: user._id,
-      keyWord: keyWord.content,
+      keyWord: keyWord[0].content,
     });
-    //마지막 챌린지 글을 삭제할 때
-    if (challenge.length == 1) {
+
+    //삭제하는 글이 해당 글감의 마지막 챌린지 글이면 stamp 차감함
+    if (challenge.length == 1 && challenge[0].keyWord != todayKeyWord.content) {
+      await this.UserModel.findByIdAndUpdate(user._id, {
+        $inc: {
+          stampCount: -1,
+        },
+      });
+    }
+    //글감이 오늘자 글감이면 state까지 바꿔줌
+    else if (
+      challenge.length == 1 &&
+      challenge[0].keyWord == todayKeyWord.content
+    ) {
       await this.UserModel.findByIdAndUpdate(user._id, {
         $set: {
           state: false,
@@ -197,6 +225,6 @@ export class MyArticleRepository {
         },
       });
     }
-    return await this.ArticleModel.findByIdAndDelete(articleId);
+    return await this.ArticleModel.deleteMany({ _id: articleId });
   }
 }
