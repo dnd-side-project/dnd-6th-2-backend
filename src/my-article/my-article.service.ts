@@ -42,6 +42,7 @@ export class MyArticleService {
   }
 
   async deleteMyArticle(user, articleId): Promise<any> {
-    return this.myArticleRepository.deleteMyArticle(user, articleId);
+    const articleIds: [string] = articleId.split(',');
+    return this.myArticleRepository.deleteMyArticle(user, articleIds);
   }
 }

@@ -38,4 +38,5 @@ export class CreateArticleDto {
 
   state: boolean;
   keyWord: string;
+  free: boolean;
 }
