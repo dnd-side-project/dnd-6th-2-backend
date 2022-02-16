@@ -7,6 +7,10 @@ export type UserDocument = User & Document;
 
 @Schema()
 export class User {
+  @ApiProperty({
+    type: String,
+    description: '사용자의 고유 id',
+  })
   _id: string;
 
   @ApiProperty({
@@ -31,7 +35,7 @@ export class User {
   nickname: string;
 
   @ApiProperty({
-    type: Array,
+    type: [String],
     description: '관심 장르',
   })
   @Prop()
@@ -48,30 +52,45 @@ export class User {
   // @Prop()
   // profileImage: string;
 
+  @ApiProperty({
+    type: [Comment],
+  })
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Comment',
   })
   comments: Comment[];
 
+  @ApiProperty({
+    type: [Article],
+  })
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
     ref: 'Article',
   })
   temporary: Article[];
 
+  @ApiProperty({
+    type: [Article],
+  })
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
     ref: 'Article',
   })
   articles: Article[];
 
+  @ApiProperty({
+    type: [User],
+  })
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
     ref: 'User',
   })
   subscribeUser: User[];
 
+  @ApiProperty({
+    type: Number,
+  })
   @Prop({ default: 0 })
   challenge: number;
 
@@ -89,9 +108,15 @@ export class User {
   @Prop({ default: false })
   state: boolean; //오늘 챌린지 했는지 여부
 
+  @ApiProperty({
+    type: String,
+  })
   @Prop()
   hashedRefreshToken: string; // refresh token 저장
 
+  @ApiProperty({
+    type: Number,
+  })
   @Prop()
   mailAuthCode: number; // 메일 인증 코드
 }
