@@ -84,10 +84,12 @@ export class FeedRepository {
         if (tags) {
           filter = {
             tags: { $in: tags },
+            public: true,
             _id: { $lte: lastId },
           };
         } else {
           filter = {
+            public: true,
             _id: { $lte: lastId },
           };
         }
@@ -97,6 +99,7 @@ export class FeedRepository {
         if (tags) {
           filter = {
             tags: { $in: tags },
+            public: true,
             $or: [
               { likeNum: { $lte: lastCount } },
               { _id: { $lte: lastId } },
@@ -104,6 +107,7 @@ export class FeedRepository {
           };
         } else {
           filter = {
+            public: true,
             $or: [
               { likeNum: { $lte: lastCount } },
               { _id: { $lte: lastId } },
@@ -120,11 +124,13 @@ export class FeedRepository {
         let filter;
         if (tags) {
           filter = {
+            public: true,
             tags: { $in: tags },
             _id: { $lt: nextId },
           };
         } else {
           filter = {
+            public: true,
             _id: { $lt: nextId },
           };
         }
@@ -133,6 +139,7 @@ export class FeedRepository {
         let filter;
         if (tags) {
           filter = {
+            public: true,
             tags: { $in: tags },
             $or: [
               { likeNum: { $lt: nextCount } },
@@ -141,6 +148,7 @@ export class FeedRepository {
           };
         } else {
           filter = {
+            public: true,
             $or: [
               { likeNum: { $lt: nextCount } },
               { likeNum: nextCount, _id: { $lt: nextId } },
