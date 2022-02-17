@@ -1,12 +1,16 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory, SchemaOptions } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import * as mongoose from 'mongoose';
 import { Article } from 'src/challenge/schemas/article.schema';
 import { Comment } from 'src/feed/schemas/comment.schema';
 
+const options: SchemaOptions = {
+  versionKey: false
+};
+
 export type UserDocument = User & Document;
 
-@Schema()
+@Schema(options)
 export class User {
   @ApiProperty({
     type: String,
