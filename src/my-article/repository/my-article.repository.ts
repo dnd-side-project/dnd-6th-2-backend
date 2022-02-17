@@ -19,47 +19,17 @@ export class MyArticleRepository {
     private KeyWordModel: Model<KeyWordDocument>,
   ) {}
 
-  async findMyArticle(user, last): Promise<Article[]> {
-    if (last == null) {
-      const lastArticle = await this.ArticleModel.find({
-        user: user._id,
-        $or: [{ state: true }, { free: true }],
-      })
-        .sort({ _id: -1 })
-        .limit(1);
-      last = lastArticle[0]._id;
-      const articles = await this.ArticleModel.find({
-        user: user._id,
-        $or: [{ state: true }, { free: true }],
-        _id: { $lte: last },
-      })
-        .sort({ _id: -1 })
-        .limit(15);
-      return articles;
-    } else {
-      const articles = await this.ArticleModel.find({
-        user: user._id,
-        $or: [{ state: true }, { free: true }],
-        _id: { $lte: last },
-      })
-        .sort({ _id: -1 })
-        .limit(15);
-      return articles;
-    }
-  }
-
-  async findMyArticleNext(user, last): Promise<any> {
-    const next = await this.ArticleModel.find({
-      $or: [{ state: true }, { free: true }],
-      user: user._id,
-      _id: { $lt: last },
-    })
+  async findMyArticle(user, cursor): Promise<Article[]> {
+    if (!cursor) {
+      let filter = {user: user._id, $or: [{ state: true }, { free: true }]}
+      return await this.ArticleModel.find(filter)
       .sort({ _id: -1 })
-      .limit(1);
-    if (next.length == 0) {
-      return null;
+      .limit(15);
     } else {
-      return next[0]._id;
+      let filter = {user: user._id, $or: [{ state: true }, { free: true }], _id: { $lt: cursor }}
+      return await this.ArticleModel.find(filter)
+      .sort({ _id: -1 })
+      .limit(15);
     }
   }
 
@@ -96,51 +66,17 @@ export class MyArticleRepository {
     return article.save();
   }
 
-  async findMyArticleTemp(user, last): Promise<Article[]> {
-    if (last == null) {
-      const lastArticle = await this.ArticleModel.find({
-        user: user._id,
-        state: false,
-        public: false,
-      })
-        .sort({ _id: -1 })
-        .limit(1);
-      last = lastArticle[0]._id;
-      const articles = await this.ArticleModel.find({
-        user: user._id,
-        state: false,
-        public: false,
-        _id: { $lte: last },
-      })
+  async findMyArticleTemp(user, cursor): Promise<Article[]> {
+    let filter = {user: user._id, state: false, public: false}
+    if (!cursor) {
+      return await this.ArticleModel.find(filter)
         .sort({ _id: -1 })
         .limit(15);
-      return articles;
     } else {
-      const articles = await this.ArticleModel.find({
-        user: user._id,
-        state: false,
-        public: false,
-        _id: { $lte: last },
-      })
-        .sort({ _id: -1 })
-        .limit(15);
-      return articles;
-    }
-  }
-
-  async findTempArticleNext(user, last): Promise<any> {
-    const next = await this.ArticleModel.find({
-      state: false,
-      public: false,
-      user: user._id,
-      _id: { $lt: last },
-    })
+      let filter = {user: user._id, state: false, public: false, _id: { $lt: cursor }}
+      return  await this.ArticleModel.find(filter)
       .sort({ _id: -1 })
-      .limit(1);
-    if (next.length == 0) {
-      return null;
-    } else {
-      return next[0]._id;
+      .limit(15);
     }
   }
 
