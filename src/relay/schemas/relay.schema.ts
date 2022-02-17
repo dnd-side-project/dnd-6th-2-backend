@@ -8,6 +8,10 @@ export type RelayDocument = Relay & Document;
 
 @Schema()
 export class Relay {
+  @ApiProperty({
+    type: String,
+    description: '릴레이 방의 고유 id',
+  })
   _id: string;
 
   @ApiProperty({
@@ -35,6 +39,10 @@ export class Relay {
   })
   notice: Notice[];
 
+  @ApiProperty({
+    type: User,
+    description: '릴레이 방을 만든 호스트',
+  })
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     description: '릴레이 방을 만든 사용자',
@@ -42,6 +50,10 @@ export class Relay {
   })
   host: User;
 
+  @ApiProperty({
+    type: [User],
+    description: '릴레이 방에 참여하는 사용자들',
+  })
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     description: '릴레이 방에 참여하는 사용자들',
@@ -67,11 +79,11 @@ export class Relay {
 
   @ApiProperty({
     type: Number,
-    description: '조회수',
+    description: '해당 릴레이 방의 좋아요 합산 수',
     default: 0,
   })
   @Prop({ default: 0 })
-  views: number;
+  likeCount: number;
 
   @ApiProperty({
     type: Date,

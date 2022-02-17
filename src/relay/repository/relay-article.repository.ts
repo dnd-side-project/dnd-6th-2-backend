@@ -35,13 +35,20 @@ export class RelayArticleRepository {
     }
   }
 
-  async getRelayArticle(relayId: string) {
-    // TODO: 페이지네이션 추가
-    return await this.articleModel
-      .find({ relay: relayId })
-      .sort({ createdAt: 1 })
-      .populate('user')
-      .exec();
+  async getRelayArticle(relayId: string, cursor: string) {
+    if (!cursor) {
+      return await this.articleModel
+        .find({ relay: relayId })
+        .sort({ _id: 1 })
+        .limit(15);
+    } else {
+      return await this.articleModel
+        .find({ relay: relayId, _id: { $gt: cursor } })
+        .sort({ _id: 1 })
+        .limit(15)
+        .populate('user')
+        .exec();
+    }
   }
 
   async createRelayArticle(relayId: string, content: string, user: User) {
