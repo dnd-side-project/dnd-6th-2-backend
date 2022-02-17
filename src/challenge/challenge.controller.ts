@@ -27,6 +27,7 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { User } from 'src/auth/schemas/user.schema';
 import { AuthGuard } from '@nestjs/passport';
+import { Tip } from './schemas/tip.schema';
 
 @ApiTags('challenge')
 @ApiBearerAuth('accessToken')
@@ -56,6 +57,10 @@ export class ChallengeController {
   @ApiOperation({
     summary: '챌린지 글 작성 페이지',
     description: '챌린지 글 작성페이지에서 글쓰기 팁을 조회하고 글을 작성한다.',
+  })
+  @ApiResponse({
+    status:200,
+    type:Tip
   })
   async getTip(@GetUser() user: User): Promise<any> {
     //@GetUser안 붙여주면 실행 안 됨
@@ -112,6 +117,10 @@ export class ChallengeController {
   @ApiOperation({
     summary: '글감 조회 (개발용)',
     description: '현재 DB에 입력된 모든 글감을 조회한다.',
+  })
+  @ApiResponse({
+    status: 200,
+    type:KeyWord 
   })
   getKeyWord(): Promise<KeyWord[]> {
     return this.challengeService.getKeyWord();

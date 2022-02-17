@@ -8,10 +8,17 @@ export type LikeDocument = Like & Document;
 
 const options: SchemaOptions = {
   timestamps: true,
+  versionKey:false
 };
 
 @Schema(options)
 export class Like {
+
+  @ApiProperty({
+    description:'Like의 ObjectId'
+  })
+  _id;
+  
   @ApiProperty({
     type: mongoose.Schema.Types.ObjectId,
     description: '좋아요를 누른 유저 객체',
@@ -31,6 +38,18 @@ export class Like {
     ref: 'Article',
   })
   article: Article;
+
+  @ApiProperty({
+    type: Date,
+    description:'Like 생성날짜'
+  })
+  createdAt:Date;
+
+  @ApiProperty({
+    type: Date,
+    description:'Like 업데이트날짜'
+  })
+  updatedAt:Date;
 }
 
 export const LikeSchema = SchemaFactory.createForClass(Like);

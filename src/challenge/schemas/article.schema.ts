@@ -9,10 +9,15 @@ export type ArticleDocument = Article & Document;
 
 const options: SchemaOptions = {
   timestamps: true,
+  versionKey : false
 };
 
 @Schema(options)
 export class Article {
+  @ApiProperty({
+    type: mongoose.Schema.Types.ObjectId,
+    description: 'Aritlce의 ObjectId',
+  })
   _id: string;
 
   @ApiProperty({
@@ -114,6 +119,10 @@ export class Article {
   })
   comments: Comment[];
 
+  @ApiProperty({
+    type: mongoose.Schema.Types.ObjectId,
+    description: '릴레이 방의 ObjectId',
+  })
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     description: '릴레이 방에서 쓰인 글이면 해당 릴레이 방의 id 저장',
