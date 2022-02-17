@@ -8,10 +8,17 @@ export type ScrapDocument = Scrap & Document;
 
 const options: SchemaOptions = {
   timestamps: true,
+  versionKey: false
 };
 
 @Schema(options)
 export class Scrap {
+
+  @ApiProperty({
+    description:'Scrap의 ObjectId'
+  })
+  _id;
+
   @ApiProperty({
     type: mongoose.Schema.Types.ObjectId,
     description: '스크랩을 한 유저',
@@ -33,7 +40,15 @@ export class Scrap {
   article: Article;
 
   /* timestamps */
+  @ApiProperty({
+    type: Date,
+    description:'생성날짜'
+  })
   createAt: Date;
+  @ApiProperty({
+    type: Date,
+    description:'업데이트 날짜'
+  })
   updateAt: Date;
 }
 
