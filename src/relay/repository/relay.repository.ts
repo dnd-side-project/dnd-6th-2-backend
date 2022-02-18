@@ -20,8 +20,8 @@ export class RelayRepository {
     @InjectModel(Notice.name) private noticeModel: Model<NoticeDocument>,
   ) {}
 
-  async findRelayById(id: string): Promise<Relay> {
-    const relay = await this.relayModel.findById(id);
+  async findRelayById(relayId: string): Promise<Relay> {
+    const relay = await this.relayModel.findById(relayId);
 
     if (!relay) {
       throw new NotFoundException('요청하신 릴레이 방이 존재하지 않습니다.');
@@ -31,9 +31,9 @@ export class RelayRepository {
 
   async checkUser(relayId: string, userId: string) {
     // 호스트인지 판별
-    const relay = await this.findRelayById(relayId);
+    const check = await this.relayModel.exists({ _id: relayId, host: userId });
 
-    if (relay.host._id.toString() !== userId.toString()) {
+    if (!check) {
       throw new ForbiddenException('권한이 없습니다.');
     }
   }
@@ -119,7 +119,7 @@ export class RelayRepository {
 
   async getAllRelay(query, user: User) {
     const { tags, orderBy, cursor } = query;
-    const populate_list = ['notice', 'host'];
+    const populate_list = ['notice', 'host', 'members'];
 
     if (!cursor) {
       const last = await this.findAllLastRelay(orderBy, { user, tags });
@@ -206,21 +206,46 @@ export class RelayRepository {
 
   async findJoinedLastRelay(user: User) {
     return await this.relayModel
-      .find({ members: user._id })
+      .find({ host: { $ne: user._id }, members: user._id })
       .sort({ _id: -1 })
       .limit(1);
   }
 
   async getJoinedRelay(cursor, user: User) {
     let filter;
-    const populate_list = ['notice', 'host'];
+    const populate_list = ['notice', 'host', 'members'];
     if (!cursor) {
       const last = await this.findJoinedLastRelay(user);
       const lastId = last[0]._id;
       filter = { members: user._id, _id: { $lte: lastId } };
     } else {
       const { nextId, nextCount } = cursor.split('_');
-      filter = { members: user._id, _id: { $lt: nextId } };
+      filter = {
+        host: { $ne: user._id },
+        members: user._id,
+        _id: { $lt: nextId },
+      };
+    }
+    return await this.getPagedRelay(filter, OrderBy.LATEST, populate_list);
+  }
+
+  async findMyLastRelay(user: User) {
+    return await this.relayModel
+      .find({ host: user._id })
+      .sort({ _id: -1 })
+      .limit(1);
+  }
+
+  async getMyRelay(cursor, user: User) {
+    let filter;
+    const populate_list = ['notice', 'host', 'members'];
+    if (!cursor) {
+      const last = await this.findMyLastRelay(user);
+      const lastId = last[0]._id;
+      filter = { host: user._id, _id: { $lte: lastId } };
+    } else {
+      const { nextId, nextCount } = cursor.split('_');
+      filter = { host: user._id, _id: { $lt: nextId } };
     }
     return await this.getPagedRelay(filter, OrderBy.LATEST, populate_list);
   }
