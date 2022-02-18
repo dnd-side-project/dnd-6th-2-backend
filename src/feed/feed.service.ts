@@ -44,11 +44,9 @@ export class FeedService {
   }
 
   async searchArticle(
-    cursor,
-    option: string,
-    content: string,
+    query
   ): Promise<any> {
-    return this.feedRepository.searchArticle(cursor, option, content);
+    return this.feedRepository.searchArticle(query);
   }
 
   async findHistory(user): Promise<any[]> {
