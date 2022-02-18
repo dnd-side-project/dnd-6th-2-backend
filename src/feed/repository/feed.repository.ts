@@ -45,9 +45,7 @@ export class FeedRepository {
       }
     } else {
       if (orderBy === OrderBy.LATEST) {
-        return await this.ArticleModel.find()
-          .sort({ _id: -1 })
-          .limit(1);
+        return await this.ArticleModel.find().sort({ _id: -1 }).limit(1);
       } else if (orderBy === OrderBy.POPULAR) {
         return await this.ArticleModel.find()
           .sort({ likeNum: -1, _id: -1 })
@@ -76,7 +74,7 @@ export class FeedRepository {
     const { tags, orderBy, cursor } = query;
 
     if (!cursor) {
-      const last = await this.findAllLastArticle(orderBy, {tags});
+      const last = await this.findAllLastArticle(orderBy, { tags });
       const lastId = last[0]._id;
       const lastCount = last[0].likeNum;
       if (orderBy === OrderBy.LATEST) {
@@ -97,25 +95,19 @@ export class FeedRepository {
         if (tags) {
           filter = {
             tags: { $in: tags },
-            $or: [
-              { likeNum: { $lte: lastCount } },
-              { _id: { $lte: lastId } },
-            ],
+            $or: [{ likeNum: { $lte: lastCount } }, { _id: { $lte: lastId } }],
           };
         } else {
           filter = {
-            $or: [
-              { likeNum: { $lte: lastCount } },
-              { _id: { $lte: lastId } },
-            ],
+            $or: [{ likeNum: { $lte: lastCount } }, { _id: { $lte: lastId } }],
           };
         }
         return await this.getPagedArticle(filter, OrderBy.POPULAR);
       }
     } else {
-      const cursorArr = cursor.split('_')
-      const nextId = cursorArr[0]
-      const nextCount = cursorArr[1]
+      const cursorArr = cursor.split('_');
+      const nextId = cursorArr[0];
+      const nextCount = cursorArr[1];
       if (orderBy === OrderBy.LATEST) {
         let filter;
         if (tags) {
@@ -152,46 +144,44 @@ export class FeedRepository {
     }
   }
 
-  async getSubFeedAll(user:User, cursor): Promise<any[]> {
-    if(!cursor){
-      let filter = {user:user.subscribeUser, public:true}
-      return await this.ArticleModel
-      .find(filter)
-      .sort({_id:-1})
-      .limit(15)
-      .populate('user')
-      .exec();
-    }
-    else{
-      let filter = {user:user.subscribeUser, public:true, _id:{$lt:cursor}}
-      return await this.ArticleModel
-      .find(filter)
-      .sort({_id:-1})
-      .limit(15)
-      .populate('user')
-      .exec();
+  async getSubFeedAll(user: User, cursor): Promise<any[]> {
+    if (!cursor) {
+      let filter = { user: user.subscribeUser, public: true };
+      return await this.ArticleModel.find(filter)
+        .sort({ _id: -1 })
+        .limit(15)
+        .populate('user')
+        .exec();
+    } else {
+      let filter = {
+        user: user.subscribeUser,
+        public: true,
+        _id: { $lt: cursor },
+      };
+      return await this.ArticleModel.find(filter)
+        .sort({ _id: -1 })
+        .limit(15)
+        .populate('user')
+        .exec();
     }
   }
 
   //특정 구독작가의 글만 보기
   async getSubFeedOne(authorId, cursor): Promise<any[]> {
-    if(!cursor){
-      let filter = {user:authorId, public:true}
-      return await this.ArticleModel
-      .find(filter)
-      .sort({_id:-1})
-      .limit(15)
-      .populate('user')
-      .exec();
-    }
-    else{
-      let filter = {user:authorId, public:true, _id:{$lt:cursor}}
-      return await this.ArticleModel
-      .find(filter)
-      .sort({_id:-1})
-      .limit(15)
-      .populate('user')
-      .exec();
+    if (!cursor) {
+      let filter = { user: authorId, public: true };
+      return await this.ArticleModel.find(filter)
+        .sort({ _id: -1 })
+        .limit(15)
+        .populate('user')
+        .exec();
+    } else {
+      let filter = { user: authorId, public: true, _id: { $lt: cursor } };
+      return await this.ArticleModel.find(filter)
+        .sort({ _id: -1 })
+        .limit(15)
+        .populate('user')
+        .exec();
     }
   }
 
@@ -224,11 +214,9 @@ export class FeedRepository {
     });
   }
 
-  async searchArticle(
-    cursor,
-    option: string,
-    content: string,
-  ): Promise<any[]> {
+  async searchArticle(query): Promise<any[]> {
+    const { cursor, option, content, orderBy } = query;
+
     let options = [];
     if (option == 'title') {
       options = [{ title: new RegExp(content) }];
@@ -244,31 +232,62 @@ export class FeedRepository {
       const last = await this.ArticleModel.find({ $or: options, public: true })
         .sort({ _id: -1 })
         .limit(1);
-      if (last.length != 0) {
-        cursor = last[0]._id;
+      if (last.length === 0) {
+        return last;
       } else {
-        cursor = null;
+        const lastId = last[0]._id;
+        const lastCount = last[0].likeNum;
+        if (orderBy === OrderBy.LATEST) {
+          return await this.ArticleModel.find({
+            $or: options,
+            public: true,
+            _id: { $lte: lastId },
+          })
+            .sort({ _id: -1 })
+            .limit(15)
+            .populate('user')
+            .exec();
+        } else if (orderBy === OrderBy.POPULAR) {
+          let filter = [
+            { $or: options },
+            {$or: [
+                { likeNum: { $lte: lastCount } },
+                { _id: { $lte: lastId } }
+              ]}
+          ]
+          return await this.ArticleModel.find({ public: true })
+            .and(filter)
+            .sort({ likeNum: -1 })
+            .limit(15)
+            .populate('user')
+            .exec();
+        }
       }
-      return await this.ArticleModel.find({
-        $or: options,
-        public: true,
-        _id: { $lte: cursor },
-      })
-        .sort({ _id: -1 })
-        .limit(15)
-        .populate('user')
-        .exec();
-    }
-    else{
-      return await this.ArticleModel.find({
-        $or: options,
-        public: true,
-        _id: { $lt: cursor },
-      })
-        .sort({ _id: -1 })
-        .limit(15)
-        .populate('user')
-        .exec();
+    } else {
+      const cursorArr = cursor.split('_');
+      const nextId = cursorArr[0];
+      const nextCount = cursorArr[1];
+      if (orderBy === OrderBy.LATEST) {
+        return await this.ArticleModel.find({
+          $or: options,
+          public: true,
+          _id: { $lt: nextId },
+        })
+          .sort({ _id: -1 })
+          .limit(15)
+          .populate('user')
+          .exec();
+      } else if (orderBy === OrderBy.POPULAR) {
+        return await this.ArticleModel.find({
+          $or: options,
+          public: true,
+          likeNum: { $lt: nextCount },
+        })
+          .sort({ likeNum: -1 })
+          .limit(15)
+          .populate('user')
+          .exec();
+      }
     }
   }
 
