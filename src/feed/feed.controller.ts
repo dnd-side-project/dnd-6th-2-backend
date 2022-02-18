@@ -286,6 +286,11 @@ export class FeedController {
     description:
       '제목(title),내용(content),제목+내용(title+content) 조건을 주는 쿼리',
   })
+  @ApiQuery({
+    name: 'orderBy',
+    enum: OrderBy,
+    description: '정렬 기준 (default: 최신순)',
+  })
   @ApiResponse({
     status: 200,
     description:
@@ -300,16 +305,14 @@ export class FeedController {
     try {
       await this.feedService.saveHistory(user, query.content);
       const articles = await this.feedService.searchArticle(
-        query.cursor,
-        query.option,
-        query.content,
+        query
       );
       if(articles.length === 0){
         return res.status(HttpStatus.OK).json({message: '검색 결과가 없습니다.'})
       }
       else{
         const last = articles[articles.length-1];
-        const next_cursor =`${last._id}`
+        const next_cursor =`${last._id}_${last.likeNum}`;
         return res.status(HttpStatus.OK).json({ articles, next_cursor });
       }
     } catch (e) {
