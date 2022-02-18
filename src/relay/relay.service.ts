@@ -18,20 +18,20 @@ export class RelayService {
     private readonly relayArticleRepository: RelayArticleRepository,
   ) {}
 
-  async findAllLastRelay(orderBy: OrderBy, filter) {
-    return await this.relayRepository.findAllLastRelay(orderBy, filter);
-  }
-
   async getAllRelay(query, user: User) {
     return await this.relayRepository.getAllRelay(query, user);
   }
 
-  async findJoinedLastRelay(user: User) {
-    return await this.relayRepository.findJoinedLastRelay(user);
-  }
-
   async getJoinedRelay(cursor, user: User) {
     return await this.relayRepository.getJoinedRelay(cursor, user);
+  }
+
+  async getMyRelay(cursor, user: User) {
+    return await this.relayRepository.getMyRelay(cursor, user);
+  }
+
+  async findRelayById(relayId: string) {
+    return await this.relayRepository.findRelayById(relayId);
   }
 
   async createRelay(
@@ -99,5 +99,13 @@ export class RelayService {
 
   async deleteRelayArticle(param, user: User) {
     return await this.relayArticleRepository.deleteRelayArticle(param, user);
+  }
+
+  async createRelayLike(param, user: User) {
+    return await this.relayArticleRepository.createRelayLike(param, user);
+  }
+
+  async deleteRelayLike(param, user: User) {
+    return await this.relayArticleRepository.deleteRelayLike(param, user);
   }
 }

@@ -1,4 +1,4 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory, SchemaOptions } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import * as mongoose from 'mongoose';
 import { User } from 'src/auth/schemas/user.schema';
@@ -6,7 +6,11 @@ import { Notice } from './notice.schema';
 
 export type RelayDocument = Relay & Document;
 
-@Schema()
+const options: SchemaOptions = {
+  versionKey: false,
+};
+
+@Schema(options)
 export class Relay {
   @ApiProperty({
     type: String,
@@ -84,6 +88,14 @@ export class Relay {
   })
   @Prop({ default: 0 })
   likeCount: number;
+
+  @ApiProperty({
+    type: Number,
+    description: '해당 릴레이 방의 총 글 개수',
+    default: 0,
+  })
+  @Prop({ default: 0 })
+  articleCount: number;
 
   @ApiProperty({
     type: Date,

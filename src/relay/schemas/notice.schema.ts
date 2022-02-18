@@ -1,9 +1,13 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory, SchemaOptions } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 
 export type NoticeDocument = Notice & Document;
 
-@Schema()
+const options: SchemaOptions = {
+  versionKey: false,
+};
+
+@Schema(options)
 export class Notice {
   @ApiProperty({
     type: String,
