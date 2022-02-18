@@ -21,7 +21,7 @@ export class Article {
   _id: string;
 
   @ApiProperty({
-    type: mongoose.Schema.Types.ObjectId,
+    type: [User],
     description: '글쓴이 객체',
   })
   @Prop({
@@ -53,11 +53,11 @@ export class Article {
   tags: string[];
 
   @ApiProperty({
-    type: Array,
-    description: '유저가 정하는 카테고리',
+    type: String,
+    description: '글의 카테고리(유저가 직접 생성',
   })
-  @Prop()
-  category: string[];
+  @Prop({default: null})
+  category: string;
 
   @ApiProperty({
     type: String,
@@ -109,13 +109,14 @@ export class Article {
   scrapNum: number;
 
   @ApiProperty({
-    type: [mongoose.Schema.Types.ObjectId],
+    type: [Comment],
     description: '댓글 객체 배열',
   })
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
     description: '댓글 목록',
     ref: 'Comment',
+    default: null
   })
   comments: Comment[];
 
@@ -127,6 +128,7 @@ export class Article {
     type: mongoose.Schema.Types.ObjectId,
     description: '릴레이 방에서 쓰인 글이면 해당 릴레이 방의 id 저장',
     ref: 'Relay',
+    default: null
   })
   relay: Relay;
 
