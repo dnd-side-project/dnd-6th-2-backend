@@ -118,6 +118,7 @@ export class Article {
     type: mongoose.Schema.Types.ObjectId,
     description: '릴레이 방에서 쓰인 글이면 해당 릴레이 방의 id 저장',
     ref: 'Relay',
+    default: null,
   })
   relay: Relay;
 
