@@ -114,6 +114,13 @@ export class User {
   state: boolean; //오늘 챌린지 했는지 여부
 
   @ApiProperty({
+    type: Array,
+    description: '유저가 만든 카테고리 리스트'
+  })
+  @Prop()
+  categories: string[];
+
+  @ApiProperty({
     type: String,
   })
   @Prop()
