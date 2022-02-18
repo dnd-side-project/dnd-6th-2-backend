@@ -47,13 +47,13 @@ export class MyArticleController {
   })
   @ApiResponse({
     status: 200,
-    description: '조회 성공',
+    description: '유저의 Article 객체 배열을 반환합니다.',
   })
   @ApiQuery({
-    name: 'lastArticleId',
-    type: String,
-    description: '마지막 글 아이디(처음에는 null값 보냄)',
+    name: 'cursor',
     required: false,
+    description:
+      '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
   })
   async getMyArticle(
     @GetUser() user: User,
@@ -63,14 +63,17 @@ export class MyArticleController {
     try {
       const articles: Article[] = await this.myArticleService.findMyArticle(
         user,
-        query.lastArticleId,
+        query.cursor
       );
-      const last = articles[articles.length - 1]._id;
-      const nextArticle = await this.myArticleService.findMyArticleNext(
-        user,
-        last,
-      );
-      return res.status(HttpStatus.OK).json({ articles, nextArticle });
+      if(articles.length === 0){
+        return res.status(HttpStatus.OK).json({message:'더 이상의 페이지는 존재하지 않습니다.'}
+        )
+      }
+      else{
+        const last = articles[articles.length -1];
+        const next_cursor = `${last._id}`;
+        return res.status(HttpStatus.OK).json({ articles, next_cursor });
+      }
     } catch (e) {
       this.logger.error('나의 글 전체 조회 ERR ' + e);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
@@ -112,10 +115,10 @@ export class MyArticleController {
     description: '임시저장된 글들을 조회합니다.',
   })
   @ApiQuery({
-    name: 'lastArticleId',
-    type: String,
-    description: '마지막 글 아이디(처음에는 null값 보냄)',
+    name: 'cursor',
     required: false,
+    description:
+      '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
   })
   async getMyArticleTemp(
     @GetUser() user: User,
@@ -125,23 +128,20 @@ export class MyArticleController {
     try {
       const articles: Article[] = await this.myArticleService.findMyArticleTemp(
         user,
-        query.lastArticleId,
+        query.cursor
       );
-      const last = articles[articles.length - 1]._id;
-      const nextArticle = await this.myArticleService.findTempArticleNext(
-        user,
-        last,
-      );
-      return res.status(HttpStatus.OK).json({ articles, nextArticle });
+      if(articles.length === 0){
+        return res.status(HttpStatus.OK).json({message:'더 이상의 페이지는 존재하지 않습니다.'}
+        )
+      }
+      else{
+        const last = articles[articles.length -1];
+        const next_cursor = `${last._id}`;
+        return res.status(HttpStatus.OK).json({ articles, next_cursor });
+      }
     } catch (e) {
       this.logger.error('임시보관함 조회 ERR ' + e);
-      if (e instanceof TypeError) {
-        return res
-          .status(HttpStatus.NOT_FOUND)
-          .json({ message: '임시저장된 게시글이 없습니다.' });
-      } else {
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
-      }
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
     }
   }
 

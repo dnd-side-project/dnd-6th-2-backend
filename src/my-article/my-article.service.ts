@@ -6,12 +6,8 @@ import { MyArticleRepository } from './repository/my-article.repository';
 export class MyArticleService {
   constructor(private readonly myArticleRepository: MyArticleRepository) {}
 
-  async findMyArticle(user, last): Promise<Article[]> {
-    return this.myArticleRepository.findMyArticle(user, last);
-  }
-
-  async findMyArticleNext(user, last): Promise<any> {
-    return this.myArticleRepository.findMyArticleNext(user, last);
+  async findMyArticle(user, cursor): Promise<Article[]> {
+    return this.myArticleRepository.findMyArticle(user, cursor);
   }
 
   async saveMyArticle(user, createArticleDto): Promise<Article> {
@@ -22,12 +18,8 @@ export class MyArticleService {
     return this.myArticleRepository.saveMyArticleTemp(user, createArticleDto);
   }
 
-  async findMyArticleTemp(user, last): Promise<Article[]> {
-    return this.myArticleRepository.findMyArticleTemp(user, last);
-  }
-
-  async findTempArticleNext(user, last): Promise<any> {
-    return this.myArticleRepository.findTempArticleNext(user, last);
+  async findMyArticleTemp(user, cursor): Promise<Article[]> {
+    return this.myArticleRepository.findMyArticleTemp(user, cursor);
   }
 
   async findMyArticleOne(articleId: string): Promise<Article> {

@@ -1,12 +1,16 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory, SchemaOptions } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import * as mongoose from 'mongoose';
 import { Article } from 'src/challenge/schemas/article.schema';
 import { Comment } from 'src/feed/schemas/comment.schema';
 
+const options: SchemaOptions = {
+  versionKey: false
+};
+
 export type UserDocument = User & Document;
 
-@Schema()
+@Schema(options)
 export class User {
   @ApiProperty({
     type: String,
@@ -108,6 +112,13 @@ export class User {
   })
   @Prop({ default: false })
   state: boolean; //오늘 챌린지 했는지 여부
+
+  @ApiProperty({
+    type: Array,
+    description: '유저가 만든 카테고리 리스트'
+  })
+  @Prop()
+  categories: string[];
 
   @ApiProperty({
     type: String,

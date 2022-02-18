@@ -8,10 +8,17 @@ export type CommentDocument = Comment & Document;
 
 const options: SchemaOptions = {
   timestamps: true,
+  versionKey: false
 };
 
 @Schema(options)
 export class Comment {
+
+  @ApiProperty({
+    description: 'comment의 objectId',
+  })
+  _id;
+
   @ApiProperty({
     type: mongoose.Schema.Types.ObjectId,
     description: '댓글 작성자 객체',

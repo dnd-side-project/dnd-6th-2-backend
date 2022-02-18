@@ -36,6 +36,8 @@ import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { User } from 'src/auth/schemas/user.schema';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Like } from './schemas/like.schema';
+import { OrderBy } from './feed.service';
+import { History } from './schemas/history.schema';
 
 @ApiBearerAuth('accessToken')
 @Controller('feed')
@@ -50,49 +52,45 @@ export class FeedController {
   @Get()
   @ApiOperation({
     summary: '전체 피드 조회 API',
-    description: '공개 설정된 모든 글들을 조회한다.(업데이트순)',
+    description: '공개 설정된 모든 글들을 조회한다.',
   })
   @ApiQuery({
-    name: 'lastArticleId',
-    type: String,
-    description: '마지막 글 아이디(처음에는 null값 보냄)',
-    required: false,
-  })
-  @ApiQuery({
-    name: 'tag',
+    name: 'tags',
     type: Array,
-    description: '태그별로 분류해서 보여주기 위한 쿼리',
+    description: '필터링을 하기 위한 태그 목록',
     required: false,
+  })
+  @ApiQuery({
+    name: 'orderBy',
+    enum: OrderBy,
+    description: '정렬 기준 (default: 최신순)',
+  })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    description:
+      '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      '피드의 Article 객체 배열과 함께 다음 페이지 요청을 위한 next_cursor 를 반환합니다. next_cursor 가 null 이면, 더 이상의 페이지는 없습니다.',
   })
   async getMainFeed(@Query() query, @Res() res): Promise<Article[]> {
     try {
-      if (query.lastArticleId == null) {
-        query.lastArticleId = await this.feedService.findLast();
-        const articles: Article[] = await this.feedService.mainFeed(
-          query.lastArticleId,
-          query.tag,
-        );
-        const last = articles[articles.length - 1]._id;
-        const nextArticle = await this.feedService.findNext(query.tag, last);
-        return res.status(HttpStatus.OK).json({ articles, nextArticle });
-      } else {
-        const articles: Article[] = await this.feedService.mainFeed(
-          query.lastArticleId,
-          query.tag,
-        );
-        const last = articles[articles.length - 1]._id;
-        const nextArticle = await this.feedService.findNext(query.tag, last);
-        return res.status(HttpStatus.OK).json({ articles, nextArticle });
+      const articles = await this.feedService.mainFeed(query);
+      if(articles.length === 0){
+        return res.status(HttpStatus.OK).json({message:'더 이상의 페이지는 존재하지 않습니다.'}
+        )
+      }
+      else{
+        const last = articles[articles.length -1];
+        const next_cursor = `${last._id}_${last.likeNum}`;
+        return res.status(HttpStatus.OK).json({ articles, next_cursor });
       }
     } catch (e) {
       this.logger.error('피드 전체 조회 ERR ' + e);
-      if (e instanceof TypeError) {
-        return res
-          .status(HttpStatus.OK)
-          .json({ message: '검색 결과가 없습니다.' });
-      } else {
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
-      }
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
     }
   }
 
@@ -103,70 +101,40 @@ export class FeedController {
     description: '구독한 작가들의 글과 구독목록을 조회한다.(업데이트순)',
   })
   @ApiQuery({
-    name: 'lastArticleId',
-    type: String,
-    description: '마지막 글 아이디(처음에는 null값 보냄)',
+    name: 'cursor',
     required: false,
+    description:
+      '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
   })
   @ApiResponse({
     status: 200,
     description:
-      '구독한 작가들의 Article 객체 배열 , 구독한 작가들의 user 객체 배열 반환',
+      '구독한 작가들의 Article 객체 배열과 구독한 작가들의 user 객체 배열(subscribeUserList)을 반환합니다.',
   })
-  async getSubFeed(
+  async getSubFeedAll(
     @GetUser() user: User,
     @Query() query,
     @Res() res,
-    @Param('authorId') authorId,
   ): Promise<any[]> {
-    try {
-      const subscribeUserList: any[] = await this.feedService.findAllSubUser(
-        user,
-      );
-      if (query.lastArticleId == null) {
-        query.lastArticleId = await this.feedService.findLastSub(
+      try {
+        const subscribeUserList: any[] = await this.feedService.findAllSubUser(
           user,
-          authorId,
         );
-        const articles: Article[] = await this.feedService.subFeed(
-          user,
-          query.lastArticleId,
-        );
-        const last = articles[articles.length - 1]._id;
-        const nextArticle = await this.feedService.findNextSub(
-          user,
-          last,
-          authorId,
-        );
-        return res
-          .status(HttpStatus.OK)
-          .json({ articles, subscribeUserList, nextArticle });
-      } else {
-        const articles: Article[] = await this.feedService.subFeed(
-          user,
-          query.lastArticleId,
-        );
-        const last = articles[articles.length - 1]._id;
-        const nextArticle = await this.feedService.findNextSub(
-          user,
-          last,
-          authorId,
-        );
-        return res
-          .status(HttpStatus.OK)
-          .json({ articles, subscribeUserList, nextArticle });
-      }
-    } catch (e) {
-      this.logger.error('구독 피드 전체 조회 ERR ' + e);
-      if (e instanceof TypeError) {
-        return res
-          .status(HttpStatus.NOT_FOUND)
-          .json({ message: '구독한 작가들이 없습니다.' });
-      } else {
+        const articles = await this.feedService.getSubFeedAll(user, query.cursor);
+        if(articles.length === 0){
+          return res.status(HttpStatus.OK).json({subscribeUserList, message:'더 이상의 페이지는 존재하지 않습니다.'}
+          )
+        }
+        else{
+          const last = articles[articles.length -1];
+          const next_cursor = `${last._id}`;
+          return res.status(HttpStatus.OK).json({ articles, subscribeUserList, next_cursor });
+        }
+      } catch (e) {
+        this.logger.error('피드 전체 조회 ERR ' + e);
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
       }
     }
-  }
 
   @ApiTags('feed/subscribe')
   @Get('/subscribe/authorlist')
@@ -191,14 +159,19 @@ export class FeedController {
     description: '특정 구독 작가의 글과 나의 구독목록을 조회한다.(업데이트순)',
   })
   @ApiQuery({
-    name: 'lastArticleId',
-    type: String,
-    description: '마지막 글 아이디(처음에는 null값 보냄)',
+    name: 'cursor',
     required: false,
+    description:
+      '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
   })
   @ApiParam({
     name: 'authorId',
     description: '구독작가의 id',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      '특정 구독 작가의 Article 객체 배열과 구독한 작가들의 user 객체 배열(subscribeUserList)을 반환합니다.',
   })
   async getSubFeedOne(
     @GetUser() user: User,
@@ -215,41 +188,18 @@ export class FeedController {
         return res
           .status(HttpStatus.BAD_REQUEST)
           .json({ message: '구독한 작가가 아닙니다.' });
-      } else if (query.lastArticleId == null && check.length != 0) {
-        query.lastArticleId = await this.feedService.findLastSub(
-          user,
-          authorId,
-        );
-        const articles: any[] = await this.feedService.subFeedOne(
-          user,
-          authorId,
-          query.lastArticleId,
-        );
-        const last = articles[articles.length - 1]._id;
-        const nextArticle = await this.feedService.findNextSub(
-          user,
-          last,
-          authorId,
-        );
-        console.log(nextArticle);
-        return res
-          .status(HttpStatus.OK)
-          .json({ articles, subscribeUserList, nextArticle });
-      } else if (query.lastArticleId != null && check.length != 0) {
-        const articles: any[] = await this.feedService.subFeedOne(
-          user,
-          authorId,
-          query.lastArticleId,
-        );
-        const last = articles[articles.length - 1]._id;
-        const nextArticle = await this.feedService.findNextSub(
-          user,
-          last,
-          authorId,
-        );
-        return res
-          .status(HttpStatus.OK)
-          .json({ articles, subscribeUserList, nextArticle });
+      }
+      else{
+        const articles = await this.feedService.getSubFeedOne(authorId, query.cursor);
+        if(articles.length === 0){
+          return res.status(HttpStatus.OK).json({message:'더 이상의 페이지는 존재하지 않습니다.'}
+          )
+        }
+        else{
+          const last = articles[articles.length -1];
+          const next_cursor = `${last._id}`;
+          return res.status(HttpStatus.OK).json({ articles, subscribeUserList, next_cursor });
+        }
       }
     } catch (e) {
       this.logger.error('특정 구독 작가 글만 조회 ERR ' + e);
@@ -326,41 +276,44 @@ export class FeedController {
     description: '제목, 내용, 제목+내용으로 검색한다.',
   })
   @ApiQuery({
-    name: 'lastArticleId',
-    type: String,
-    description: '마지막 글 아이디(처음에는 null값 보냄)',
+    name: 'cursor',
     required: false,
+    description:
+      '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
   })
   @ApiQuery({
     name: 'option',
     description:
       '제목(title),내용(content),제목+내용(title+content) 조건을 주는 쿼리',
   })
+  @ApiQuery({
+    name: 'orderBy',
+    enum: OrderBy,
+    description: '정렬 기준 (default: 최신순)',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      '검색 결과의 Article 객체 배열과 next_cursor 반환',
+  })
   @ApiQuery({ name: 'content', description: '검색할 내용' })
   async searchArticle(
     @GetUser() user: User,
     @Query() query,
     @Res() res,
-  ): Promise<any> {
+  ): Promise<any[]> {
     try {
       await this.feedService.saveHistory(user, query.content);
       const articles = await this.feedService.searchArticle(
-        query.lastArticleId,
-        query.option,
-        query.content,
+        query
       );
-      if (articles != null) {
-        const last = articles[articles.length - 1]._id;
-        const nextArticle = await this.feedService.nextSearch(
-          query.option,
-          query.content,
-          last,
-        );
-        return res.status(HttpStatus.OK).json({ articles, nextArticle });
-      } else {
-        return res
-          .status(HttpStatus.NOT_FOUND)
-          .json({ message: '검색 결과가 없습니다.' });
+      if(articles.length === 0){
+        return res.status(HttpStatus.OK).json({message: '검색 결과가 없습니다.'})
+      }
+      else{
+        const last = articles[articles.length-1];
+        const next_cursor =`${last._id}_${last.likeNum}`;
+        return res.status(HttpStatus.OK).json({ articles, next_cursor });
       }
     } catch (e) {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
@@ -372,6 +325,10 @@ export class FeedController {
   @ApiOperation({
     summary: '검색창에서 최근 검색어 보기',
     description: '최근 검색어를 10개까지 조회한다.',
+  })
+  @ApiResponse({
+    status:200,
+    type:History
   })
   async findHistory(@GetUser() user: User, @Res() res): Promise<any[]> {
     try {

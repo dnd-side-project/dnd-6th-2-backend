@@ -6,36 +6,25 @@ import { Scrap } from './schemas/scrap.schema';
 import { Like } from './schemas/like.schema';
 import { User } from 'src/auth/schemas/user.schema';
 
+export enum OrderBy {
+  LATEST = '최신순',
+  POPULAR = '인기순',
+}
+
 @Injectable()
 export class FeedService {
   constructor(private readonly feedRepository: FeedRepository) {}
 
-  async findLast(): Promise<any> {
-    return this.feedRepository.findLast();
+  async mainFeed(query): Promise<Article[]> {
+    return this.feedRepository.mainFeed(query);
   }
 
-  async findNext(tag, lastArticleId): Promise<any> {
-    return this.feedRepository.findNext(tag, lastArticleId);
+  async getSubFeedAll(user, cursor): Promise<any[]> {
+    return this.feedRepository.getSubFeedAll(user, cursor);
   }
 
-  async mainFeed(lastArticleId, tag: [string]): Promise<Article[]> {
-    return this.feedRepository.mainFeed(lastArticleId, tag);
-  }
-
-  async findLastSub(user, authorId): Promise<any> {
-    return this.feedRepository.findLastSub(user, authorId);
-  }
-
-  async findNextSub(user, lastArticleId, authorId): Promise<any> {
-    return this.feedRepository.findNextSub(user, lastArticleId, authorId);
-  }
-
-  async subFeed(user, lastArticleId): Promise<any[]> {
-    return this.feedRepository.subFeed(user, lastArticleId);
-  }
-
-  async subFeedOne(user, authorId, lastArticleId): Promise<any[]> {
-    return this.feedRepository.subFeedOne(user, authorId, lastArticleId);
+  async getSubFeedOne(authorId, cursor): Promise<any[]> {
+    return this.feedRepository.getSubFeedOne(authorId, cursor);
   }
 
   async findSubUser(user, authorId): Promise<any[]> {
@@ -55,15 +44,9 @@ export class FeedService {
   }
 
   async searchArticle(
-    lastArticleId,
-    option: string,
-    content: string,
+    query
   ): Promise<any> {
-    return this.feedRepository.searchArticle(lastArticleId, option, content);
-  }
-
-  async nextSearch(option: string, content: string, last) {
-    return this.feedRepository.nextSearch(option, content, last);
+    return this.feedRepository.searchArticle(query);
   }
 
   async findHistory(user): Promise<any[]> {
