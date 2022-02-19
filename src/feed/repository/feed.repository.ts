@@ -428,7 +428,6 @@ export class FeedRepository {
       { new: true },
     );
   }
-
   async findComment(commentId): Promise<Comment> {
     return await this.CommentModel.findById(commentId);
   }
@@ -483,6 +482,11 @@ export class FeedRepository {
   async saveScrap(user, articleId: string, scrapDto: ScrapDto): Promise<Scrap> {
     scrapDto.user = user._id;
     scrapDto.article = articleId;
+    await this.UserModel.findByIdAndUpdate(user._id,{
+      $addToSet:{
+        categories:scrapDto.category
+      }
+    })
     await this.ArticleModel.findByIdAndUpdate(articleId, {
       $inc: {
         scrapNum: 1,
