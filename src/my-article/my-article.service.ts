@@ -26,8 +26,9 @@ export class MyArticleService {
     return this.myArticleRepository.findMyArticleOne(articleId);
   }
 
-  async updateMyArticle(articleId, updateArticleDto): Promise<Article> {
+  async updateMyArticle(user, articleId, updateArticleDto): Promise<Article> {
     return this.myArticleRepository.updateMyArticle(
+      user,
       articleId,
       updateArticleDto,
     );

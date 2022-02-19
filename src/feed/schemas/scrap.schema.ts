@@ -3,6 +3,7 @@ import * as mongoose from 'mongoose';
 import { Article } from 'src/challenge/schemas/article.schema';
 import { User } from 'src/auth/schemas/user.schema';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsSemVer, IsString } from 'class-validator';
 
 export type ScrapDocument = Scrap & Document;
 
@@ -38,6 +39,13 @@ export class Scrap {
     ref: 'Article',
   })
   article: Article;
+
+  @ApiProperty({
+    type: String,
+    description: '카테고리',
+  })
+  @Prop()
+  category: string;
 
   /* timestamps */
   @ApiProperty({

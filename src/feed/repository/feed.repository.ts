@@ -213,6 +213,11 @@ export class FeedRepository {
   }
 
   async subUser(user, authorId): Promise<any> {
+    await this.UserModel.findByIdAndUpdate(authorId,{
+      $inc: {
+        followers: 1
+      }
+    })
     return await this.UserModel.findByIdAndUpdate(user._id, {
       $push: {
         subscribeUser: authorId,
@@ -221,6 +226,11 @@ export class FeedRepository {
   }
 
   async updateSubUser(user, authorId): Promise<any> {
+    await this.UserModel.findByIdAndUpdate(authorId,{
+      $inc: {
+        followers: -1
+      }
+    })
     return await this.UserModel.findByIdAndUpdate(user._id, {
       $pull: {
         subscribeUser: authorId,
@@ -359,14 +369,10 @@ export class FeedRepository {
   }
 
   async deleteArticle(user, id): Promise<any> {
-    console.log(user);
     await this.CommentModel.deleteMany({ article: id });
     await this.UserModel.findByIdAndUpdate(user._id, {
       $pull: {
         articles: id,
-      },
-      $inc: {
-        challenge: -1,
       },
     });
     const article = await this.ArticleModel.findById(id);
@@ -405,16 +411,23 @@ export class FeedRepository {
   }
 
   async updateArticle(
+    user,
     articleId: string,
     updateArticleDto: UpdateArticleDto,
   ): Promise<Article> {
+    if(updateArticleDto.public == false){
+      await this.UserModel.findByIdAndUpdate(user._id,{
+        $inc:{
+          articleCount: -1
+        }
+      })
+    }
     return await this.ArticleModel.findByIdAndUpdate(
       articleId,
       updateArticleDto,
       { new: true },
     );
   }
-
   async findComment(commentId): Promise<Comment> {
     return await this.CommentModel.findById(commentId);
   }
@@ -469,6 +482,11 @@ export class FeedRepository {
   async saveScrap(user, articleId: string, scrapDto: ScrapDto): Promise<Scrap> {
     scrapDto.user = user._id;
     scrapDto.article = articleId;
+    await this.UserModel.findByIdAndUpdate(user._id,{
+      $addToSet:{
+        categories:scrapDto.category
+      }
+    })
     await this.ArticleModel.findByIdAndUpdate(articleId, {
       $inc: {
         scrapNum: 1,

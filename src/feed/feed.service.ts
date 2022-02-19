@@ -69,8 +69,8 @@ export class FeedService {
     return this.feedRepository.deleteArticle(user, articleId);
   }
 
-  async updateArticle(articleId: string, updateArticleDto): Promise<Article> {
-    return this.feedRepository.updateArticle(articleId, updateArticleDto);
+  async updateArticle(user, articleId: string, updateArticleDto): Promise<Article> {
+    return this.feedRepository.updateArticle(user, articleId, updateArticleDto);
   }
 
   async findComment(commentId): Promise<Comment> {
