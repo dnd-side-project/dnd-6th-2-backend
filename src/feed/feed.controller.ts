@@ -38,6 +38,7 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Like } from './schemas/like.schema';
 import { OrderBy } from './feed.service';
 import { History } from './schemas/history.schema';
+import { ChallengeService } from 'src/challenge/challenge.service';
 
 @ApiBearerAuth('accessToken')
 @Controller('feed')
@@ -45,6 +46,7 @@ import { History } from './schemas/history.schema';
 export class FeedController {
   constructor(
     private feedService: FeedService,
+    private challengeService: ChallengeService,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -545,6 +547,17 @@ export class FeedController {
       this.logger.error('댓글 삭제 ERR ' + e);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
     }
+  }
+
+  @ApiTags('feed')
+  @Get('/:articleId/scrap')
+  @ApiOperation({
+    summary: '스크랩 시 유저가 만든 카테고리 조회',
+    description: '스크랩을 할 때 유저가 만든 카테고리들을 조회한다.',
+  })
+  async getTipAndCategory(@GetUser() user: User, @Res() res): Promise<any> {
+    const category = await this.challengeService.getCategory(user);
+    res.status(HttpStatus.OK).json({category})
   }
 
   @ApiTags('feed')

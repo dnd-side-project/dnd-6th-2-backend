@@ -21,8 +21,12 @@ export class ChallengeService {
     return this.challengeRepository.findKeyWord();
   }
 
-  async findTip(): Promise<any> {
-    return this.challengeRepository.findTip();
+  async getTip(): Promise<any> {
+    return this.challengeRepository.getTip();
+  }
+
+  async getCategory(user){
+    return this.challengeRepository.getCategory(user);
   }
 
   async addArticle(user, createArticleDto): Promise<Article> {

@@ -97,9 +97,14 @@ export class ChallengeRepository {
   //     result.push(userinfo);
   //     return result;
   // }
-  async findTip(): Promise<any> {
+  async getTip(): Promise<any> {
     const tip = await this.TipModel.aggregate([{ $sample: { size: 1 } }]);
     return tip[0];
+  }
+
+  async getCategory(user){
+    const loginUser = await this.UserModel.findById(user._id);
+    return loginUser.categories;
   }
 
   async saveArticle(
