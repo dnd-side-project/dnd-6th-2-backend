@@ -17,7 +17,7 @@ export class ChallengeService {
     return this.challengeRepository.saveKeyWord(createKeyWordDto);
   }
 
-  async getKeyWord(): Promise<any[]> {
+  async getKeyWord(): Promise<any> {
     return this.challengeRepository.findKeyWord();
   }
 

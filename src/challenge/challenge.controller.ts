@@ -43,14 +43,16 @@ export class ChallengeController {
   @ApiOperation({
     summary: '글감 랜덤 제공, 챌린지 여부 확인 API',
     description:
-      '매일 다른 글감을 랜덤으로 제공(조회)하고, 챌린지 여부를 확인한다.',
+      '매일 다른 글감을 랜덤으로 제공(조회)하고, 챌린지에 해당하는 글들을 확인한다.',
   })
   @ApiResponse({
     status: 200,
-    description: '글감 조회 성공, 해당 글감에 해당하는 챌린지 여부 확인',
+    description: '글감 조회 성공, 해당 글감에 해당하는 챌린지글들 반환',
   })
-  async getChallenge(@GetUser() user: User): Promise<any[]> {
-    return await this.challengeService.getRandom(user);
+  async getChallenge(@GetUser() user: User, @Res() res): Promise<any> {
+    const randomArticles = await this.challengeService.getRandom(user);
+    const challengeCount = randomArticles[1].length
+    res.status(HttpStatus.OK).json({randomArticles, challengeCount})
   }
 
   @Get('article')

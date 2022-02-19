@@ -170,10 +170,12 @@ export class MyArticleController {
   })
   @ApiBody({ type: CreateArticleDto })
   async updateMyArticle(
+    @GetUser() user:User,
     @Param('articleId') articleId: string,
     @Body() updateArticleDto: UpdateArticleDto,
   ): Promise<Article> {
     return await this.myArticleService.updateMyArticle(
+      user,
       articleId,
       updateArticleDto,
     );
@@ -182,7 +184,7 @@ export class MyArticleController {
   @Delete('/:articleId')
   @ApiOperation({
     summary: '나의 글 삭제 API',
-    description: '나의 글을 삭제합니다.',
+    description: '나의 글들을 삭제하고 삭제 개수를 반환합니다.',
   })
   async deleteArticle(
     @GetUser() user: User,
