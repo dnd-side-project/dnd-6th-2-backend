@@ -15,6 +15,7 @@ import { AuthModule } from './auth/auth.module';
 import { FeedModule } from './feed/feed.module';
 import { RelayModule } from './relay/relay.module';
 import { MyArticleModule } from './my-article/my-article.module';
+import { MyPageModule } from './my-page/my-page.module';
 import DailyRotateFile = require('winston-daily-rotate-file');
 
 @Module({
@@ -60,6 +61,7 @@ import DailyRotateFile = require('winston-daily-rotate-file');
     FeedModule,
     RelayModule,
     MyArticleModule,
+    MyPageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

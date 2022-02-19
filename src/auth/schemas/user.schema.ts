@@ -5,7 +5,7 @@ import { Article } from 'src/challenge/schemas/article.schema';
 import { Comment } from 'src/feed/schemas/comment.schema';
 
 const options: SchemaOptions = {
-  versionKey: false
+  versionKey: false,
 };
 
 export type UserDocument = User & Document;
@@ -115,7 +115,7 @@ export class User {
 
   @ApiProperty({
     type: Array,
-    description: '유저가 만든 카테고리 리스트'
+    description: '유저가 만든 카테고리 리스트',
   })
   @Prop()
   categories: string[];
