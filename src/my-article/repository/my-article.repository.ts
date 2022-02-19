@@ -47,14 +47,16 @@ export class MyArticleRepository {
         $inc: {
           articleCount: 1,
         },
-        $push: {
+        $addToSet: {
           articles: article,
+          categories: createArticleDto.category
         },
       });
     }else{
       await this.UserModel.findByIdAndUpdate(user._id, {
-        $push: {
+        $addToSet: {
           articles: article,
+          categories: createArticleDto.category
         },
       });
     }
@@ -68,6 +70,13 @@ export class MyArticleRepository {
     createArticleDto.user = user._id;
     createArticleDto.keyWord = null;
     createArticleDto.state = false;
+    if(createArticleDto.category != null){
+      await this.UserModel.findByIdAndUpdate(user._id,{
+        $addToSet:{
+          categories: createArticleDto.category
+        }
+      })
+    }
     const article = await new this.ArticleModel(createArticleDto);
     await this.UserModel.findByIdAndUpdate(user._id, {
       $push: {
