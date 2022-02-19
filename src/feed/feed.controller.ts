@@ -431,6 +431,7 @@ export class FeedController {
       const article = await this.feedService.getOneArticle(articleId);
       if (JSON.stringify(article.user._id) == JSON.stringify(user._id)) {
         const updateArticle = await this.feedService.updateArticle(
+          user,
           articleId,
           updateArticleDto,
         );

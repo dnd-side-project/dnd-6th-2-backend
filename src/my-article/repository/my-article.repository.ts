@@ -21,12 +21,12 @@ export class MyArticleRepository {
 
   async findMyArticle(user, cursor): Promise<Article[]> {
     if (!cursor) {
-      let filter = {user: user._id, $or: [{ state: true }, { free: true }]}
+      let filter = {user: user._id, $or: [{ state: true }, { free: true }, {relay:{$ne:null}}]}
       return await this.ArticleModel.find(filter)
       .sort({ _id: -1 })
       .limit(15);
     } else {
-      let filter = {user: user._id, $or: [{ state: true }, { free: true }], _id: { $lt: cursor }}
+      let filter = {user: user._id, $or: [{ state: true }, { free: true },{relay:{$ne:null}}], _id: { $lt: cursor }}
       return await this.ArticleModel.find(filter)
       .sort({ _id: -1 })
       .limit(15);
@@ -42,11 +42,22 @@ export class MyArticleRepository {
     createArticleDto.state = false;
     createArticleDto.free = true;
     const article = await new this.ArticleModel(createArticleDto);
-    await this.UserModel.findByIdAndUpdate(user._id, {
-      $push: {
-        articles: article,
-      },
-    });
+    if(createArticleDto.public == true){
+      await this.UserModel.findByIdAndUpdate(user._id, {
+        $inc: {
+          articleCount: 1,
+        },
+        $push: {
+          articles: article,
+        },
+      });
+    }else{
+      await this.UserModel.findByIdAndUpdate(user._id, {
+        $push: {
+          articles: article,
+        },
+      });
+    }
     return article.save();
   }
 
@@ -89,9 +100,29 @@ export class MyArticleRepository {
   }
 
   async updateMyArticle(
+    user,
     articleId,
     updateArticleDto: UpdateArticleDto,
   ): Promise<Article> {
+    const article = await this.ArticleModel.findById(articleId)
+    if(article.public == true){
+      if(updateArticleDto.public == false){
+        await this.UserModel.findByIdAndUpdate(user._id,{
+          $inc:{
+            articleCount: -1
+          }
+        })
+      }
+    }
+    else{
+      if(updateArticleDto.public == true){
+        await this.UserModel.findByIdAndUpdate(user._id,{
+          $inc:{
+            articleCount: 1
+          }
+        })
+      }
+    }
     return await this.ArticleModel.findByIdAndUpdate(
       articleId,
       updateArticleDto,
@@ -109,58 +140,59 @@ export class MyArticleRepository {
       });
     }
 
-    //챌린지 글은 챌린지 카운트 차감해줘야되니까 따로 찾아줌
-    const challengeArticle = await this.ArticleModel.find({
-      _id: articleId,
-      keyWord: { $ne: null },
-    });
-    const articleCount: number = challengeArticle.length;
-    //삭제하는 글 중에 챌린지 글이 있으면 삭제하는 챌린지 글 수만큼 챌린지 카운트 차감
-    if (challengeArticle) {
-      await this.UserModel.findByIdAndUpdate(user._id, {
-        $inc: {
-          challenge: -articleCount,
-        },
-      });
-    }
-    const articles = await this.ArticleModel.find({ _id: articleId });
+    //삭제하려는 모든 글들 찾기
+    const articles = await this.ArticleModel.find({_id:articleId});
 
     //삭제하는 글들에 해당하는 글감 찾아줌
-    const keyWord = await this.KeyWordModel.find({
-      updateDay: articles[0].createdAt.toDateString(),
-    });
+    for (let i = 0; i < articles.length; i++){
+      var keyWord = await this.KeyWordModel.find({
+        updateDay: articles[i].createdAt.toDateString(),
+      });
+    }
 
+    //오늘의 글감 찾아줌
     const today = new Date().toDateString();
     const todayKeyWord = await this.KeyWordModel.findOne({ updateDay: today });
 
-    //유저가 해당 글감에 쓴 글들을 찾아줌
-    const challenge = await this.ArticleModel.find({
-      user: user._id,
-      keyWord: keyWord[0].content,
-    });
+    //삭제하려는 글 중 공개글의 수 
+    const publicArticle:Number = await this.ArticleModel.find({_id:articleId, public:true}).count()
+    await this.UserModel.findByIdAndUpdate(user._id, {
+      $inc: {
+          articleCount: -publicArticle
+        },
+      });
 
-    //삭제하는 글이 해당 글감의 마지막 챌린지 글이면 stamp 차감함
-    if (challenge.length == 1 && challenge[0].keyWord != todayKeyWord.content) {
-      await this.UserModel.findByIdAndUpdate(user._id, {
-        $inc: {
-          stampCount: -1,
-        },
+    //삭제 
+    const deleteCount = await this.ArticleModel.deleteMany({ _id: articleId });
+
+    /* 삭제한 글이 챌린지 글일때, 
+    stampCount와 user의 state(챌린지 여부)속성을 변경해주기 위해서 삭제하는 글들에 해당한 글감에 쓴 챌린지들을 찾아줌 */
+    for(let i=0; i<keyWord.length; i++){
+      var challenge = await this.ArticleModel.find({
+        user: user._id,
+        keyWord: keyWord[i].content,
       });
     }
-    //글감이 오늘자 글감이면 state까지 바꿔줌
-    else if (
-      challenge.length == 1 &&
-      challenge[0].keyWord == todayKeyWord.content
-    ) {
+
+    const todayChallenge = await this.ArticleModel.find({user:user._id, keyWord:todayKeyWord.content})
+
+    /*stampCount가 존재하는 경우, 삭제 후에 해당 글감의 챌린지 글이 안 남아있으면 그 수만큼 stamp 차감, 
+    유저 state가 true인데 오늘자 챌린지 글이 없는 경우는 오늘자 챌린지글을 모두 삭제한 거니까 state도 변경 */
+    const loginUser = await this.UserModel.findById(user._id);
+    if(challenge.length == 0 && loginUser.stampCount!=0 ){
       await this.UserModel.findByIdAndUpdate(user._id, {
-        $set: {
-          state: false,
-        },
         $inc: {
-          stampCount: -1,
+          stampCount: -keyWord.length,
         },
       });
+      if(loginUser.state == true && todayChallenge.length == 0){
+        await this.UserModel.findByIdAndUpdate(user._id, {
+          $set: {
+            state: false,
+          },
+        });
+      }
     }
-    return await this.ArticleModel.deleteMany({ _id: articleId });
+    return deleteCount;
   }
 }

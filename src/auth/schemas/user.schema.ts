@@ -95,12 +95,6 @@ export class User {
 
   @ApiProperty({
     type: Number,
-  })
-  @Prop({ default: 0 })
-  challenge: number;
-
-  @ApiProperty({
-    type: Number,
     description: '도장 개수',
   })
   @Prop({ default: 0 })
@@ -119,6 +113,20 @@ export class User {
   })
   @Prop()
   categories: string[];
+
+  @ApiProperty({
+    type: Number,
+    description: '유저가 작성한 공개 글 개수'
+  })
+  @Prop({default:0})
+  articleCount:number;
+
+  @ApiProperty({
+    type: Number,
+    description: '유저의 팔로워 숫자'
+  })
+  @Prop({default:0})
+  followers:number;
 
   @ApiProperty({
     type: String,
