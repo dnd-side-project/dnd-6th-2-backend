@@ -79,6 +79,9 @@ export class RelayArticleRepository {
       relay: relayId,
     });
     await article.save();
+    await this.categoryModel.findByIdAndUpdate(categoryId, {
+      $inc: { articleCount: 1 },
+    });
     await this.relayModel.findByIdAndUpdate(relayId, {
       $inc: { articleCount: 1 },
     });
