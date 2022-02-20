@@ -18,7 +18,7 @@ export class AuthRepository {
     const user = await this.userModel.findOne({ email });
 
     if (!user) {
-      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
+      throw new UnauthorizedException('가입되어 있지 않은 메일입니다.');
     }
 
     return user;

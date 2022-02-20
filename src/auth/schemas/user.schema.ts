@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import * as mongoose from 'mongoose';
 import { Article } from 'src/challenge/schemas/article.schema';
 import { Comment } from 'src/feed/schemas/comment.schema';
+import { Category } from './category.schema';
 
 const options: SchemaOptions = {
   versionKey: false,
@@ -108,25 +109,28 @@ export class User {
   state: boolean; //오늘 챌린지 했는지 여부
 
   @ApiProperty({
-    type: Array,
+    type: [Category],
     description: '유저가 만든 카테고리 리스트',
   })
-  @Prop()
-  categories: string[];
+  @Prop({
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'Category',
+  })
+  categories: Category[];
 
   @ApiProperty({
     type: Number,
-    description: '유저가 작성한 공개 글 개수'
+    description: '유저가 작성한 공개 글 개수',
   })
-  @Prop({default:0})
-  articleCount:number;
+  @Prop({ default: 0 })
+  articleCount: number;
 
   @ApiProperty({
     type: Number,
-    description: '유저의 팔로워 숫자'
+    description: '유저의 팔로워 숫자',
   })
-  @Prop({default:0})
-  followers:number;
+  @Prop({ default: 0 })
+  followers: number;
 
   @ApiProperty({
     type: String,

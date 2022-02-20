@@ -31,8 +31,8 @@ import { UpdateRelayDto } from './dto/update-relay.dto';
 import { OrderBy, RelayService } from './relay.service';
 
 @ApiBearerAuth('accessToken')
-@Controller('relay')
 @UseGuards(AuthGuard())
+@Controller('relay')
 export class RelayController {
   constructor(private relayService: RelayService) {}
 
@@ -458,10 +458,9 @@ export class RelayController {
     @GetUser() user: User,
     @Res() res: Response,
   ) {
-    const { content } = relayArticleDto;
     const article = await this.relayService.createRelayArticle(
       relayId,
-      content,
+      relayArticleDto,
       user,
     );
     return res.status(HttpStatus.CREATED).json(article);
@@ -495,10 +494,9 @@ export class RelayController {
     @GetUser() user: User,
     @Res() res: Response,
   ) {
-    const { content } = relayArticleDto;
     const article = await this.relayService.updateRelayArticle(
       param,
-      content,
+      relayArticleDto,
       user,
     );
     return res.status(HttpStatus.OK).json(article);
