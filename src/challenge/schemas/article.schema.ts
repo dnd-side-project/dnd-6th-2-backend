@@ -9,7 +9,7 @@ export type ArticleDocument = Article & Document;
 
 const options: SchemaOptions = {
   timestamps: true,
-  versionKey : false
+  versionKey: false,
 };
 
 @Schema(options)
@@ -56,7 +56,7 @@ export class Article {
     type: String,
     description: '글의 카테고리(유저가 직접 생성',
   })
-  @Prop({default: null})
+  @Prop({ default: null })
   category: string;
 
   @ApiProperty({
@@ -116,7 +116,7 @@ export class Article {
     type: [mongoose.Schema.Types.ObjectId],
     description: '댓글 목록',
     ref: 'Comment',
-    default: null
+    default: null,
   })
   comments: Comment[];
 
@@ -128,7 +128,7 @@ export class Article {
     type: mongoose.Schema.Types.ObjectId,
     description: '릴레이 방에서 쓰인 글이면 해당 릴레이 방의 id 저장',
     ref: 'Relay',
-    default: null
+    default: null,
   })
   relay: Relay;
 

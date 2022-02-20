@@ -8,12 +8,11 @@ export type CommentDocument = Comment & Document;
 
 const options: SchemaOptions = {
   timestamps: true,
-  versionKey: false
+  versionKey: false,
 };
 
 @Schema(options)
 export class Comment {
-
   @ApiProperty({
     description: 'comment의 objectId',
   })

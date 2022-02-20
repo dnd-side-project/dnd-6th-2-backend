@@ -5,12 +5,11 @@ import { ApiProperty } from '@nestjs/swagger';
 export type TipDocument = Tip & Document;
 
 const options: SchemaOptions = {
-  versionKey : false
+  versionKey: false,
 };
 
 @Schema(options)
 export class Tip {
-
   @ApiProperty({
     description: 'keyword의 objectId',
   })

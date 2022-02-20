@@ -9,14 +9,13 @@ export type ScrapDocument = Scrap & Document;
 
 const options: SchemaOptions = {
   timestamps: true,
-  versionKey: false
+  versionKey: false,
 };
 
 @Schema(options)
 export class Scrap {
-
   @ApiProperty({
-    description:'Scrap의 ObjectId'
+    description: 'Scrap의 ObjectId',
   })
   _id;
 
@@ -50,12 +49,12 @@ export class Scrap {
   /* timestamps */
   @ApiProperty({
     type: Date,
-    description:'생성날짜'
+    description: '생성날짜',
   })
   createAt: Date;
   @ApiProperty({
     type: Date,
-    description:'업데이트 날짜'
+    description: '업데이트 날짜',
   })
   updateAt: Date;
 }

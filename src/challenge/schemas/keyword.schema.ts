@@ -5,12 +5,11 @@ import { ApiProperty } from '@nestjs/swagger';
 export type KeyWordDocument = KeyWord & Document;
 
 const options: SchemaOptions = {
-  versionKey : false
+  versionKey: false,
 };
 
 @Schema(options)
 export class KeyWord {
-
   @ApiProperty({
     description: 'keyword의 objectId',
   })
@@ -25,7 +24,8 @@ export class KeyWord {
 
   @ApiProperty({
     type: Boolean,
-    description: '글감의 사용여부를 판별, false=아직 안 나온 글감/ true=사용된 글감',
+    description:
+      '글감의 사용여부를 판별, false=아직 안 나온 글감/ true=사용된 글감',
   })
   @Prop({
     default: false,

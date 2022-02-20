@@ -65,14 +65,14 @@ export class MyArticleController {
     try {
       const articles: Article[] = await this.myArticleService.findMyArticle(
         user,
-        query.cursor
+        query.cursor,
       );
-      if(articles.length === 0){
-        return res.status(HttpStatus.OK).json({message:'더 이상의 페이지는 존재하지 않습니다.'}
-        )
-      }
-      else{
-        const last = articles[articles.length -1];
+      if (articles.length === 0) {
+        return res
+          .status(HttpStatus.OK)
+          .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
+      } else {
+        const last = articles[articles.length - 1];
         const next_cursor = `${last._id}`;
         return res.status(HttpStatus.OK).json({ articles, next_cursor });
       }
@@ -103,7 +103,7 @@ export class MyArticleController {
   async getTipAndCategory(@GetUser() user: User, @Res() res): Promise<any> {
     const tip = await this.challengeService.getTip();
     const category = await this.challengeService.getCategory(user);
-    res.status(HttpStatus.OK).json({tip, category})
+    res.status(HttpStatus.OK).json({ tip, category });
   }
 
   @Post('/temp')
@@ -141,14 +141,14 @@ export class MyArticleController {
     try {
       const articles: Article[] = await this.myArticleService.findMyArticleTemp(
         user,
-        query.cursor
+        query.cursor,
       );
-      if(articles.length === 0){
-        return res.status(HttpStatus.OK).json({message:'더 이상의 페이지는 존재하지 않습니다.'}
-        )
-      }
-      else{
-        const last = articles[articles.length -1];
+      if (articles.length === 0) {
+        return res
+          .status(HttpStatus.OK)
+          .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
+      } else {
+        const last = articles[articles.length - 1];
         const next_cursor = `${last._id}`;
         return res.status(HttpStatus.OK).json({ articles, next_cursor });
       }
@@ -183,7 +183,7 @@ export class MyArticleController {
   })
   @ApiBody({ type: CreateArticleDto })
   async updateMyArticle(
-    @GetUser() user:User,
+    @GetUser() user: User,
     @Param('articleId') articleId: string,
     @Body() updateArticleDto: UpdateArticleDto,
   ): Promise<Article> {
