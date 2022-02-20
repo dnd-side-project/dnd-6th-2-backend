@@ -13,6 +13,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from 'src/auth/auth.module';
 import { ChallengeModule } from 'src/challenge/challenge.module';
 import { Category, CategorySchema } from 'src/auth/schemas/category.schema';
+import { SubFeedRepository } from './repository/sub-feed.repository';
+import { HistoryRepository } from './repository/history.repository';
 
 @Module({
   imports: [
@@ -29,7 +31,7 @@ import { Category, CategorySchema } from 'src/auth/schemas/category.schema';
     AuthModule,
     ChallengeModule,
   ],
-  providers: [FeedService, FeedRepository],
+  providers: [FeedService, FeedRepository, SubFeedRepository, HistoryRepository],
   controllers: [FeedController],
 })
 export class FeedModule {}

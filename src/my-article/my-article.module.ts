@@ -23,7 +23,7 @@ import { ChallengeModule } from 'src/challenge/challenge.module';
     MongooseModule.forFeature([{ name: Like.name, schema: LikeSchema }]),
     MongooseModule.forFeature([{ name: History.name, schema: HistorySchema }]),
     AuthModule,
-    ChallengeModule
+    ChallengeModule,
   ],
   providers: [MyArticleService, MyArticleRepository],
   controllers: [MyArticleController],

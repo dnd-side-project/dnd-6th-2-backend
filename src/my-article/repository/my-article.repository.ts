@@ -21,15 +21,18 @@ export class MyArticleRepository {
 
   async findMyArticle(user, cursor): Promise<Article[]> {
     if (!cursor) {
-      let filter = {user: user._id, $or: [{ state: true }, { free: true }, {relay:{$ne:null}}]}
-      return await this.ArticleModel.find(filter)
-      .sort({ _id: -1 })
-      .limit(15);
+      const filter = {
+        user: user._id,
+        $or: [{ state: true }, { free: true }, { relay: { $ne: null } }],
+      };
+      return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
     } else {
-      let filter = {user: user._id, $or: [{ state: true }, { free: true },{relay:{$ne:null}}], _id: { $lt: cursor }}
-      return await this.ArticleModel.find(filter)
-      .sort({ _id: -1 })
-      .limit(15);
+      const filter = {
+        user: user._id,
+        $or: [{ state: true }, { free: true }, { relay: { $ne: null } }],
+        _id: { $lt: cursor },
+      };
+      return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
     }
   }
 
@@ -42,21 +45,21 @@ export class MyArticleRepository {
     createArticleDto.state = false;
     createArticleDto.free = true;
     const article = await new this.ArticleModel(createArticleDto);
-    if(createArticleDto.public == true){
+    if (createArticleDto.public == true) {
       await this.UserModel.findByIdAndUpdate(user._id, {
         $inc: {
           articleCount: 1,
         },
         $addToSet: {
           articles: article,
-          categories: createArticleDto.category
+          categories: createArticleDto.category,
         },
       });
-    }else{
+    } else {
       await this.UserModel.findByIdAndUpdate(user._id, {
         $addToSet: {
           articles: article,
-          categories: createArticleDto.category
+          categories: createArticleDto.category,
         },
       });
     }
@@ -70,12 +73,12 @@ export class MyArticleRepository {
     createArticleDto.user = user._id;
     createArticleDto.keyWord = null;
     createArticleDto.state = false;
-    if(createArticleDto.category != null){
-      await this.UserModel.findByIdAndUpdate(user._id,{
-        $addToSet:{
-          categories: createArticleDto.category
-        }
-      })
+    if (createArticleDto.category != null) {
+      await this.UserModel.findByIdAndUpdate(user._id, {
+        $addToSet: {
+          categories: createArticleDto.category,
+        },
+      });
     }
     const article = await new this.ArticleModel(createArticleDto);
     await this.UserModel.findByIdAndUpdate(user._id, {
@@ -87,16 +90,17 @@ export class MyArticleRepository {
   }
 
   async findMyArticleTemp(user, cursor): Promise<Article[]> {
-    let filter = {user: user._id, state: false, public: false}
+    const filter = { user: user._id, state: false, public: false };
     if (!cursor) {
-      return await this.ArticleModel.find(filter)
-        .sort({ _id: -1 })
-        .limit(15);
+      return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
     } else {
-      let filter = {user: user._id, state: false, public: false, _id: { $lt: cursor }}
-      return  await this.ArticleModel.find(filter)
-      .sort({ _id: -1 })
-      .limit(15);
+      const filter = {
+        user: user._id,
+        state: false,
+        public: false,
+        _id: { $lt: cursor },
+      };
+      return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
     }
   }
 
@@ -113,23 +117,22 @@ export class MyArticleRepository {
     articleId,
     updateArticleDto: UpdateArticleDto,
   ): Promise<Article> {
-    const article = await this.ArticleModel.findById(articleId)
-    if(article.public == true){
-      if(updateArticleDto.public == false){
-        await this.UserModel.findByIdAndUpdate(user._id,{
-          $inc:{
-            articleCount: -1
-          }
-        })
+    const article = await this.ArticleModel.findById(articleId);
+    if (article.public == true) {
+      if (updateArticleDto.public == false) {
+        await this.UserModel.findByIdAndUpdate(user._id, {
+          $inc: {
+            articleCount: -1,
+          },
+        });
       }
-    }
-    else{
-      if(updateArticleDto.public == true){
-        await this.UserModel.findByIdAndUpdate(user._id,{
-          $inc:{
-            articleCount: 1
-          }
-        })
+    } else {
+      if (updateArticleDto.public == true) {
+        await this.UserModel.findByIdAndUpdate(user._id, {
+          $inc: {
+            articleCount: 1,
+          },
+        });
       }
     }
     return await this.ArticleModel.findByIdAndUpdate(
@@ -150,10 +153,10 @@ export class MyArticleRepository {
     }
 
     //삭제하려는 모든 글들 찾기
-    const articles = await this.ArticleModel.find({_id:articleId});
+    const articles = await this.ArticleModel.find({ _id: articleId });
 
     //삭제하는 글들에 해당하는 글감 찾아줌
-    for (let i = 0; i < articles.length; i++){
+    for (let i = 0; i < articles.length; i++) {
       var keyWord = await this.KeyWordModel.find({
         updateDay: articles[i].createdAt.toDateString(),
       });
@@ -163,38 +166,44 @@ export class MyArticleRepository {
     const today = new Date().toDateString();
     const todayKeyWord = await this.KeyWordModel.findOne({ updateDay: today });
 
-    //삭제하려는 글 중 공개글의 수 
-    const publicArticle:Number = await this.ArticleModel.find({_id:articleId, public:true}).count()
+    //삭제하려는 글 중 공개글의 수
+    const publicArticle: number = await this.ArticleModel.find({
+      _id: articleId,
+      public: true,
+    }).count();
     await this.UserModel.findByIdAndUpdate(user._id, {
       $inc: {
-          articleCount: -publicArticle
-        },
-      });
+        articleCount: -publicArticle,
+      },
+    });
 
-    //삭제 
+    //삭제
     const deleteCount = await this.ArticleModel.deleteMany({ _id: articleId });
 
     /* 삭제한 글이 챌린지 글일때, 
     stampCount와 user의 state(챌린지 여부)속성을 변경해주기 위해서 삭제하는 글들에 해당한 글감에 쓴 챌린지들을 찾아줌 */
-    for(let i=0; i<keyWord.length; i++){
+    for (let i = 0; i < keyWord.length; i++) {
       var challenge = await this.ArticleModel.find({
         user: user._id,
         keyWord: keyWord[i].content,
       });
     }
 
-    const todayChallenge = await this.ArticleModel.find({user:user._id, keyWord:todayKeyWord.content})
+    const todayChallenge = await this.ArticleModel.find({
+      user: user._id,
+      keyWord: todayKeyWord.content,
+    });
 
     /*stampCount가 존재하는 경우, 삭제 후에 해당 글감의 챌린지 글이 안 남아있으면 그 수만큼 stamp 차감, 
     유저 state가 true인데 오늘자 챌린지 글이 없는 경우는 오늘자 챌린지글을 모두 삭제한 거니까 state도 변경 */
     const loginUser = await this.UserModel.findById(user._id);
-    if(challenge.length == 0 && loginUser.stampCount!=0 ){
+    if (challenge.length == 0 && loginUser.stampCount != 0) {
       await this.UserModel.findByIdAndUpdate(user._id, {
         $inc: {
           stampCount: -keyWord.length,
         },
       });
-      if(loginUser.state == true && todayChallenge.length == 0){
+      if (loginUser.state == true && todayChallenge.length == 0) {
         await this.UserModel.findByIdAndUpdate(user._id, {
           $set: {
             state: false,

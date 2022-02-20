@@ -80,13 +80,13 @@ export class FeedController {
   })
   async getMainFeed(@Query() query, @Res() res): Promise<Article[]> {
     try {
-      const articles = await this.feedService.mainFeed(query);
-      if(articles.length === 0){
-        return res.status(HttpStatus.OK).json({message:'더 이상의 페이지는 존재하지 않습니다.'}
-        )
-      }
-      else{
-        const last = articles[articles.length -1];
+      const articles = await this.feedService.getMainFeed(query);
+      if (articles.length === 0) {
+        return res
+          .status(HttpStatus.OK)
+          .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
+      } else {
+        const last = articles[articles.length - 1];
         const next_cursor = `${last._id}_${last.likeNum}`;
         return res.status(HttpStatus.OK).json({ articles, next_cursor });
       }
@@ -118,25 +118,28 @@ export class FeedController {
     @Query() query,
     @Res() res,
   ): Promise<any[]> {
-      try {
-        const subscribeUserList: any[] = await this.feedService.findAllSubUser(
-          user,
-        );
-        const articles = await this.feedService.getSubFeedAll(user, query.cursor);
-        if(articles.length === 0){
-          return res.status(HttpStatus.OK).json({subscribeUserList, message:'더 이상의 페이지는 존재하지 않습니다.'}
-          )
-        }
-        else{
-          const last = articles[articles.length -1];
-          const next_cursor = `${last._id}`;
-          return res.status(HttpStatus.OK).json({ articles, subscribeUserList, next_cursor });
-        }
-      } catch (e) {
-        this.logger.error('피드 전체 조회 ERR ' + e);
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
+    try {
+      const subscribeUserList: any[] = await this.feedService.findAllSubUser(
+        user,
+      );
+      const articles = await this.feedService.getSubFeedAll(user, query.cursor);
+      if (articles.length === 0) {
+        return res.status(HttpStatus.OK).json({
+          subscribeUserList,
+          message: '더 이상의 페이지는 존재하지 않습니다.',
+        });
+      } else {
+        const last = articles[articles.length - 1];
+        const next_cursor = `${last._id}`;
+        return res
+          .status(HttpStatus.OK)
+          .json({ articles, subscribeUserList, next_cursor });
       }
+    } catch (e) {
+      this.logger.error('피드 전체 조회 ERR ' + e);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
     }
+  }
 
   @ApiTags('feed/subscribe')
   @Get('/subscribe/authorlist')
@@ -190,17 +193,21 @@ export class FeedController {
         return res
           .status(HttpStatus.BAD_REQUEST)
           .json({ message: '구독한 작가가 아닙니다.' });
-      }
-      else{
-        const articles = await this.feedService.getSubFeedOne(authorId, query.cursor);
-        if(articles.length === 0){
-          return res.status(HttpStatus.OK).json({message:'더 이상의 페이지는 존재하지 않습니다.'}
-          )
-        }
-        else{
-          const last = articles[articles.length -1];
+      } else {
+        const articles = await this.feedService.getSubFeedOne(
+          authorId,
+          query.cursor,
+        );
+        if (articles.length === 0) {
+          return res
+            .status(HttpStatus.OK)
+            .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
+        } else {
+          const last = articles[articles.length - 1];
           const next_cursor = `${last._id}`;
-          return res.status(HttpStatus.OK).json({ articles, subscribeUserList, next_cursor });
+          return res
+            .status(HttpStatus.OK)
+            .json({ articles, subscribeUserList, next_cursor });
         }
       }
     } catch (e) {
@@ -295,8 +302,7 @@ export class FeedController {
   })
   @ApiResponse({
     status: 200,
-    description:
-      '검색 결과의 Article 객체 배열과 next_cursor 반환',
+    description: '검색 결과의 Article 객체 배열과 next_cursor 반환',
   })
   @ApiQuery({ name: 'content', description: '검색할 내용' })
   async searchArticle(
@@ -306,15 +312,14 @@ export class FeedController {
   ): Promise<any[]> {
     try {
       await this.feedService.saveHistory(user, query.content);
-      const articles = await this.feedService.searchArticle(
-        query
-      );
-      if(articles.length === 0){
-        return res.status(HttpStatus.OK).json({message: '검색 결과가 없습니다.'})
-      }
-      else{
-        const last = articles[articles.length-1];
-        const next_cursor =`${last._id}_${last.likeNum}`;
+      const articles = await this.feedService.searchArticle(query);
+      if (articles.length === 0) {
+        return res
+          .status(HttpStatus.OK)
+          .json({ message: '검색 결과가 없습니다.' });
+      } else {
+        const last = articles[articles.length - 1];
+        const next_cursor = `${last._id}_${last.likeNum}`;
         return res.status(HttpStatus.OK).json({ articles, next_cursor });
       }
     } catch (e) {
@@ -329,8 +334,8 @@ export class FeedController {
     description: '최근 검색어를 10개까지 조회한다.',
   })
   @ApiResponse({
-    status:200,
-    type:History
+    status: 200,
+    type: History,
   })
   async findHistory(@GetUser() user: User, @Res() res): Promise<any[]> {
     try {
@@ -557,7 +562,7 @@ export class FeedController {
   })
   async getTipAndCategory(@GetUser() user: User, @Res() res): Promise<any> {
     const category = await this.challengeService.getCategory(user);
-    res.status(HttpStatus.OK).json({category})
+    res.status(HttpStatus.OK).json({ category });
   }
 
   @ApiTags('feed')

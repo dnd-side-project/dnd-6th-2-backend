@@ -25,7 +25,7 @@ export class ChallengeService {
     return this.challengeRepository.getTip();
   }
 
-  async getCategory(user){
+  async getCategory(user) {
     return this.challengeRepository.getCategory(user);
   }
 
