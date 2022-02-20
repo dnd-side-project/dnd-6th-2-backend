@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import * as mongoose from 'mongoose';
 import { Article } from 'src/challenge/schemas/article.schema';
 import { Comment } from 'src/feed/schemas/comment.schema';
+import { Category } from './category.schema';
 
 const options: SchemaOptions = {
   versionKey: false,
@@ -108,11 +109,14 @@ export class User {
   state: boolean; //오늘 챌린지 했는지 여부
 
   @ApiProperty({
-    type: Array,
+    type: [Category],
     description: '유저가 만든 카테고리 리스트',
   })
-  @Prop()
-  categories: string[];
+  @Prop({
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'Category',
+  })
+  categories: Category[];
 
   @ApiProperty({
     type: Number,

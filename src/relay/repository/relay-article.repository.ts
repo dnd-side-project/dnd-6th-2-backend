@@ -1,9 +1,11 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { Category, CategoryDocument } from 'src/auth/schemas/category.schema';
 import { User } from 'src/auth/schemas/user.schema';
 import { Article, ArticleDocument } from 'src/challenge/schemas/article.schema';
 import { Like, LikeDocument } from 'src/feed/schemas/like.schema';
+import { RelayArticleDto } from '../dto/relay-article.dto';
 import { Relay, RelayDocument } from '../schemas/relay.schema';
 import { RelayRepository } from './relay.repository';
 
@@ -12,6 +14,7 @@ export class RelayArticleRepository {
     @InjectModel(Relay.name) private relayModel: Model<RelayDocument>,
     @InjectModel(Article.name) private articleModel: Model<ArticleDocument>,
     @InjectModel(Like.name) private likeModel: Model<LikeDocument>,
+    @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
     private readonly relayRepository: RelayRepository,
   ) {}
 
@@ -53,10 +56,28 @@ export class RelayArticleRepository {
     }
   }
 
-  async createRelayArticle(relayId: string, content: string, user: User) {
+  async checkCategory(categoryId: string, user: User) {
+    const check = await this.categoryModel.exists({ _id: categoryId, user });
+    if (!check) {
+      throw new NotFoundException('요청하신 카테고리는 존재하지 않습니다.');
+    }
+  }
+
+  async createRelayArticle(
+    relayId: string,
+    relayArticleDto: RelayArticleDto,
+    user: User,
+  ) {
     await this.checkMember(relayId, user._id);
 
-    const article = new this.articleModel({ user, content, relay: relayId });
+    const { content, categoryId } = relayArticleDto;
+    await this.checkCategory(categoryId, user);
+    const article = new this.articleModel({
+      user,
+      content,
+      category: categoryId,
+      relay: relayId,
+    });
     await article.save();
     await this.relayModel.findByIdAndUpdate(relayId, {
       $inc: { articleCount: 1 },
@@ -68,16 +89,38 @@ export class RelayArticleRepository {
     );
   }
 
-  async updateRelayArticle(param, content: string, user: User) {
+  async updateRelayArticle(
+    param,
+    relayArticleDto: RelayArticleDto,
+    user: User,
+  ) {
     const { relayId, articleId } = param;
+    const { content, categoryId } = relayArticleDto;
     await this.checkMember(relayId, user._id);
     await this.checkAuthor(articleId, user._id);
+    await this.checkCategory(categoryId, user);
 
-    return await this.articleModel.findByIdAndUpdate(
-      articleId,
-      { content },
-      { new: true },
-    );
+    if (content && categoryId) {
+      return await this.articleModel.findByIdAndUpdate(
+        articleId,
+        { content, category: categoryId },
+        { new: true },
+      );
+    } else {
+      if (content) {
+        return await this.articleModel.findByIdAndUpdate(
+          articleId,
+          { content },
+          { new: true },
+        );
+      } else if (categoryId) {
+        return await this.articleModel.findByIdAndUpdate(
+          articleId,
+          { category: categoryId },
+          { new: true },
+        );
+      }
+    }
   }
 
   async deleteRelayArticle(param, user: User) {
@@ -89,11 +132,19 @@ export class RelayArticleRepository {
     });
 
     if (relay.host._id.toString() === user._id.toString()) {
-      return await this.articleModel.findByIdAndDelete(articleId);
+      const article = await this.articleModel.findByIdAndDelete(articleId);
+      await this.categoryModel.findByIdAndUpdate(article.category._id, {
+        $inc: { articleCount: -1 },
+      });
+      return article;
     } else {
       await this.checkAuthor(articleId, user._id);
 
-      return await this.articleModel.findByIdAndDelete(articleId);
+      const article = await this.articleModel.findByIdAndDelete(articleId);
+      await this.categoryModel.findByIdAndUpdate(article.category._id, {
+        $inc: { articleCount: -1 },
+      });
+      return article;
     }
   }
 
