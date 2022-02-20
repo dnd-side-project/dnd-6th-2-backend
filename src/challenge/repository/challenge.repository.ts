@@ -102,7 +102,7 @@ export class ChallengeRepository {
     return tip[0];
   }
 
-  async getCategory(user){
+  async getCategory(user) {
     const loginUser = await this.UserModel.findById(user._id);
     return loginUser.categories;
   }
@@ -115,17 +115,16 @@ export class ChallengeRepository {
     createArticleDto.keyWord = this.todayKeyWord[0].content;
     createArticleDto.state = true;
     const article = await new this.ArticleModel(createArticleDto);
-    if(createArticleDto.public == true){
+    if (createArticleDto.public == true) {
       await this.UserModel.findByIdAndUpdate(user._id, {
         $push: {
           articles: article,
         },
         $inc: {
-          articleCount: 1
+          articleCount: 1,
         },
       });
-    }
-    else{
+    } else {
       await this.UserModel.findByIdAndUpdate(user._id, {
         $push: {
           articles: article,
@@ -171,16 +170,4 @@ export class ChallengeRepository {
       },
     });
   }
-
-  // async findAllArticle(): Promise<Article[]> {
-  //   return this.ArticleModel.find().exec();
-  // }
-
-  // async findOneArticle(id): Promise<Article> {
-  //   return await this.ArticleModel.findById(id);
-  // }
-
-  // async deleteArticle(id): Promise<any> {
-  //   return await this.ArticleModel.findByIdAndRemove(id);
-  // }
 }

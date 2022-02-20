@@ -21,6 +21,6 @@ import { Relay, RelaySchema } from 'src/relay/schemas/relay.schema';
   ],
   providers: [ChallengeService, ChallengeRepository],
   controllers: [ChallengeController],
-  exports: [ChallengeService]
+  exports: [ChallengeService],
 })
 export class ChallengeModule {}
