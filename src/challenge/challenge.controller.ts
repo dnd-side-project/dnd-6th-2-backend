@@ -43,28 +43,32 @@ export class ChallengeController {
   @ApiOperation({
     summary: '글감 랜덤 제공, 챌린지 여부 확인 API',
     description:
-      '매일 다른 글감을 랜덤으로 제공(조회)하고, 챌린지 여부를 확인한다.',
+      '매일 다른 글감을 랜덤으로 제공(조회)하고, 챌린지에 해당하는 글들을 확인한다.',
   })
   @ApiResponse({
     status: 200,
-    description: '글감 조회 성공, 해당 글감에 해당하는 챌린지 여부 확인',
+    description: '글감 조회 성공, 해당 글감에 해당하는 챌린지글들 반환',
   })
-  async getChallenge(@GetUser() user: User): Promise<any[]> {
-    return await this.challengeService.getRandom(user);
+  async getChallenge(@GetUser() user: User, @Res() res): Promise<any> {
+    const randomArticles = await this.challengeService.getRandom(user);
+    const challengeCount = randomArticles[1].length;
+    res.status(HttpStatus.OK).json({ randomArticles, challengeCount });
   }
 
   @Get('article')
   @ApiOperation({
-    summary: '챌린지 글 작성 페이지',
-    description: '챌린지 글 작성페이지에서 글쓰기 팁을 조회하고 글을 작성한다.',
+    summary: '글쓰기 팁 및 유저의 카테고리 조회',
+    description: '글쓰기 팁과 유저가 만든 카테고리들을 조회한다.',
   })
   @ApiResponse({
-    status:200,
-    type:Tip
+    status: 200,
+    type: Tip,
   })
-  async getTip(@GetUser() user: User): Promise<any> {
+  async getTipAndCategory(@GetUser() user: User, @Res() res): Promise<any> {
     //@GetUser안 붙여주면 실행 안 됨
-    return await this.challengeService.findTip();
+    const tip = await this.challengeService.getTip();
+    const categories = await this.challengeService.getCategory(user);
+    res.status(HttpStatus.OK).json({ tip, categories });
   }
 
   @Post('/article')
@@ -120,7 +124,7 @@ export class ChallengeController {
   })
   @ApiResponse({
     status: 200,
-    type:KeyWord 
+    type: KeyWord,
   })
   getKeyWord(): Promise<KeyWord[]> {
     return this.challengeService.getKeyWord();

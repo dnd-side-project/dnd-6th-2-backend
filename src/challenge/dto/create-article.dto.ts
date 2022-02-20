@@ -1,4 +1,10 @@
-import { IsArray, IsBoolean, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateArticleDto {
@@ -35,6 +41,12 @@ export class CreateArticleDto {
   @IsNotEmpty()
   @IsBoolean()
   readonly public: boolean;
+
+  @ApiProperty({ type: String, description: '카테고리 지정', default: 'null' })
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  readonly category: string;
 
   state: boolean;
   keyWord: string;

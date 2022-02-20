@@ -5,7 +5,7 @@ import { Article } from 'src/challenge/schemas/article.schema';
 import { Comment } from 'src/feed/schemas/comment.schema';
 
 const options: SchemaOptions = {
-  versionKey: false
+  versionKey: false,
 };
 
 export type UserDocument = User & Document;
@@ -95,12 +95,6 @@ export class User {
 
   @ApiProperty({
     type: Number,
-  })
-  @Prop({ default: 0 })
-  challenge: number;
-
-  @ApiProperty({
-    type: Number,
     description: '도장 개수',
   })
   @Prop({ default: 0 })
@@ -115,10 +109,24 @@ export class User {
 
   @ApiProperty({
     type: Array,
-    description: '유저가 만든 카테고리 리스트'
+    description: '유저가 만든 카테고리 리스트',
   })
   @Prop()
   categories: string[];
+
+  @ApiProperty({
+    type: Number,
+    description: '유저가 작성한 공개 글 개수',
+  })
+  @Prop({ default: 0 })
+  articleCount: number;
+
+  @ApiProperty({
+    type: Number,
+    description: '유저의 팔로워 숫자',
+  })
+  @Prop({ default: 0 })
+  followers: number;
 
   @ApiProperty({
     type: String,

@@ -5,6 +5,8 @@ import { Comment } from './schemas/comment.schema';
 import { Scrap } from './schemas/scrap.schema';
 import { Like } from './schemas/like.schema';
 import { User } from 'src/auth/schemas/user.schema';
+import { SubFeedRepository } from './repository/sub-feed.repository';
+import { HistoryRepository } from './repository/history.repository';
 
 export enum OrderBy {
   LATEST = '최신순',
@@ -13,52 +15,54 @@ export enum OrderBy {
 
 @Injectable()
 export class FeedService {
-  constructor(private readonly feedRepository: FeedRepository) {}
+  constructor(
+    private readonly feedRepository: FeedRepository,
+    private readonly subFeedRepository: SubFeedRepository,
+    private readonly historyRepository: HistoryRepository
+  ) {}
 
-  async mainFeed(query): Promise<Article[]> {
-    return this.feedRepository.mainFeed(query);
+  async getMainFeed(query): Promise<Article[]> {
+    return this.feedRepository.getMainFeed(query);
   }
 
   async getSubFeedAll(user, cursor): Promise<any[]> {
-    return this.feedRepository.getSubFeedAll(user, cursor);
+    return this.subFeedRepository.getSubFeedAll(user, cursor);
   }
 
   async getSubFeedOne(authorId, cursor): Promise<any[]> {
-    return this.feedRepository.getSubFeedOne(authorId, cursor);
+    return this.subFeedRepository.getSubFeedOne(authorId, cursor);
   }
 
   async findSubUser(user, authorId): Promise<any[]> {
-    return this.feedRepository.findSubUser(user, authorId);
+    return this.subFeedRepository.findSubUser(user, authorId);
   }
 
   async findAllSubUser(user): Promise<User[]> {
-    return this.feedRepository.findAllSubUser(user);
+    return this.subFeedRepository.findAllSubUser(user);
   }
 
   async subUser(user, authorId): Promise<any> {
-    return this.feedRepository.subUser(user, authorId);
+    return this.subFeedRepository.saveSubUser(user, authorId);
   }
 
   async updateSubUser(user, authorId): Promise<any> {
-    return this.feedRepository.updateSubUser(user, authorId);
+    return this.subFeedRepository.updateSubUser(user, authorId);
   }
 
-  async searchArticle(
-    query
-  ): Promise<any> {
+  async searchArticle(query): Promise<any> {
     return this.feedRepository.searchArticle(query);
   }
 
   async findHistory(user): Promise<any[]> {
-    return this.feedRepository.findHistory(user);
+    return this.historyRepository.findHistory(user);
   }
 
   async findOneHistory(user, historyId): Promise<any> {
-    return this.feedRepository.findOneHistory(user, historyId);
+    return this.historyRepository.findOneHistory(user, historyId);
   }
 
   async saveHistory(user, content): Promise<any> {
-    return this.feedRepository.saveHistory(user, content);
+    return this.historyRepository.saveHistory(user, content);
   }
 
   async getOneArticle(articleId): Promise<Article> {
@@ -69,8 +73,12 @@ export class FeedService {
     return this.feedRepository.deleteArticle(user, articleId);
   }
 
-  async updateArticle(articleId: string, updateArticleDto): Promise<Article> {
-    return this.feedRepository.updateArticle(articleId, updateArticleDto);
+  async updateArticle(
+    user,
+    articleId: string,
+    updateArticleDto,
+  ): Promise<Article> {
+    return this.feedRepository.updateArticle(user, articleId, updateArticleDto);
   }
 
   async findComment(commentId): Promise<Comment> {

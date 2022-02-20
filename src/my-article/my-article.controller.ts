@@ -29,6 +29,7 @@ import { User } from 'src/auth/schemas/user.schema';
 import { Article } from 'src/challenge/schemas/article.schema';
 import { UpdateArticleDto } from 'src/challenge/dto/update-article.dto';
 import { CreateArticleDto } from 'src/challenge/dto/create-article.dto';
+import { ChallengeService } from 'src/challenge/challenge.service';
 
 @ApiTags('my-article')
 @ApiBearerAuth('accessToken')
@@ -37,6 +38,7 @@ import { CreateArticleDto } from 'src/challenge/dto/create-article.dto';
 export class MyArticleController {
   constructor(
     private myArticleService: MyArticleService,
+    private challengeService: ChallengeService,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -63,14 +65,14 @@ export class MyArticleController {
     try {
       const articles: Article[] = await this.myArticleService.findMyArticle(
         user,
-        query.cursor
+        query.cursor,
       );
-      if(articles.length === 0){
-        return res.status(HttpStatus.OK).json({message:'더 이상의 페이지는 존재하지 않습니다.'}
-        )
-      }
-      else{
-        const last = articles[articles.length -1];
+      if (articles.length === 0) {
+        return res
+          .status(HttpStatus.OK)
+          .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
+      } else {
+        const last = articles[articles.length - 1];
         const next_cursor = `${last._id}`;
         return res.status(HttpStatus.OK).json({ articles, next_cursor });
       }
@@ -80,7 +82,7 @@ export class MyArticleController {
     }
   }
 
-  @Post()
+  @Post('/free')
   @ApiOperation({
     summary: '자유 글쓰기 API',
     description: '자유 글쓰기를 작성하고 공개글로 게시합니다.',
@@ -91,6 +93,17 @@ export class MyArticleController {
     @Body() createArticleDto: CreateArticleDto,
   ): Promise<Article> {
     return await this.myArticleService.saveMyArticle(user, createArticleDto);
+  }
+
+  @Get('free')
+  @ApiOperation({
+    summary: '글쓰기 팁 및 유저의 카테고리 조회',
+    description: '글쓰기 팁과 유저가 만든 카테고리들을 조회한다.',
+  })
+  async getTipAndCategory(@GetUser() user: User, @Res() res): Promise<any> {
+    const tip = await this.challengeService.getTip();
+    const category = await this.challengeService.getCategory(user);
+    res.status(HttpStatus.OK).json({ tip, category });
   }
 
   @Post('/temp')
@@ -128,14 +141,14 @@ export class MyArticleController {
     try {
       const articles: Article[] = await this.myArticleService.findMyArticleTemp(
         user,
-        query.cursor
+        query.cursor,
       );
-      if(articles.length === 0){
-        return res.status(HttpStatus.OK).json({message:'더 이상의 페이지는 존재하지 않습니다.'}
-        )
-      }
-      else{
-        const last = articles[articles.length -1];
+      if (articles.length === 0) {
+        return res
+          .status(HttpStatus.OK)
+          .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
+      } else {
+        const last = articles[articles.length - 1];
         const next_cursor = `${last._id}`;
         return res.status(HttpStatus.OK).json({ articles, next_cursor });
       }
@@ -170,10 +183,12 @@ export class MyArticleController {
   })
   @ApiBody({ type: CreateArticleDto })
   async updateMyArticle(
+    @GetUser() user: User,
     @Param('articleId') articleId: string,
     @Body() updateArticleDto: UpdateArticleDto,
   ): Promise<Article> {
     return await this.myArticleService.updateMyArticle(
+      user,
       articleId,
       updateArticleDto,
     );
@@ -182,7 +197,7 @@ export class MyArticleController {
   @Delete('/:articleId')
   @ApiOperation({
     summary: '나의 글 삭제 API',
-    description: '나의 글을 삭제합니다.',
+    description: '나의 글들을 삭제하고 삭제 개수를 반환합니다.',
   })
   async deleteArticle(
     @GetUser() user: User,

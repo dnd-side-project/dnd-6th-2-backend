@@ -50,7 +50,7 @@ export class ChallengeRepository {
   }
 
   //개발용 함수 (서버 계속 껐다 키니까 presenetKeyWord 변수 만들어서 임시적으로 오늘의 키워드 저장해주고 보여줌)
-  async findRandomKeyWord(user): Promise<any[]> {
+  async findRandomKeyWord(user): Promise<any> {
     const result: any[] = [];
     const today = new Date().toDateString();
     const presentKeyWord: KeyWord[] = [];
@@ -81,7 +81,7 @@ export class ChallengeRepository {
   }
 
   // 배포용 ( 키워드, 챌린지 여부 리턴)
-  // async findRandomKeyWord(user): Promise<any[]> {
+  // async findRandomKeyWord(user): Promise<any> {
   //     let result:any[] = [];
   //     const challenge = await this.ArticleModel.find({
   //      user: user,
@@ -97,9 +97,14 @@ export class ChallengeRepository {
   //     result.push(userinfo);
   //     return result;
   // }
-  async findTip(): Promise<any> {
+  async getTip(): Promise<any> {
     const tip = await this.TipModel.aggregate([{ $sample: { size: 1 } }]);
     return tip[0];
+  }
+
+  async getCategory(user) {
+    const loginUser = await this.UserModel.findById(user._id);
+    return loginUser.categories;
   }
 
   async saveArticle(
@@ -110,14 +115,22 @@ export class ChallengeRepository {
     createArticleDto.keyWord = this.todayKeyWord[0].content;
     createArticleDto.state = true;
     const article = await new this.ArticleModel(createArticleDto);
-    await this.UserModel.findByIdAndUpdate(user._id, {
-      $push: {
-        articles: article,
-      },
-      $inc: {
-        challenge: 1,
-      },
-    });
+    if (createArticleDto.public == true) {
+      await this.UserModel.findByIdAndUpdate(user._id, {
+        $push: {
+          articles: article,
+        },
+        $inc: {
+          articleCount: 1,
+        },
+      });
+    } else {
+      await this.UserModel.findByIdAndUpdate(user._id, {
+        $push: {
+          articles: article,
+        },
+      });
+    }
     if (user.state == false) {
       //오늘 챌린지 안 했을 때만(최초 챌린지 일 때)
       await this.UserModel.findByIdAndUpdate(user._id, {
@@ -157,16 +170,4 @@ export class ChallengeRepository {
       },
     });
   }
-
-  // async findAllArticle(): Promise<Article[]> {
-  //   return this.ArticleModel.find().exec();
-  // }
-
-  // async findOneArticle(id): Promise<Article> {
-  //   return await this.ArticleModel.findById(id);
-  // }
-
-  // async deleteArticle(id): Promise<any> {
-  //   return await this.ArticleModel.findByIdAndRemove(id);
-  // }
 }

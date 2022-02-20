@@ -10,7 +10,6 @@ import { Scrap, ScrapDocument } from '../schemas/scrap.schema';
 import { User, UserDocument } from 'src/auth/schemas/user.schema';
 import { Like, LikeDocument } from '../schemas/like.schema';
 import { KeyWord, KeyWordDocument } from 'src/challenge/schemas/keyword.schema';
-import { History, HistoryDocument } from '../schemas/history.schema';
 import { OrderBy } from '../feed.service';
 
 export class FeedRepository {
@@ -27,8 +26,6 @@ export class FeedRepository {
     private LikeModel: Model<LikeDocument>,
     @InjectModel(KeyWord.name)
     private KeyWordModel: Model<KeyWordDocument>,
-    @InjectModel(History.name)
-    private HistoryModel: Model<HistoryDocument>,
   ) {}
 
   async findAllLastArticle(orderBy: OrderBy, filter) {
@@ -70,7 +67,7 @@ export class FeedRepository {
     }
   }
 
-  async mainFeed(query): Promise<Article[]> {
+  async getMainFeed(query): Promise<Article[]> {
     const { tags, orderBy, cursor } = query;
 
     if (!cursor) {
@@ -158,76 +155,6 @@ export class FeedRepository {
     }
   }
 
-  async getSubFeedAll(user: User, cursor): Promise<any[]> {
-    if (!cursor) {
-      let filter = { user: user.subscribeUser, public: true };
-      return await this.ArticleModel.find(filter)
-        .sort({ _id: -1 })
-        .limit(15)
-        .populate('user')
-        .exec();
-    } else {
-      let filter = {
-        user: user.subscribeUser,
-        public: true,
-        _id: { $lt: cursor },
-      };
-      return await this.ArticleModel.find(filter)
-        .sort({ _id: -1 })
-        .limit(15)
-        .populate('user')
-        .exec();
-    }
-  }
-
-  //특정 구독작가의 글만 보기
-  async getSubFeedOne(authorId, cursor): Promise<any[]> {
-    if (!cursor) {
-      let filter = { user: authorId, public: true };
-      return await this.ArticleModel.find(filter)
-        .sort({ _id: -1 })
-        .limit(15)
-        .populate('user')
-        .exec();
-    } else {
-      let filter = { user: authorId, public: true, _id: { $lt: cursor } };
-      return await this.ArticleModel.find(filter)
-        .sort({ _id: -1 })
-        .limit(15)
-        .populate('user')
-        .exec();
-    }
-  }
-
-  //구독한 유저인지 체크
-  async findSubUser(user, authorId): Promise<any[]> {
-    const check = await this.UserModel.find({
-      _id: user._id,
-      subscribeUser: authorId,
-    });
-    return check;
-  }
-
-  async findAllSubUser(user): Promise<User[]> {
-    return await this.UserModel.find({ _id: user.subscribeUser });
-  }
-
-  async subUser(user, authorId): Promise<any> {
-    return await this.UserModel.findByIdAndUpdate(user._id, {
-      $push: {
-        subscribeUser: authorId,
-      },
-    });
-  }
-
-  async updateSubUser(user, authorId): Promise<any> {
-    return await this.UserModel.findByIdAndUpdate(user._id, {
-      $pull: {
-        subscribeUser: authorId,
-      },
-    });
-  }
-
   async searchArticle(query): Promise<any[]> {
     const { cursor, option, content, orderBy } = query;
 
@@ -305,53 +232,7 @@ export class FeedRepository {
     }
   }
 
-  async findHistory(user): Promise<any[]> {
-    const histories = await this.HistoryModel.find({ user: user._id })
-      .sort({ _id: -1 })
-      .limit(10);
-    return histories;
-  }
-
-  async findOneHistory(user, historyId): Promise<any> {
-    return await this.HistoryModel.findOneAndDelete({
-      _id: historyId,
-      user: user._id,
-    });
-  }
-
-  async saveHistory(user, content: string): Promise<any> {
-    const history = await this.HistoryModel.findOne({
-      user: user._id,
-      content: content,
-    });
-    //유저의 검색어가 몇 개 저장됐는지 알기 위함
-    const length = await this.HistoryModel.find({
-      user: user._id,
-    }).countDocuments();
-    if (history) {
-      return history;
-    } else if (!history && length < 10) {
-      const newHistory = await new this.HistoryModel({
-        user: user,
-        content: content,
-      });
-      return newHistory.save();
-    }
-    //검색어가 10개 이상이면 제일 오래된 걸 삭제해주고 최근 검색어 저장
-    else if (!history && length >= 10) {
-      await this.HistoryModel.findOneAndDelete().sort({ _id: 1 });
-      const newHistory = await new this.HistoryModel({
-        user: user,
-        content: content,
-      });
-      return newHistory.save();
-    }
-  }
-
   async findOneArticle(id): Promise<Article> {
-    // const test = await this.ArticleModel.findOne({_id:id, public:true})
-    // console.log(test)
-    // console.log(test.createdAt.toDateString())
     return await this.ArticleModel.findOne({ _id: id, public: true })
       .populate('user')
       .populate('comments')
@@ -359,14 +240,10 @@ export class FeedRepository {
   }
 
   async deleteArticle(user, id): Promise<any> {
-    console.log(user);
     await this.CommentModel.deleteMany({ article: id });
     await this.UserModel.findByIdAndUpdate(user._id, {
       $pull: {
         articles: id,
-      },
-      $inc: {
-        challenge: -1,
       },
     });
     const article = await this.ArticleModel.findById(id);
@@ -405,9 +282,17 @@ export class FeedRepository {
   }
 
   async updateArticle(
+    user,
     articleId: string,
     updateArticleDto: UpdateArticleDto,
   ): Promise<Article> {
+    if(updateArticleDto.public == false){
+      await this.UserModel.findByIdAndUpdate(user._id,{
+        $inc:{
+          articleCount: -1
+        }
+      })
+    }
     return await this.ArticleModel.findByIdAndUpdate(
       articleId,
       updateArticleDto,
@@ -469,6 +354,11 @@ export class FeedRepository {
   async saveScrap(user, articleId: string, scrapDto: ScrapDto): Promise<Scrap> {
     scrapDto.user = user._id;
     scrapDto.article = articleId;
+    await this.UserModel.findByIdAndUpdate(user._id,{
+      $addToSet:{
+        categories:scrapDto.category
+      }
+    })
     await this.ArticleModel.findByIdAndUpdate(articleId, {
       $inc: {
         scrapNum: 1,
