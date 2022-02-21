@@ -53,6 +53,8 @@ export class AuthService {
 
   async logOut(email: string) {
     await this.authRepository.removeAuthCode(email);
-    return await this.authRepository.removeRefreshToken(email);
+    return await this.authRepository.removeAccessToken(email);
+    // FIX
+    // return await this.authRepository.removeRefreshToken(email);
   }
 }

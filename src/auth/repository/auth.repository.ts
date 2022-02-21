@@ -29,63 +29,91 @@ export class AuthRepository {
   }
 
   async getAccessToken(email: string) {
-    const accessToken = this.jwtService.sign({ email }, { expiresIn: '3h' });
+    const accessToken = this.jwtService.sign({ email }, { expiresIn: '30d' });
+    // const accessToken = this.jwtService.sign({ email }, { expiresIn: '3h' });
 
     return accessToken;
   }
 
-  async getRefreshToken(email: string) {
-    const refreshToken = this.jwtService.sign({ email }, { expiresIn: '14d' });
+  // FIX
+  // async getRefreshToken(email: string) {
+  //   const refreshToken = this.jwtService.sign({ email }, { expiresIn: '14d' });
 
-    return refreshToken;
-  }
-
-  async updateRefreshToken(email: string, refreshToken: string) {
-    const salt = await bcrypt.genSalt();
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, salt);
-
-    try {
-      return await this.userModel.findOneAndUpdate(
-        { email },
-        { hashedRefreshToken },
-      );
-    } catch (e) {
-      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
-    }
-  }
-
-  async removeRefreshToken(email: string) {
-    // for logout
-    try {
-      return await this.userModel.findOneAndUpdate(
-        { email },
-        { $unset: { hashedRefreshToken: 1 } },
-      );
-    } catch (e) {
-      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
-    }
-  }
-
-  // async validateUser(email: string) {
-  //   const user = await this.userModel.findOne(
-  //     { email },
-  //     { _id: 1, email: 1, nickname: 1, genre: 1, bio: 1 },
-  //   );
-
-  //   if (!user) {
-  //     throw new NotFoundException();
-  //   }
-  //   return user;
+  //   return refreshToken;
   // }
 
-  async validateRefresh(email: string, refreshToken: string) {
+  // FIX
+  async updateAccessToken(email: string, accessToken: string) {
+    const salt = await bcrypt.genSalt();
+    const hashedAccessToken = await bcrypt.hash(accessToken, salt);
+
+    try {
+      return await this.userModel.findOneAndUpdate(
+        { email },
+        { hashedToken: hashedAccessToken },
+      );
+    } catch (e) {
+      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
+    }
+  }
+
+  // async updateRefreshToken(email: string, refreshToken: string) {
+  //   const salt = await bcrypt.genSalt();
+  //   const hashedRefreshToken = await bcrypt.hash(refreshToken, salt);
+
+  //   try {
+  //     return await this.userModel.findOneAndUpdate(
+  //       { email },
+  //       { hashedRefreshToken },
+  //     );
+  //   } catch (e) {
+  //     throw new NotFoundException('가입되어 있지 않은 메일입니다.');
+  //   }
+  // }
+
+  // FIX
+  async removeAccessToken(email: string) {
+    try {
+      return await this.userModel.findOneAndUpdate(
+        { email },
+        { $set: { hashedToken: null } },
+      );
+    } catch (e) {
+      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
+    }
+  }
+
+  // async removeRefreshToken(email: string) {
+  //   // for logout
+  //   try {
+  //     return await this.userModel.findOneAndUpdate(
+  //       { email },
+  //       { $unset: { hashedRefreshToken: 1 } },
+  //     );
+  //   } catch (e) {
+  //     throw new NotFoundException('가입되어 있지 않은 메일입니다.');
+  //   }
+  // }
+
+  async validateUser(email: string) {
     const user = await this.findUserByEmail(email);
 
-    if (await bcrypt.compare(refreshToken, user.hashedRefreshToken)) {
-      return user;
-    } else {
+    if (!user.hashedToken) {
       throw new UnauthorizedException('로그인이 필요합니다.');
     }
+    return user;
+  }
+
+  async validateRefresh(email: string, refreshToken: string) {
+    return await this.findUserByEmail(email);
+    // FIX
+    // const user = await this.findUserByEmail(email);
+
+    // if (await bcrypt.compare(refreshToken, user.hashedRefreshToken)) {
+    //   return user;
+    // } else {
+    //   throw new UnauthorizedException('로그인이 필요합니다.');
+    // }
   }
 
   async checkEmail(email: string) {
@@ -129,11 +157,14 @@ export class AuthRepository {
 
     if (await bcrypt.compare(password, user.password)) {
       const accessToken = await this.getAccessToken(email);
-      const refreshToken = await this.getRefreshToken(email);
+      await this.updateAccessToken(email, accessToken);
+      // FIX
+      // const refreshToken = await this.getRefreshToken(email);
 
-      await this.updateRefreshToken(email, refreshToken);
+      // await this.updateRefreshToken(email, refreshToken);
 
-      return { accessToken, refreshToken };
+      // return { accessToken, refreshToken };
+      return accessToken;
     } else {
       throw new UnauthorizedException('로그인에 실패했습니다.');
     }
