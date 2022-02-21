@@ -68,24 +68,6 @@ export class User {
   comments: Comment[];
 
   @ApiProperty({
-    type: [Article],
-  })
-  @Prop({
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: 'Article',
-  })
-  temporary: Article[];
-
-  @ApiProperty({
-    type: [Article],
-  })
-  @Prop({
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: 'Article',
-  })
-  articles: Article[];
-
-  @ApiProperty({
     type: [User],
   })
   @Prop({

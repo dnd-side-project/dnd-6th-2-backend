@@ -11,6 +11,7 @@ import { User, UserDocument } from 'src/auth/schemas/user.schema';
 import { Like, LikeDocument } from '../schemas/like.schema';
 import { KeyWord, KeyWordDocument } from 'src/challenge/schemas/keyword.schema';
 import { OrderBy } from '../feed.service';
+import { Category, CategoryDocument } from 'src/auth/schemas/category.schema';
 
 export class FeedRepository {
   constructor(
@@ -26,6 +27,7 @@ export class FeedRepository {
     private LikeModel: Model<LikeDocument>,
     @InjectModel(KeyWord.name)
     private KeyWordModel: Model<KeyWordDocument>,
+    @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
   ) {}
 
   async findAllLastArticle(orderBy: OrderBy, filter) {
@@ -241,12 +243,14 @@ export class FeedRepository {
 
   async deleteArticle(user, id): Promise<any> {
     await this.CommentModel.deleteMany({ article: id });
-    await this.UserModel.findByIdAndUpdate(user._id, {
-      $pull: {
-        articles: id,
-      },
-    });
+
+
     const article = await this.ArticleModel.findById(id);
+
+    await this.categoryModel.findByIdAndUpdate(article.category, {
+      $inc: { articleCount: -1 },
+    });
+
     const keyWord = await this.KeyWordModel.findOne({
       updateDay: article.createdAt.toDateString(),
     });
@@ -286,12 +290,26 @@ export class FeedRepository {
     articleId: string,
     updateArticleDto: UpdateArticleDto,
   ): Promise<Article> {
+    const article = await this.ArticleModel.findById(articleId)
+    const category = await this.categoryModel.findById(updateArticleDto.category)
+
     if(updateArticleDto.public == false){
       await this.UserModel.findByIdAndUpdate(user._id,{
         $inc:{
           articleCount: -1
         }
       })
+      await this.categoryModel.findByIdAndUpdate(article.category, {
+        $inc: { articleCount: -1 },
+      });
+    }
+    else if(updateArticleDto.public == true && category != article.category){
+      await this.categoryModel.findByIdAndUpdate(article.category, {
+        $inc: { articleCount: -1 },
+      });
+      await this.categoryModel.findByIdAndUpdate(category, {
+        $inc: { articleCount: 1 },
+      });
     }
     return await this.ArticleModel.findByIdAndUpdate(
       articleId,
@@ -354,11 +372,11 @@ export class FeedRepository {
   async saveScrap(user, articleId: string, scrapDto: ScrapDto): Promise<Scrap> {
     scrapDto.user = user._id;
     scrapDto.article = articleId;
-    await this.UserModel.findByIdAndUpdate(user._id,{
-      $addToSet:{
-        categories:scrapDto.category
-      }
-    })
+
+    await this.categoryModel.findByIdAndUpdate(scrapDto.category, {
+      $inc: { scrapCount: 1 },
+    });
+
     await this.ArticleModel.findByIdAndUpdate(articleId, {
       $inc: {
         scrapNum: 1,
@@ -369,15 +387,20 @@ export class FeedRepository {
   }
 
   async deleteScrap(user, articleId): Promise<any> {
+    
+    const scrap = await this.ScrapModel.findOne({article: articleId, user: user._id})
+    const categoryId = scrap.category
+
+    await this.categoryModel.findByIdAndUpdate(categoryId, {
+      $inc: { scrapCount: -1 },
+    });
+
     await this.ArticleModel.findByIdAndUpdate(articleId, {
       $inc: {
         scrapNum: -1,
       },
     });
-    return await this.ScrapModel.findOneAndDelete({
-      article: articleId,
-      user: user._id,
-    });
+    return scrap.delete();
   }
 
   async findLike(user, articleId: string): Promise<Like[]> {
