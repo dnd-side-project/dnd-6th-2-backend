@@ -3,7 +3,11 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { AuthCredentialDto } from '../dto/auth.dto';
 import { User, UserDocument } from '../schemas/user.schema';
-import { NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthCodeDto } from '../dto/change-password.dto';
 import { SignUpDto } from '../dto/signup.dto';
@@ -18,7 +22,7 @@ export class AuthRepository {
     const user = await this.userModel.findOne({ email });
 
     if (!user) {
-      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
+      throw new UnauthorizedException('가입되어 있지 않은 메일입니다.');
     }
 
     return user;
@@ -84,9 +88,25 @@ export class AuthRepository {
     }
   }
 
+  async checkEmail(email: string) {
+    const check = await this.userModel.exists({ email });
+    if (check) {
+      throw new BadRequestException('이미 가입되어 있는 메일입니다.');
+    }
+  }
+
+  async checkNickname(nickname: string) {
+    const check = await this.userModel.exists({ nickname });
+    if (check) {
+      throw new BadRequestException('이미 존재하는 닉네임입니다.');
+    }
+  }
+
   async signUp(signUpDto: SignUpDto): Promise<User> {
     const { email, password, nickname, genre, bio } = signUpDto;
 
+    await this.checkEmail(email);
+    await this.checkNickname(nickname);
     const salt = await bcrypt.genSalt();
     const hashedPW = await bcrypt.hash(password, salt);
 
@@ -153,8 +173,10 @@ export class AuthRepository {
 
   async changePassword(authCredentialDto: AuthCredentialDto): Promise<User> {
     const { email, password } = authCredentialDto;
+    const found = await this.findUserByEmail(email);
 
-    try {
+    await this.checkEmail(email);
+    if (await bcrypt.compare(password, found.password)) {
       const salt = await bcrypt.genSalt();
       const hashedPW = await bcrypt.hash(password, salt);
 
@@ -165,8 +187,8 @@ export class AuthRepository {
       user.password = undefined;
 
       return user; // test
-    } catch (e) {
-      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
+    } else {
+      throw new BadRequestException('기존 비밀번호와 동일한 비밀번호입니다.');
     }
   }
 }

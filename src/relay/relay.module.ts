@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from 'src/auth/auth.module';
+import { Category, CategorySchema } from 'src/auth/schemas/category.schema';
 import { User, UserSchema } from 'src/auth/schemas/user.schema';
 import { Article, ArticleSchema } from 'src/challenge/schemas/article.schema';
 import { Like, LikeSchema } from 'src/feed/schemas/like.schema';
@@ -19,6 +20,9 @@ import { Relay, RelaySchema } from './schemas/relay.schema';
     MongooseModule.forFeature([{ name: Like.name, schema: LikeSchema }]),
     MongooseModule.forFeature([{ name: Notice.name, schema: NoticeSchema }]),
     AuthModule,
+    MongooseModule.forFeature([
+      { name: Category.name, schema: CategorySchema },
+    ]),
   ],
   controllers: [RelayController],
   providers: [RelayService, RelayRepository, RelayArticleRepository],

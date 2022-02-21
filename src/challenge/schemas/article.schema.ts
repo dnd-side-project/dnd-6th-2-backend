@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory, SchemaOptions } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import * as mongoose from 'mongoose';
+import { Category } from 'src/auth/schemas/category.schema';
 import { User } from 'src/auth/schemas/user.schema';
 import { Comment } from 'src/feed/schemas/comment.schema';
 import { Relay } from 'src/relay/schemas/relay.schema';
@@ -53,11 +54,15 @@ export class Article {
   tags: string[];
 
   @ApiProperty({
-    type: String,
+    type: Category,
     description: '글의 카테고리(유저가 직접 생성',
   })
-  @Prop({ default: null })
-  category: string;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    default: null,
+  })
+  category: Category;
 
   @ApiProperty({
     type: String,

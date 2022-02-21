@@ -4,6 +4,7 @@ import { Article } from 'src/challenge/schemas/article.schema';
 import { User } from 'src/auth/schemas/user.schema';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsSemVer, IsString } from 'class-validator';
+import { Category } from 'src/auth/schemas/category.schema';
 
 export type ScrapDocument = Scrap & Document;
 
@@ -40,11 +41,15 @@ export class Scrap {
   article: Article;
 
   @ApiProperty({
-    type: String,
+    type: Category,
     description: '카테고리',
   })
-  @Prop()
-  category: string;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    default: null,
+  })
+  category: Category;
 
   /* timestamps */
   @ApiProperty({

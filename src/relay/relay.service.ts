@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { User } from 'src/auth/schemas/user.schema';
 import { CreateRelayDto } from './dto/create-relay.dto';
+import { RelayArticleDto } from './dto/relay-article.dto';
 import { UpdateRelayDto } from './dto/update-relay.dto';
 import { RelayArticleRepository } from './repository/relay-article.repository';
 import { RelayRepository } from './repository/relay.repository';
@@ -81,18 +82,26 @@ export class RelayService {
     return await this.relayArticleRepository.getRelayArticle(relayId, cursor);
   }
 
-  async createRelayArticle(relayId: string, content: string, user: User) {
+  async createRelayArticle(
+    relayId: string,
+    relayArticleDto: RelayArticleDto,
+    user: User,
+  ) {
     return await this.relayArticleRepository.createRelayArticle(
       relayId,
-      content,
+      relayArticleDto,
       user,
     );
   }
 
-  async updateRelayArticle(param, content: string, user: User) {
+  async updateRelayArticle(
+    param,
+    relayArticleDto: RelayArticleDto,
+    user: User,
+  ) {
     return await this.relayArticleRepository.updateRelayArticle(
       param,
-      content,
+      relayArticleDto,
       user,
     );
   }

@@ -13,12 +13,16 @@ import { JwtAuthStrategy } from './strategy/jwt-auth.strategy';
 import { JwtRefreshStrategy } from './strategy/jwt-refresh.strategy';
 import { Article, ArticleSchema } from 'src/challenge/schemas/article.schema';
 import { Comment, CommentSchema } from 'src/feed/schemas/comment.schema';
+import { Category, CategorySchema } from './schemas/category.schema';
 
 dotenv.config();
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: Category.name, schema: CategorySchema },
+    ]),
     MongooseModule.forFeature([{ name: Article.name, schema: ArticleSchema }]),
     MongooseModule.forFeature([{ name: Comment.name, schema: CommentSchema }]),
     MailerModule.forRoot({

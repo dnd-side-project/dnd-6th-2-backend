@@ -9,6 +9,7 @@ import { User, UserSchema } from 'src/auth/schemas/user.schema';
 import { Tip, TipSchema } from './schemas/tip.schema';
 import { AuthModule } from 'src/auth/auth.module';
 import { Relay, RelaySchema } from 'src/relay/schemas/relay.schema';
+import { Category, CategorySchema } from 'src/auth/schemas/category.schema';
 
 @Module({
   imports: [
@@ -16,8 +17,11 @@ import { Relay, RelaySchema } from 'src/relay/schemas/relay.schema';
     MongooseModule.forFeature([{ name: KeyWord.name, schema: KeyWordSchema }]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([{ name: Tip.name, schema: TipSchema }]),
-    AuthModule,
     MongooseModule.forFeature([{ name: Relay.name, schema: RelaySchema }]),
+    MongooseModule.forFeature([
+      { name: Category.name, schema: CategorySchema },
+    ]),
+    AuthModule,
   ],
   providers: [ChallengeService, ChallengeRepository],
   controllers: [ChallengeController],
