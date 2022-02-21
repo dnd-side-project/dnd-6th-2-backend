@@ -25,10 +25,6 @@ export class ChallengeService {
     return this.challengeRepository.getTip();
   }
 
-  async getCategory(user) {
-    return this.challengeRepository.getCategory(user);
-  }
-
   async addArticle(user, createArticleDto): Promise<Article> {
     return this.challengeRepository.saveArticle(user, createArticleDto);
   }

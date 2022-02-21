@@ -55,7 +55,7 @@ export class Article {
 
   @ApiProperty({
     type: Category,
-    description: '글의 카테고리(유저가 직접 생성',
+    description: '글의 카테고리(유저가 직접 생성)',
   })
   @Prop({
     type: mongoose.Schema.Types.ObjectId,

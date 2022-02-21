@@ -6,6 +6,7 @@ import { User, UserDocument } from 'src/auth/schemas/user.schema';
 import { Tip, TipDocument } from '../schemas/tip.schema';
 import { CreateArticleDto } from '../dto/create-article.dto';
 import { CreateKeyWordDto } from '../dto/create-keyword.dto';
+import { Category, CategoryDocument } from 'src/auth/schemas/category.schema';
 
 export class ChallengeRepository {
   constructor(
@@ -17,6 +18,7 @@ export class ChallengeRepository {
     private UserModel: Model<UserDocument>,
     @InjectModel(Tip.name)
     private TipModel: Model<TipDocument>,
+    @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
   ) {}
   private todayKeyWord: KeyWord[] = [];
 
@@ -102,11 +104,6 @@ export class ChallengeRepository {
     return tip[0];
   }
 
-  async getCategory(user) {
-    const loginUser = await this.UserModel.findById(user._id);
-    return loginUser.categories;
-  }
-
   async saveArticle(
     user,
     createArticleDto: CreateArticleDto,
@@ -115,20 +112,17 @@ export class ChallengeRepository {
     createArticleDto.keyWord = this.todayKeyWord[0].content;
     createArticleDto.state = true;
     const article = await new this.ArticleModel(createArticleDto);
+
+    const categoryId = createArticleDto.category
+
     if (createArticleDto.public == true) {
       await this.UserModel.findByIdAndUpdate(user._id, {
-        $push: {
-          articles: article,
-        },
         $inc: {
           articleCount: 1,
         },
       });
-    } else {
-      await this.UserModel.findByIdAndUpdate(user._id, {
-        $push: {
-          articles: article,
-        },
+      await this.categoryModel.findByIdAndUpdate(categoryId, {
+        $inc: { articleCount: 1 },
       });
     }
     if (user.state == false) {
@@ -154,11 +148,6 @@ export class ChallengeRepository {
     createArticleDto.keyWord = this.todayKeyWord[0].content;
     createArticleDto.state = false;
     const article = await new this.ArticleModel(createArticleDto);
-    await this.UserModel.findByIdAndUpdate(user._id, {
-      $push: {
-        temporary: article,
-      },
-    });
     return article.save();
   }
 

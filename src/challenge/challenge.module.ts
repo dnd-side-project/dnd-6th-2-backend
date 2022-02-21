@@ -25,6 +25,5 @@ import { Category, CategorySchema } from 'src/auth/schemas/category.schema';
   ],
   providers: [ChallengeService, ChallengeRepository],
   controllers: [ChallengeController],
-  exports: [ChallengeService],
 })
 export class ChallengeModule {}

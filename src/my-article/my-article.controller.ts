@@ -29,7 +29,6 @@ import { User } from 'src/auth/schemas/user.schema';
 import { Article } from 'src/challenge/schemas/article.schema';
 import { UpdateArticleDto } from 'src/challenge/dto/update-article.dto';
 import { CreateArticleDto } from 'src/challenge/dto/create-article.dto';
-import { ChallengeService } from 'src/challenge/challenge.service';
 
 @ApiTags('my-article')
 @ApiBearerAuth('accessToken')
@@ -38,7 +37,6 @@ import { ChallengeService } from 'src/challenge/challenge.service';
 export class MyArticleController {
   constructor(
     private myArticleService: MyArticleService,
-    private challengeService: ChallengeService,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -93,17 +91,6 @@ export class MyArticleController {
     @Body() createArticleDto: CreateArticleDto,
   ): Promise<Article> {
     return await this.myArticleService.saveMyArticle(user, createArticleDto);
-  }
-
-  @Get('free')
-  @ApiOperation({
-    summary: '글쓰기 팁 및 유저의 카테고리 조회',
-    description: '글쓰기 팁과 유저가 만든 카테고리들을 조회한다.',
-  })
-  async getTipAndCategory(@GetUser() user: User, @Res() res): Promise<any> {
-    const tip = await this.challengeService.getTip();
-    const category = await this.challengeService.getCategory(user);
-    res.status(HttpStatus.OK).json({ tip, category });
   }
 
   @Post('/temp')

@@ -6,6 +6,7 @@ import { KeyWord, KeyWordDocument } from 'src/challenge/schemas/keyword.schema';
 import { Model } from 'mongoose';
 import { UpdateArticleDto } from 'src/challenge/dto/update-article.dto';
 import { CreateArticleDto } from 'src/challenge/dto/create-article.dto';
+import { Category, CategoryDocument } from 'src/auth/schemas/category.schema';
 
 export class MyArticleRepository {
   constructor(
@@ -17,6 +18,8 @@ export class MyArticleRepository {
     private UserModel: Model<UserDocument>,
     @InjectModel(KeyWord.name)
     private KeyWordModel: Model<KeyWordDocument>,
+    @InjectModel(Category.name)
+    private CategoryModel: Model<CategoryDocument>
   ) {}
 
   async findMyArticle(user, cursor): Promise<Article[]> {
@@ -44,24 +47,17 @@ export class MyArticleRepository {
     createArticleDto.keyWord = null;
     createArticleDto.state = false;
     createArticleDto.free = true;
+
     const article = await new this.ArticleModel(createArticleDto);
     if (createArticleDto.public == true) {
       await this.UserModel.findByIdAndUpdate(user._id, {
         $inc: {
           articleCount: 1,
-        },
-        $addToSet: {
-          articles: article,
-          categories: createArticleDto.category,
-        },
+        }
       });
-    } else {
-      await this.UserModel.findByIdAndUpdate(user._id, {
-        $addToSet: {
-          articles: article,
-          categories: createArticleDto.category,
-        },
-      });
+      await this.CategoryModel.findByIdAndUpdate(createArticleDto.category,{
+        $inc:{articleCount: 1}
+      })
     }
     return article.save();
   }
@@ -73,19 +69,13 @@ export class MyArticleRepository {
     createArticleDto.user = user._id;
     createArticleDto.keyWord = null;
     createArticleDto.state = false;
-    if (createArticleDto.category != null) {
-      await this.UserModel.findByIdAndUpdate(user._id, {
-        $addToSet: {
-          categories: createArticleDto.category,
-        },
-      });
-    }
-    const article = await new this.ArticleModel(createArticleDto);
+
     await this.UserModel.findByIdAndUpdate(user._id, {
-      $push: {
-        temporary: article,
-      },
+      $addToSet: {
+        categories: createArticleDto.category,
+        },
     });
+    const article = await new this.ArticleModel(createArticleDto);
     return article.save();
   }
 
@@ -118,12 +108,18 @@ export class MyArticleRepository {
     updateArticleDto: UpdateArticleDto,
   ): Promise<Article> {
     const article = await this.ArticleModel.findById(articleId);
+
+    const category = await this.CategoryModel.findById(updateArticleDto.category)
+
     if (article.public == true) {
       if (updateArticleDto.public == false) {
         await this.UserModel.findByIdAndUpdate(user._id, {
           $inc: {
             articleCount: -1,
           },
+        });
+        await this.CategoryModel.findByIdAndUpdate(article.category, {
+          $inc: { articleCount: -1 },
         });
       }
     } else {
@@ -132,6 +128,9 @@ export class MyArticleRepository {
           $inc: {
             articleCount: 1,
           },
+        });
+        await this.CategoryModel.findByIdAndUpdate(category, {
+          $inc: { articleCount: 1 },
         });
       }
     }
@@ -144,13 +143,6 @@ export class MyArticleRepository {
 
   async deleteMyArticle(user, articleId): Promise<any> {
     await this.CommentModel.deleteMany({ article: articleId });
-    for (let i = 0; i < articleId.length; i++) {
-      await this.UserModel.findByIdAndUpdate(user._id, {
-        $pull: {
-          articles: articleId[i],
-        },
-      });
-    }
 
     //삭제하려는 모든 글들 찾기
     const articles = await this.ArticleModel.find({ _id: articleId });
@@ -166,16 +158,30 @@ export class MyArticleRepository {
     const today = new Date().toDateString();
     const todayKeyWord = await this.KeyWordModel.findOne({ updateDay: today });
 
-    //삭제하려는 글 중 공개글의 수
-    const publicArticle: number = await this.ArticleModel.find({
+    //삭제하려는 글 중 공개글
+    const publicArticle = await this.ArticleModel.find({
+      _id: articleId,
+      public: true,
+    })
+
+    const publicArticleCount = await this.ArticleModel.find({
       _id: articleId,
       public: true,
     }).count();
+
     await this.UserModel.findByIdAndUpdate(user._id, {
       $inc: {
-        articleCount: -publicArticle,
+        articleCount: -publicArticleCount,
       },
     });
+
+    if(publicArticle){
+      for(var i=0; i<publicArticle.length; i++){
+        await this.CategoryModel.findByIdAndUpdate(publicArticle[i].category, {
+          $inc: {articleCount: -1}
+        })
+      }
+    }
 
     //삭제
     const deleteCount = await this.ArticleModel.deleteMany({ _id: articleId });
