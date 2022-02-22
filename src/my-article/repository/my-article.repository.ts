@@ -23,56 +23,35 @@ export class MyArticleRepository {
   ) {}
 
   async findMyArticle(user, cursor, type): Promise<Article[]> {
-    let filter:any
-    console.log(typeof(type))
     if (!cursor) {
-      switch(type){
-        case 'free':
-          filter = {
-            user: user._id, free: true
-          };
-          return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
-        case 'relay':
-          filter = {
-            user: user._id, relay: { $ne: null }
-          };
-          return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
-        case 'challenge':
-          filter = {
-            user: user._id, state: true
-          };
-          return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
-        case undefined:
-          filter = {
-            user: user._id,
-            $or: [{ state: true }, { free: true }, { relay: { $ne: null } }],
-          };
-          return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+      if(type){
+        const filter = {
+          user: user._id,
+          type: type,
+        };
+        return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+      }
+      else{
+        const filter = {
+          user: user._id,
+        };
+        return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
       }
     } else {
-      switch(type){
-        case 'free':
-          filter = {
-            user: user._id, free: true, _id: { $lt: cursor },
-          };
-          return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
-        case 'relay':
-          filter = {
-            user: user._id, relay: { $ne: null }, _id: { $lt: cursor },
-          };
-          return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
-        case 'challenge':
-          filter = {
-            user: user._id, state: true, _id: { $lt: cursor },
-          };
-          return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
-        case undefined:
-          filter = {
-            user: user._id,
-            $or: [{ state: true }, { free: true }, { relay: { $ne: null } }],
-            _id: { $lt: cursor },
-          };
-          return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+      if(type){
+        const filter = {
+          user: user._id,
+          type: type,
+          _id: { $lt: cursor },
+        };
+        return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+      }
+      else{
+        const filter = {
+          user: user._id,
+          _id: { $lt: cursor },
+        };
+        return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
       }
     }
   }
@@ -84,7 +63,7 @@ export class MyArticleRepository {
     createArticleDto.user = user._id;
     createArticleDto.keyWord = null;
     createArticleDto.state = false;
-    createArticleDto.free = true;
+    createArticleDto.type = 'free'
 
     const article = await new this.ArticleModel(createArticleDto);
     if (createArticleDto.public == true) {
@@ -107,6 +86,7 @@ export class MyArticleRepository {
     createArticleDto.user = user._id;
     createArticleDto.keyWord = null;
     createArticleDto.state = false;
+    createArticleDto.type = 'free'
 
     await this.UserModel.findByIdAndUpdate(user._id, {
       $addToSet: {
