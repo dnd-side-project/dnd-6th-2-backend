@@ -22,20 +22,58 @@ export class MyArticleRepository {
     private CategoryModel: Model<CategoryDocument>
   ) {}
 
-  async findMyArticle(user, cursor): Promise<Article[]> {
+  async findMyArticle(user, cursor, type): Promise<Article[]> {
+    let filter:any
+    console.log(typeof(type))
     if (!cursor) {
-      const filter = {
-        user: user._id,
-        $or: [{ state: true }, { free: true }, { relay: { $ne: null } }],
-      };
-      return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+      switch(type){
+        case 'free':
+          filter = {
+            user: user._id, free: true
+          };
+          return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+        case 'relay':
+          filter = {
+            user: user._id, relay: { $ne: null }
+          };
+          return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+        case 'challenge':
+          filter = {
+            user: user._id, state: true
+          };
+          return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+        case undefined:
+          filter = {
+            user: user._id,
+            $or: [{ state: true }, { free: true }, { relay: { $ne: null } }],
+          };
+          return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+      }
     } else {
-      const filter = {
-        user: user._id,
-        $or: [{ state: true }, { free: true }, { relay: { $ne: null } }],
-        _id: { $lt: cursor },
-      };
-      return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+      switch(type){
+        case 'free':
+          filter = {
+            user: user._id, free: true, _id: { $lt: cursor },
+          };
+          return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+        case 'relay':
+          filter = {
+            user: user._id, relay: { $ne: null }, _id: { $lt: cursor },
+          };
+          return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+        case 'challenge':
+          filter = {
+            user: user._id, state: true, _id: { $lt: cursor },
+          };
+          return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+        case undefined:
+          filter = {
+            user: user._id,
+            $or: [{ state: true }, { free: true }, { relay: { $ne: null } }],
+            _id: { $lt: cursor },
+          };
+          return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+      }
     }
   }
 
