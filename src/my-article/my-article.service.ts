@@ -6,8 +6,8 @@ import { MyArticleRepository } from './repository/my-article.repository';
 export class MyArticleService {
   constructor(private readonly myArticleRepository: MyArticleRepository) {}
 
-  async findMyArticle(user, cursor): Promise<Article[]> {
-    return this.myArticleRepository.findMyArticle(user, cursor);
+  async findMyArticle(user, cursor, type): Promise<Article[]> {
+    return this.myArticleRepository.findMyArticle(user, cursor, type);
   }
 
   async saveMyArticle(user, createArticleDto): Promise<Article> {

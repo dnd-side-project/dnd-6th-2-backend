@@ -50,6 +50,13 @@ export class MyArticleController {
     description: '유저의 Article 객체 배열을 반환합니다.',
   })
   @ApiQuery({
+    name: 'type',
+    type: String,
+    description: '필터링을 하기 위한 글 타입(challenge,free,relay) 작성',
+    example: 'challenge',
+    required: false,
+  })
+  @ApiQuery({
     name: 'cursor',
     required: false,
     description:
@@ -64,6 +71,7 @@ export class MyArticleController {
       const articles: Article[] = await this.myArticleService.findMyArticle(
         user,
         query.cursor,
+        query.type,
       );
       if (articles.length === 0) {
         return res
