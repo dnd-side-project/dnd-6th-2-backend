@@ -114,11 +114,12 @@ export class User {
   @Prop({ default: 0 })
   followers: number;
 
+  // FIX
   @ApiProperty({
     type: String,
   })
-  @Prop()
-  hashedRefreshToken: string; // refresh token 저장
+  @Prop({ default: null })
+  hashedToken: string; // 원래는 refresh token 저장, 현재는 access token 저장
 
   @ApiProperty({
     type: Number,
