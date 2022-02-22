@@ -42,13 +42,16 @@ export class CreateArticleDto {
   @IsBoolean()
   readonly public: boolean;
 
-  @ApiProperty({ type: String, description: '카테고리 지정', default: 'null' })
-  @IsOptional()
+  @ApiProperty({
+    type: String,
+    description: '선택한 카테고리의 id',
+    example: '카테고리 ID',
+  })
   @IsNotEmpty()
   @IsString()
   readonly category: string;
 
   state: boolean;
   keyWord: string;
-  free: boolean;
+  type: string;
 }

@@ -47,7 +47,9 @@ dotenv.config();
     JwtModule.register({
       secret: process.env.SECRET_KEY as string,
     }),
-    PassportModule.register({ defaultStrategy: ['jwt', 'jwt-refresh'] }),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    // FIX
+    // PassportModule.register({ defaultStrategy: ['jwt', 'jwt-refresh'] }),
   ],
   controllers: [AuthController],
   providers: [AuthService, AuthRepository, JwtAuthStrategy, JwtRefreshStrategy],

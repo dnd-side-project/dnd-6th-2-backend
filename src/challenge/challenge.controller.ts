@@ -57,18 +57,16 @@ export class ChallengeController {
 
   @Get('article')
   @ApiOperation({
-    summary: '글쓰기 팁 및 유저의 카테고리 조회',
-    description: '글쓰기 팁과 유저가 만든 카테고리들을 조회한다.',
+    summary: '글쓰기 팁 조회',
+    description: '글쓰기 팁을 조회한다.',
   })
   @ApiResponse({
     status: 200,
     type: Tip,
   })
-  async getTipAndCategory(@GetUser() user: User, @Res() res): Promise<any> {
+  async getTipAndCategory(@GetUser() user: User): Promise<any> {
     //@GetUser안 붙여주면 실행 안 됨
-    const tip = await this.challengeService.getTip();
-    const categories = await this.challengeService.getCategory(user);
-    res.status(HttpStatus.OK).json({ tip, categories });
+    return await this.challengeService.getTip();
   }
 
   @Post('/article')

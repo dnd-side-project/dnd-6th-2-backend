@@ -55,7 +55,7 @@ export class Article {
 
   @ApiProperty({
     type: Category,
-    description: '글의 카테고리(유저가 직접 생성',
+    description: '글의 카테고리(유저가 직접 생성)',
   })
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
@@ -138,15 +138,15 @@ export class Article {
   relay: Relay;
 
   @ApiProperty({
-    type: Boolean,
-    description: '자유 글쓰기 구분 boolean, false=챌린지글, true=자유글쓰기 글',
+    type: String,
+    description: 'Article의 type',
   })
   @Prop({
-    type: Boolean,
-    description: '자유 글쓰기 구분용',
-    default: false,
+    type: String,
+    description: 'Article의 type',
+    default: null,
   })
-  free: boolean;
+  type: String;
 
   /* timestamps */
   @ApiProperty({
