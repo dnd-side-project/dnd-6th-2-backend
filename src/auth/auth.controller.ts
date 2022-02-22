@@ -61,13 +61,14 @@ export class AuthController {
     @Body() authCredentialDto: AuthCredentialDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { accessToken, refreshToken } = await this.authService.logIn(
-      authCredentialDto,
-    );
+    const accessToken = await this.authService.logIn(authCredentialDto);
 
-    res.cookie('auth', { accessToken, refreshToken });
-    return accessToken; // test
-    // return res.status(HttpStatus.OK).json({ message: '로그인 성공' });
+    // FIX
+    // res.cookie('auth', { accessToken, refreshToken });
+    return accessToken;
+    // return res
+    //   .status(HttpStatus.OK)
+    //   .json({ accessToken, message: '로그인 성공' });
   }
 
   @ApiOperation({
@@ -141,8 +142,10 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     await this.authService.logOut(user.email);
-    res.clearCookie('auth');
-    return '로그아웃 성공';
+    // FIX
+    // res.clearCookie('auth');
+    const message = '로그아웃 성공';
+    return { message };
     // return res.status(HttpStatus.OK).json({ message: '로그아웃 성공' });
   }
 

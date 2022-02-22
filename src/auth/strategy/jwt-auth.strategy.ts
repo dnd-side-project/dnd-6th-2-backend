@@ -7,11 +7,7 @@ import { AuthRepository } from '../repository/auth.repository';
 export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(private readonly authRepository: AuthRepository) {
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        (request) => {
-          return request?.cookies?.auth?.accessToken;
-        },
-      ]),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: process.env.SECRET_KEY,
       ignoreExpiration: false,
     });
@@ -19,7 +15,9 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt') {
 
   async validate(payload) {
     const { email } = payload;
-    const user = await this.authRepository.findUserByEmail(email);
+    // FIX
+    // const user = await this.authRepository.findUserByEmail(email);
+    const user = await this.authRepository.validateUser(email);
 
     return user;
   }
