@@ -29,15 +29,15 @@ import { RelayArticleDto } from './dto/relay-article.dto';
 import { CreateRelayDto } from './dto/create-relay.dto';
 import { UpdateRelayDto } from './dto/update-relay.dto';
 import { OrderBy, RelayService } from './relay.service';
-import {
-  GetRelayArticleDto,
-  GetRelayDto,
-  MessageDto,
-} from './dto/response.dto';
 import { Relay } from './schemas/relay.schema';
 import { Notice } from './schemas/notice.schema';
 import { Article } from 'src/challenge/schemas/article.schema';
 import { Like } from 'src/feed/schemas/like.schema';
+import {
+  GetRelayArticleResDto,
+  GetRelayResDto,
+  MessageResDto,
+} from './dto/response.dto';
 
 @ApiBearerAuth('accessToken')
 @UseGuards(AuthGuard())
@@ -70,7 +70,7 @@ export class RelayController {
   })
   @ApiResponse({
     status: 200,
-    type: GetRelayDto,
+    type: GetRelayResDto,
     description:
       '릴레이 객체 배열과 함께 다음 페이지 요청을 위한 next_cursor 를 반환합니다. next_cursor 가 null 이면, 더 이상의 페이지는 없습니다. (만약, relays가 존재하지 않으면 message를 반환합니다.)',
   })
@@ -105,7 +105,7 @@ export class RelayController {
   })
   @ApiResponse({
     status: 200,
-    type: GetRelayDto,
+    type: GetRelayResDto,
     description:
       '참여한 릴레이 객체 배열과 함께 다음 페이지 요청을 위한 next_cursor 를 반환합니다. next_cursor 가 null 이면, 더 이상의 페이지는 없습니다. (만약, relays가 존재하지 않으면 message를 반환합니다.)',
   })
@@ -141,7 +141,7 @@ export class RelayController {
   })
   @ApiResponse({
     status: 200,
-    type: GetRelayDto,
+    type: GetRelayResDto,
     description:
       '참여한 릴레이 객체 배열과 함께 다음 페이지 요청을 위한 next_cursor 를 반환합니다. next_cursor 가 null 이면, 더 이상의 페이지는 없습니다. (만약, relays가 존재하지 않으면 message를 반환합니다.)',
   })
@@ -171,6 +171,7 @@ export class RelayController {
   @ApiBody({ type: CreateRelayDto })
   @ApiResponse({
     status: 201,
+    type: Relay,
     description: '릴레이 방 생성 성공',
   })
   @Post('/')
@@ -228,7 +229,7 @@ export class RelayController {
   })
   @ApiResponse({
     status: 200,
-    type: MessageDto,
+    type: MessageResDto,
     description: '릴레이 방 삭제 성공',
   })
   @Delete('/:relayId')
@@ -328,7 +329,7 @@ export class RelayController {
   })
   @ApiResponse({
     status: 200,
-    type: MessageDto,
+    type: MessageResDto,
     description: '공지사항 삭제 성공',
   })
   @Delete('/:relayId/notice/:noticeId')
@@ -353,7 +354,7 @@ export class RelayController {
   })
   @ApiResponse({
     status: 200,
-    type: MessageDto,
+    type: MessageResDto,
     description: '릴레이 방 입장 성공',
   })
   @Post('/:relayId/join')
@@ -379,7 +380,7 @@ export class RelayController {
   })
   @ApiResponse({
     status: 200,
-    type: MessageDto,
+    type: MessageResDto,
     description: '릴레이 방 퇴장 성공',
   })
   @Delete('/:relayId/join')
@@ -433,7 +434,7 @@ export class RelayController {
   })
   @ApiResponse({
     status: 200,
-    type: GetRelayArticleDto,
+    type: GetRelayArticleResDto,
     description:
       '릴레이 글 객체 배열과 함께 다음 페이지 요청을 위한 next_cursor 를 반환합니다. next_cursor 가 null 이면, 더 이상의 페이지는 없습니다. (만약, relays가 존재하지 않으면 message를 반환합니다.)',
   })
@@ -543,7 +544,7 @@ export class RelayController {
   })
   @ApiResponse({
     status: 200,
-    type: MessageDto,
+    type: MessageResDto,
     description: '릴레이 글 삭제 성공',
   })
   @Delete('/:relayId/article/:articleId')
@@ -604,7 +605,7 @@ export class RelayController {
   })
   @ApiResponse({
     status: 200,
-    type: MessageDto,
+    type: MessageResDto,
     description: '좋아요 삭제 성공',
   })
   @Delete('/:relayId/article/:articleId/like')

@@ -17,6 +17,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { Response } from 'express';
+import { MessageResDto } from 'src/relay/dto/response.dto';
 import { AuthService } from './auth.service';
 import { GetUser } from './decorators/get-user.decorator';
 import { AuthCredentialDto } from './dto/auth.dto';
@@ -137,7 +138,7 @@ export class AuthController {
   })
   @ApiResponse({
     status: 200,
-    type: String,
+    type: MessageResDto,
     description: '로그아웃 성공(message 반환)',
   })
   @ApiBearerAuth('accessToken')

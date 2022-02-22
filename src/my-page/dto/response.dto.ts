@@ -1,28 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Article } from 'src/challenge/schemas/article.schema';
-import { Relay } from '../schemas/relay.schema';
+import { Scrap } from 'src/feed/schemas/scrap.schema';
 
-export class GetRelayResDto {
-  @ApiProperty({
-    type: [Relay],
-    description: '반환될 릴레이 객체의 배열',
-  })
-  relays: Relay[];
-
-  @ApiProperty({
-    type: String,
-    description:
-      '다음 페이지 조회 요청을 보낼 때, 쿼리스트링으로 보내줄 페이지네이션 커서',
-  })
-  next_cursor: string;
-}
-
-export class GetRelayArticleResDto {
+export class GetMyPageArticleResDto {
   @ApiProperty({
     type: [Article],
-    description: '반환될 Article(릴레이 글) 객체의 배열',
+    description: '반환될 글 객체의 배열',
   })
-  relayArticles: Article[];
+  articles: Article[];
 
   @ApiProperty({
     type: String,
@@ -32,10 +17,17 @@ export class GetRelayArticleResDto {
   next_cursor: string;
 }
 
-export class MessageResDto {
+export class GetMyPageScrapResDto {
+  @ApiProperty({
+    type: [Scrap],
+    description: '반환될 글 객체의 배열',
+  })
+  scraps: Scrap[];
+
   @ApiProperty({
     type: String,
-    description: '해당 엔드포인트 관련 메세지',
+    description:
+      '다음 페이지 조회 요청을 보낼 때, 쿼리스트링으로 보내줄 페이지네이션 커서',
   })
-  message: string;
+  next_cursor: string;
 }

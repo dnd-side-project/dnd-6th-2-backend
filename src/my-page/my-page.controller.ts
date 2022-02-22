@@ -22,8 +22,16 @@ import {
 } from '@nestjs/swagger';
 import { Response } from 'express';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { Category } from 'src/auth/schemas/category.schema';
 import { User } from 'src/auth/schemas/user.schema';
+import { Article } from 'src/challenge/schemas/article.schema';
+import { Scrap } from 'src/feed/schemas/scrap.schema';
+import { MessageResDto } from 'src/relay/dto/response.dto';
 import { CategoryDto } from './dto/category.dto';
+import {
+  GetMyPageArticleResDto,
+  GetMyPageScrapResDto,
+} from './dto/response.dto';
 import { MyPageService } from './my-page.service';
 
 @ApiBearerAuth('accessToken')
@@ -40,6 +48,7 @@ export class MyPageController {
   })
   @ApiResponse({
     status: 200,
+    type: User,
     description: '마이 페이지 조회 성공',
   })
   @Get()
@@ -62,6 +71,7 @@ export class MyPageController {
   })
   @ApiResponse({
     status: 200,
+    type: GetMyPageArticleResDto,
     description: '마이 페이지 글 조회 성공',
   })
   @Get('/article')
@@ -89,6 +99,7 @@ export class MyPageController {
   })
   @ApiResponse({
     status: 200,
+    type: [User],
     description: '마이 페이지 팔로워 조회 성공',
   })
   @Get('/follower')
@@ -104,6 +115,7 @@ export class MyPageController {
   })
   @ApiResponse({
     status: 200,
+    type: [User],
     description: '마이 페이지 팔로잉 조회 성공',
   })
   @Get('/following')
@@ -120,6 +132,7 @@ export class MyPageController {
   @ApiBody({ type: CategoryDto })
   @ApiResponse({
     status: 201,
+    type: Category,
     description: '카테고리 생성 성공',
   })
   @Post('/category')
@@ -142,6 +155,7 @@ export class MyPageController {
   @ApiBody({ type: CategoryDto })
   @ApiResponse({
     status: 200,
+    type: Category,
     description: '카테고리 수정 성공',
   })
   @Patch('/category/:categoryId')
@@ -168,6 +182,7 @@ export class MyPageController {
   })
   @ApiResponse({
     status: 200,
+    type: MessageResDto,
     description: '카테고리 삭제 성공',
   })
   @Delete('/category/:categoryId')
@@ -193,6 +208,7 @@ export class MyPageController {
   })
   @ApiResponse({
     status: 200,
+    type: GetMyPageArticleResDto,
     description: '카테고리별 글 조회 성공',
   })
   @Get('/category/:categoryId/article')
@@ -226,6 +242,7 @@ export class MyPageController {
   @ApiBody({ type: CategoryDto })
   @ApiResponse({
     status: 200,
+    type: Article,
     description: '해당 글의 카테고리 이동 성공',
   })
   @Patch('/category/:categoryId/article/:articleId')
@@ -251,6 +268,7 @@ export class MyPageController {
   })
   @ApiResponse({
     status: 200,
+    type: MessageResDto,
     description: '해당 글의 카테고리 삭제 성공',
   })
   @Delete('/category/:categoryId/article/:articleId')
@@ -277,6 +295,7 @@ export class MyPageController {
   })
   @ApiResponse({
     status: 200,
+    type: GetMyPageArticleResDto,
     description: '카테고리 없는 글 조회 성공',
   })
   @Get('/category/article')
@@ -289,7 +308,15 @@ export class MyPageController {
       cursor,
       user,
     );
-    return res.status(HttpStatus.OK).json(articles);
+    if (articles.length === 0) {
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
+    } else {
+      const last = articles[articles.length - 1];
+      const next_cursor = last._id;
+      return res.status(HttpStatus.OK).json({ articles, next_cursor });
+    }
   }
 
   @ApiTags('my-page/scrap')
@@ -305,6 +332,7 @@ export class MyPageController {
   })
   @ApiResponse({
     status: 200,
+    type: GetMyPageArticleResDto,
     description: '카테고리별 스크랩 조회 성공',
   })
   @Get('/category/:categoryId/scrap')
@@ -319,7 +347,15 @@ export class MyPageController {
       cursor,
       user,
     );
-    return res.status(HttpStatus.OK).json(articles);
+    if (articles.length === 0) {
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
+    } else {
+      const last = articles[articles.length - 1];
+      const next_cursor = last._id;
+      return res.status(HttpStatus.OK).json({ articles, next_cursor });
+    }
   }
 
   @ApiTags('my-page/scrap')
@@ -330,6 +366,7 @@ export class MyPageController {
   @ApiBody({ type: CategoryDto })
   @ApiResponse({
     status: 200,
+    type: Scrap,
     description: '해당 스크랩의 카테고리 이동 성공',
   })
   @Patch('/category/:categoryId/scrap/:scrapId')
@@ -355,6 +392,7 @@ export class MyPageController {
   })
   @ApiResponse({
     status: 200,
+    type: MessageResDto,
     description: '해당 스크랩의 카테고리 삭제 성공',
   })
   @Delete('/category/:categoryId/scrap/:scrapId')
@@ -381,6 +419,7 @@ export class MyPageController {
   })
   @ApiResponse({
     status: 200,
+    type: GetMyPageScrapResDto,
     description: '카테고리 없는 스크랩 조회 성공',
   })
   @Get('/category/scrap')
@@ -390,6 +429,14 @@ export class MyPageController {
     @Res() res: Response,
   ) {
     const scraps = await this.myPageService.getNoCategoryScrap(cursor, user);
-    return res.status(HttpStatus.OK).json(scraps);
+    if (scraps.length === 0) {
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
+    } else {
+      const last = scraps[scraps.length - 1];
+      const next_cursor = last._id;
+      return res.status(HttpStatus.OK).json({ scraps, next_cursor });
+    }
   }
 }
