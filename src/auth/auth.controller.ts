@@ -21,6 +21,7 @@ import { AuthService } from './auth.service';
 import { GetUser } from './decorators/get-user.decorator';
 import { AuthCredentialDto } from './dto/auth.dto';
 import { AuthCodeDto, MailAuthDto } from './dto/change-password.dto';
+import { CheckResDto, CodeResDto, LoginResDto } from './dto/response.dto';
 import { SignUpDto } from './dto/signup.dto';
 import { User } from './schemas/user.schema';
 
@@ -37,6 +38,7 @@ export class AuthController {
   @ApiBody({ type: SignUpDto })
   @ApiResponse({
     status: 201,
+    type: User,
     description: '회원가입 성공',
   })
   @Post('/signup')
@@ -53,8 +55,8 @@ export class AuthController {
   @ApiBody({ type: AuthCredentialDto })
   @ApiResponse({
     status: 200,
+    type: LoginResDto,
     description: '로그인 성공',
-    type: User,
   })
   @Post('/login')
   async logIn(
@@ -79,6 +81,7 @@ export class AuthController {
   @ApiBody({ type: MailAuthDto })
   @ApiResponse({
     status: 200,
+    type: CodeResDto,
     description: '인증 메일 전송 성공',
   })
   @Post('/email')
@@ -99,6 +102,7 @@ export class AuthController {
   @ApiBody({ type: AuthCodeDto })
   @ApiResponse({
     status: 200,
+    type: CheckResDto,
     description: '인증 성공',
   })
   @Post('/email/check')
@@ -115,6 +119,7 @@ export class AuthController {
   @ApiBody({ type: AuthCredentialDto })
   @ApiResponse({
     status: 200,
+    type: User,
     description: '비밀번호 재설정 성공',
   })
   @Patch('/password')
@@ -132,7 +137,8 @@ export class AuthController {
   })
   @ApiResponse({
     status: 200,
-    description: '로그아웃 성공',
+    type: String,
+    description: '로그아웃 성공(message 반환)',
   })
   @ApiBearerAuth('accessToken')
   @Patch('/logout')
