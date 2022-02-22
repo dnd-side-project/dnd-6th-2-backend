@@ -163,7 +163,7 @@ export class RelayRepository {
         return await this.getPagedRelay(filter, OrderBy.POPULAR, populate_list);
       }
     } else {
-      const { nextId, nextCount } = cursor;
+      const { nextId, nextCount } = cursor.split('_');
       if (orderBy === OrderBy.LATEST) {
         let filter;
         if (tags) {
