@@ -138,15 +138,15 @@ export class Article {
   relay: Relay;
 
   @ApiProperty({
-    type: Boolean,
-    description: '자유 글쓰기 구분 boolean, false=챌린지글, true=자유글쓰기 글',
+    type: String,
+    description: 'Article의 type',
   })
   @Prop({
-    type: Boolean,
-    description: '자유 글쓰기 구분용',
-    default: false,
+    type: String,
+    description: 'Article의 type',
+    default: null,
   })
-  free: boolean;
+  type: String;
 
   /* timestamps */
   @ApiProperty({
