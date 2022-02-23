@@ -126,6 +126,22 @@ export class MyPageController {
 
   @ApiTags('my-page/category')
   @ApiOperation({
+    summary: '사용자의 모든 카테고리를 조회하기 위한 엔드포인트입니다',
+    description: '해당 유저의 모든 카테고리 목록을 반환합니다',
+  })
+  @ApiResponse({
+    status: 200,
+    type: [Category],
+    description: '카테고리 목록 조회 성공',
+  })
+  @Get('/category')
+  async getAllCategory(@GetUser() user: User, @Res() res: Response) {
+    const categories = await this.myPageService.getAllCategory(user);
+    return res.status(HttpStatus.OK).json(categories);
+  }
+
+  @ApiTags('my-page/category')
+  @ApiOperation({
     summary: '카테고리를 생성하기 위한 엔드포인트입니다',
     description: '해당 유저의 마이페이지에 카테고리를 생성합니다',
   })

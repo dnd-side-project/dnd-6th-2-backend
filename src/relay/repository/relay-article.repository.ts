@@ -43,12 +43,12 @@ export class RelayArticleRepository {
   async getRelayArticle(relayId: string, cursor: string) {
     if (!cursor) {
       return await this.articleModel
-        .find({ relay: relayId })
+        .find({ type: 'relay', relay: relayId })
         .sort({ _id: 1 })
         .limit(15);
     } else {
       return await this.articleModel
-        .find({ relay: relayId, _id: { $gt: cursor } })
+        .find({ type: 'relay', relay: relayId, _id: { $gt: cursor } })
         .sort({ _id: 1 })
         .limit(15)
         .populate('user')
@@ -76,6 +76,7 @@ export class RelayArticleRepository {
       user,
       content,
       category: categoryId,
+      type: 'relay',
       relay: relayId,
     });
     await article.save();
