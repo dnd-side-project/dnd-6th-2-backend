@@ -75,7 +75,6 @@ export class RelayArticleRepository {
     const article = new this.articleModel({
       user,
       content,
-      category: categoryId,
       type: 'relay',
       relay: relayId,
     });
@@ -86,11 +85,19 @@ export class RelayArticleRepository {
     await this.relayModel.findByIdAndUpdate(relayId, {
       $inc: { articleCount: 1 },
     });
-    return await this.articleModel.findByIdAndUpdate(
-      article._id,
-      { $set: { public: true } },
-      { new: true },
-    );
+    if (categoryId) {
+      return await this.articleModel.findByIdAndUpdate(
+        article._id,
+        { category: categoryId, $set: { public: true } },
+        { new: true },
+      );
+    } else {
+      return await this.articleModel.findByIdAndUpdate(
+        article._id,
+        { $set: { public: true } },
+        { new: true },
+      );
+    }
   }
 
   async updateRelayArticle(
@@ -145,9 +152,11 @@ export class RelayArticleRepository {
       await this.checkAuthor(articleId, user._id);
 
       const article = await this.articleModel.findByIdAndDelete(articleId);
-      await this.categoryModel.findByIdAndUpdate(article.category._id, {
-        $inc: { articleCount: -1 },
-      });
+      if (article.category) {
+        await this.categoryModel.findByIdAndUpdate(article.category._id, {
+          $inc: { articleCount: -1 },
+        });
+      }
       return article;
     }
   }
