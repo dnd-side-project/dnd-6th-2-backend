@@ -18,7 +18,7 @@ export class FeedService {
   constructor(
     private readonly feedRepository: FeedRepository,
     private readonly subFeedRepository: SubFeedRepository,
-    private readonly historyRepository: HistoryRepository
+    private readonly historyRepository: HistoryRepository,
   ) {}
 
   async getMainFeed(query): Promise<Article[]> {

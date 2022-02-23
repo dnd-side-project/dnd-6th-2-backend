@@ -111,10 +111,10 @@ export class ChallengeRepository {
     createArticleDto.user = user._id;
     createArticleDto.keyWord = this.todayKeyWord[0].content;
     createArticleDto.state = true;
-    createArticleDto.type = 'challenge'
+    createArticleDto.type = 'challenge';
     const article = await new this.ArticleModel(createArticleDto);
 
-    const categoryId = createArticleDto.category
+    const categoryId = createArticleDto.category;
 
     if (createArticleDto.public == true) {
       await this.UserModel.findByIdAndUpdate(user._id, {
@@ -148,7 +148,7 @@ export class ChallengeRepository {
     createArticleDto.user = user._id;
     createArticleDto.keyWord = this.todayKeyWord[0].content;
     createArticleDto.state = false;
-    createArticleDto.type = 'challenge'
+    createArticleDto.type = 'challenge';
     const article = await new this.ArticleModel(createArticleDto);
     return article.save();
   }

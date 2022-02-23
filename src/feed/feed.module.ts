@@ -29,7 +29,12 @@ import { HistoryRepository } from './repository/history.repository';
     ]),
     AuthModule,
   ],
-  providers: [FeedService, FeedRepository, SubFeedRepository, HistoryRepository],
+  providers: [
+    FeedService,
+    FeedRepository,
+    SubFeedRepository,
+    HistoryRepository,
+  ],
   controllers: [FeedController],
 })
 export class FeedModule {}

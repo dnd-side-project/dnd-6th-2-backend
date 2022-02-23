@@ -23,7 +23,9 @@ import { Category, CategorySchema } from 'src/auth/schemas/category.schema';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([{ name: Like.name, schema: LikeSchema }]),
     MongooseModule.forFeature([{ name: History.name, schema: HistorySchema }]),
-    MongooseModule.forFeature([{ name: Category.name, schema: CategorySchema }]),
+    MongooseModule.forFeature([
+      { name: Category.name, schema: CategorySchema },
+    ]),
     AuthModule,
   ],
   providers: [MyArticleService, MyArticleRepository],
