@@ -298,8 +298,14 @@ export class FeedController {
     enum: OrderBy,
     description: '정렬 기준 (default: 최신순)',
   })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    description: 'Article의 type(challenge, free, relay) 별로 보기 위한 쿼리',
+  })
   @ApiResponse({
     status: 200,
+    type: [Article],
     description: '검색 결과의 Article 객체 배열과 next_cursor 반환',
   })
   @ApiQuery({ name: 'content', description: '검색할 내용' })
