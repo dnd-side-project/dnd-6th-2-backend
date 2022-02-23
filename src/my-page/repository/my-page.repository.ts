@@ -62,6 +62,10 @@ export class MyPageRepository {
     return await this.userModel.find({ subscribeUser: user._id }).exec();
   }
 
+  async getAllCategory(user: User) {
+    return await this.categoryModel.find({ user }).sort({ title: 1 }).exec();
+  }
+
   async createCategory(title: string, user: User) {
     const category = new this.categoryModel({ user, title });
     await category.save();
