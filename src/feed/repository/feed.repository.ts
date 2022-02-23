@@ -12,7 +12,6 @@ import { Like, LikeDocument } from '../schemas/like.schema';
 import { KeyWord, KeyWordDocument } from 'src/challenge/schemas/keyword.schema';
 import { OrderBy } from '../feed.service';
 import { Category, CategoryDocument } from 'src/auth/schemas/category.schema';
-import { filter } from 'rxjs';
 
 export class FeedRepository {
   constructor(
