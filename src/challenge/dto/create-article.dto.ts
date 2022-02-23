@@ -47,6 +47,7 @@ export class CreateArticleDto {
     description: '선택한 카테고리의 id',
     example: '카테고리 ID',
   })
+  @IsOptional()
   @IsNotEmpty()
   @IsString()
   readonly category: string;
