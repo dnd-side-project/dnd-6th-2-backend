@@ -12,6 +12,7 @@ import { Like, LikeDocument } from '../schemas/like.schema';
 import { KeyWord, KeyWordDocument } from 'src/challenge/schemas/keyword.schema';
 import { OrderBy } from '../feed.service';
 import { Category, CategoryDocument } from 'src/auth/schemas/category.schema';
+import { filter } from 'rxjs';
 
 export class FeedRepository {
   constructor(
@@ -97,18 +98,12 @@ export class FeedRepository {
           filter = {
             tags: { $in: tags },
             public: true,
-            $or: [
-              { likeNum: { $lte: lastCount } },
-              { _id: { $lte: lastId } },
-            ],
+            $or: [{ likeNum: { $lte: lastCount } }, { _id: { $lte: lastId } }],
           };
         } else {
           filter = {
             public: true,
-            $or: [
-              { likeNum: { $lte: lastCount } },
-              { _id: { $lte: lastId } },
-            ],
+            $or: [{ likeNum: { $lte: lastCount } }, { _id: { $lte: lastId } }],
           };
         }
         return await this.getPagedArticle(filter, OrderBy.POPULAR);
@@ -157,8 +152,49 @@ export class FeedRepository {
     }
   }
 
+  async getSerachArticle(options, filter, orderBy: OrderBy) {
+    if (orderBy === OrderBy.LATEST) {
+      return await this.ArticleModel.find(filter)
+        .sort({ _id: -1 })
+        .limit(15)
+        .populate('user')
+        .exec();
+    } else if (orderBy === OrderBy.POPULAR) {
+      return await this.ArticleModel.find(filter)
+        .and([{ $or: options }])
+        .sort({ likeNum: -1, _id: -1 })
+        .limit(15)
+        .populate('user')
+        .exec();
+    }
+  }
+
+  async findAllLastSearchArticle(orderBy: OrderBy, type, options) {
+    if (type) {
+      if (orderBy === OrderBy.LATEST) {
+        return await this.ArticleModel.find({ $or: options, type: type })
+          .sort({ _id: -1 })
+          .limit(1);
+      } else if (orderBy === OrderBy.POPULAR) {
+        return await this.ArticleModel.find({ $or: options, type: type })
+          .sort({ likeNum: -1, _id: -1 })
+          .limit(1);
+      }
+    } else {
+      if (orderBy === OrderBy.LATEST) {
+        return await this.ArticleModel.find({ $or: options })
+          .sort({ _id: -1 })
+          .limit(1);
+      } else if (orderBy === OrderBy.POPULAR) {
+        return await this.ArticleModel.find({ $or: options })
+          .sort({ likeNum: -1, _id: -1 })
+          .limit(1);
+      }
+    }
+  }
+
   async searchArticle(query): Promise<any[]> {
-    const { cursor, option, content, orderBy } = query;
+    const { cursor, option, content, orderBy, type } = query;
 
     let options = [];
     if (option == 'title') {
@@ -172,38 +208,50 @@ export class FeedRepository {
       ];
     }
     if (!cursor) {
-      const last = await this.ArticleModel.find({ $or: options, public: true })
-        .sort({ _id: -1 })
-        .limit(1);
+      const last = await this.findAllLastSearchArticle(orderBy, type, options);
       if (last.length === 0) {
         return last;
       } else {
         const lastId = last[0]._id;
         const lastCount = last[0].likeNum;
         if (orderBy === OrderBy.LATEST) {
-          return await this.ArticleModel.find({
-            $or: options,
-            public: true,
-            _id: { $lte: lastId },
-          })
-            .sort({ _id: -1 })
-            .limit(15)
-            .populate('user')
-            .exec();
+          let filter;
+          if (!type) {
+            filter = {
+              $or: options,
+              public: true,
+              _id: { $lte: lastId },
+            };
+          } else {
+            filter = {
+              type: type,
+              $or: options,
+              public: true,
+              _id: { $lte: lastId },
+            };
+          }
+          return await this.getSerachArticle(options, filter, OrderBy.LATEST);
         } else if (orderBy === OrderBy.POPULAR) {
-          let filter = [
-            { $or: options },
-            {$or: [
+          let filter;
+          if (type) {
+            filter = {
+              type: type,
+              public: true,
+              $or: [
                 { likeNum: { $lte: lastCount } },
-                { _id: { $lte: lastId } }
-              ]}
-          ]
-          return await this.ArticleModel.find({ public: true })
-            .and(filter)
-            .sort({ likeNum: -1 })
-            .limit(15)
-            .populate('user')
-            .exec();
+                { _id: { $lte: lastId } },
+              ],
+            };
+          } else {
+            filter = {
+              public: true,
+              $or: [
+                { likeNum: { $lte: lastCount } },
+                { _id: { $lte: lastId } },
+              ],
+            };
+          }
+          return await this.getSerachArticle(options, filter, OrderBy.POPULAR);
         }
       }
     } else {
@@ -211,25 +259,37 @@ export class FeedRepository {
       const nextId = cursorArr[0];
       const nextCount = cursorArr[1];
       if (orderBy === OrderBy.LATEST) {
-        return await this.ArticleModel.find({
-          $or: options,
-          public: true,
-          _id: { $lt: nextId },
-        })
-          .sort({ _id: -1 })
-          .limit(15)
-          .populate('user')
-          .exec();
+        let filter;
+        if (!type) {
+          filter = {
+            $or: options,
+            public: true,
+            _id: { $lt: nextId },
+          };
+        } else {
+          filter = {
+            type: type,
+            $or: options,
+            public: true,
+            _id: { $lt: nextId },
+          };
+        }
+        return await this.getSerachArticle(options, filter, OrderBy.LATEST);
       } else if (orderBy === OrderBy.POPULAR) {
-        return await this.ArticleModel.find({
-          $or: options,
-          public: true,
-          likeNum: { $lt: nextCount },
-        })
-          .sort({ likeNum: -1 })
-          .limit(15)
-          .populate('user')
-          .exec();
+        let filter;
+        if (type) {
+          filter = {
+            type: type,
+            public: true,
+            likeNum: { $lt: nextCount },
+          }
+        } else {
+          filter = {
+            public: true,
+            likeNum: { $lt: nextCount },
+          }
+        }
+        return await this.getSerachArticle(options, filter, OrderBy.POPULAR);
       }
     }
   }
@@ -243,7 +303,6 @@ export class FeedRepository {
 
   async deleteArticle(user, id): Promise<any> {
     await this.CommentModel.deleteMany({ article: id });
-
 
     const article = await this.ArticleModel.findById(id);
 
@@ -290,20 +349,24 @@ export class FeedRepository {
     articleId: string,
     updateArticleDto: UpdateArticleDto,
   ): Promise<Article> {
-    const article = await this.ArticleModel.findById(articleId)
-    const category = await this.categoryModel.findById(updateArticleDto.category)
+    const article = await this.ArticleModel.findById(articleId);
+    const category = await this.categoryModel.findById(
+      updateArticleDto.category,
+    );
 
-    if(updateArticleDto.public == false){
-      await this.UserModel.findByIdAndUpdate(user._id,{
-        $inc:{
-          articleCount: -1
-        }
-      })
+    if (updateArticleDto.public == false) {
+      await this.UserModel.findByIdAndUpdate(user._id, {
+        $inc: {
+          articleCount: -1,
+        },
+      });
       await this.categoryModel.findByIdAndUpdate(article.category, {
         $inc: { articleCount: -1 },
       });
-    }
-    else if(updateArticleDto.public == true && category != article.category){
+    } else if (
+      updateArticleDto.public == true &&
+      category != article.category
+    ) {
       await this.categoryModel.findByIdAndUpdate(article.category, {
         $inc: { articleCount: -1 },
       });
@@ -387,9 +450,11 @@ export class FeedRepository {
   }
 
   async deleteScrap(user, articleId): Promise<any> {
-    
-    const scrap = await this.ScrapModel.findOne({article: articleId, user: user._id})
-    const categoryId = scrap.category
+    const scrap = await this.ScrapModel.findOne({
+      article: articleId,
+      user: user._id,
+    });
+    const categoryId = scrap.category;
 
     await this.categoryModel.findByIdAndUpdate(categoryId, {
       $inc: { scrapCount: -1 },
