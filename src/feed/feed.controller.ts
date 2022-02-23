@@ -38,6 +38,11 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Like } from './schemas/like.schema';
 import { OrderBy } from './feed.service';
 import { History } from './schemas/history.schema';
+import {
+  GetMainFeedResDto,
+  GetSubFeedResDto,
+  NotFoundSubFeedResDto,
+} from './dto/response.dto';
 
 @ApiBearerAuth('accessToken')
 @Controller('feed')
@@ -73,15 +78,14 @@ export class FeedController {
   })
   @ApiResponse({
     status: 200,
-    type: [Article],
+    type: GetMainFeedResDto,
     description:
       '피드의 Article 객체 배열과 함께 다음 페이지 요청을 위한 next_cursor 를 반환합니다. next_cursor 가 null 이면, 더 이상의 페이지는 없습니다.',
   })
   @ApiResponse({
-    status:404,
+    status: 404,
     type: String,
-    description:
-      '더 이상 페이지가 없을 때 페이지가 없다는 메시지 반환',
+    description: '더 이상 페이지가 없을 때 페이지가 없다는 메시지 반환',
   })
   async getMainFeed(@Query() query, @Res() res): Promise<Article[]> {
     try {
@@ -115,20 +119,11 @@ export class FeedController {
   })
   @ApiResponse({
     status: 200,
-    type: [Article],
-    description:
-      '구독한 작가들의 Article 객체 배열 반환합니다.',
+    type: GetSubFeedResDto,
   })
   @ApiResponse({
-    type: [User],
-    description:
-      '구독한 작가들의 user 객체 배열(subscribeUserList)을 반환합니다.',
-  })
-  @ApiResponse({
-    status:404,
-    type: String,
-    description:
-      '더 이상 페이지가 없을 때 페이지가 없다는 메시지 반환',
+    status: 404,
+    type: NotFoundSubFeedResDto,
   })
   async getSubFeedAll(
     @GetUser() user: User,
@@ -167,8 +162,7 @@ export class FeedController {
   @ApiResponse({
     status: 200,
     type: [User],
-    description:
-      '구독한 작가들의 User 객체 배열을 반환합니다.',
+    description: '구독한 작가들의 User 객체 배열을 반환합니다.',
   })
   async getAllSubUser(@GetUser() user: User, @Res() res): Promise<User[]> {
     try {
@@ -198,20 +192,11 @@ export class FeedController {
   })
   @ApiResponse({
     status: 200,
-    type: [Article],
-    description:
-      '특정 구독 작가의 Article 객체 배열 반환',
+    type: GetSubFeedResDto,
   })
   @ApiResponse({
-    type: [User],
-    description:
-      '구독한 작가들의 user 객체 배열(subscribeUserList)을 반환합니다.',
-  })
-  @ApiResponse({
-    status:404,
-    type: String,
-    description:
-      '더 이상 페이지가 없을 때 페이지가 없다는 메시지 반환',
+    status: 404,
+    type: NotFoundSubFeedResDto,
   })
   async getSubFeedOne(
     @GetUser() user: User,
@@ -263,8 +248,7 @@ export class FeedController {
   })
   @ApiResponse({
     type: String,
-    description:
-      '구독 성공여부 메시지 반환',
+    description: '구독 성공여부 메시지 반환',
   })
   async subUser(
     @GetUser() user: User,
@@ -299,8 +283,7 @@ export class FeedController {
   })
   @ApiResponse({
     type: String,
-    description:
-      '구독 취소 성공 여부 메시지를 반환합니다.',
+    description: '구독 취소 성공 여부 메시지를 반환합니다.',
   })
   async updateSubUser(
     @GetUser() user: User,
@@ -352,7 +335,7 @@ export class FeedController {
   })
   @ApiResponse({
     status: 200,
-    type: [Article],
+    type: GetMainFeedResDto,
     description: '검색 결과의 Article 객체 배열과 next_cursor 반환',
   })
   @ApiResponse({
@@ -392,7 +375,7 @@ export class FeedController {
   @ApiResponse({
     status: 200,
     type: [History],
-    description: 'History(검색어) 객체 배열 반환'
+    description: 'History(검색어) 객체 배열 반환',
   })
   async findHistory(@GetUser() user: User, @Res() res): Promise<any[]> {
     try {
@@ -417,7 +400,7 @@ export class FeedController {
   @ApiResponse({
     status: 200,
     type: String,
-    description: '검색어 삭제되었다는 메시지 반환'
+    description: '검색어 삭제되었다는 메시지 반환',
   })
   async deleteHistory(
     @GetUser() user: User,
@@ -447,7 +430,7 @@ export class FeedController {
   @ApiResponse({
     status: 200,
     type: Article,
-    description: 'Article 객체 반환'
+    description: 'Article 객체 반환',
   })
   getOneArticle(@Param('articleId') articleId: string): Promise<Article> {
     return this.feedService.getOneArticle(articleId);
@@ -465,7 +448,7 @@ export class FeedController {
   })
   @ApiResponse({
     type: String,
-    description: '삭제 성공 여부 메시지 반환'
+    description: '삭제 성공 여부 메시지 반환',
   })
   async deleteArticle(
     @GetUser() user: User,
@@ -500,7 +483,7 @@ export class FeedController {
   })
   @ApiResponse({
     type: Article,
-    description: '수정된 Article 객체 반환'
+    description: '수정된 Article 객체 반환',
   })
   @ApiBody({ type: CreateArticleDto })
   async updateArticle(
@@ -542,7 +525,7 @@ export class FeedController {
   @ApiResponse({
     status: 201,
     type: Comment,
-    description: '작성한 comment 객체 반환'
+    description: '작성한 comment 객체 반환',
   })
   addComment(
     @GetUser() user: User,
@@ -569,7 +552,7 @@ export class FeedController {
   @ApiResponse({
     status: 201,
     type: Comment,
-    description: '수정한 comment 객체 반환'
+    description: '수정한 comment 객체 반환',
   })
   @ApiBody({ type: CreateCommentDto })
   async updateComment(
@@ -615,7 +598,7 @@ export class FeedController {
   })
   @ApiResponse({
     type: String,
-    description: '삭제 성공 여부 메시지 반환'
+    description: '삭제 성공 여부 메시지 반환',
   })
   async deleteComment(
     @GetUser() user: User,
@@ -652,12 +635,12 @@ export class FeedController {
   @ApiResponse({
     status: 201,
     type: Scrap,
-    description: 'Scrap 객체 반환'
+    description: 'Scrap 객체 반환',
   })
   @ApiResponse({
     status: 400,
     type: String,
-    description: '이미 스크랩한 글일시, 안내 메시지 반환'
+    description: '이미 스크랩한 글일시, 안내 메시지 반환',
   })
   async addScrap(
     @GetUser() user: User,
@@ -697,7 +680,7 @@ export class FeedController {
   })
   @ApiResponse({
     type: String,
-    description: '스크랩 취소 성공 여부 메시지 반환'
+    description: '스크랩 취소 성공 여부 메시지 반환',
   })
   async deleteScrap(
     @GetUser() user: User,
@@ -733,7 +716,7 @@ export class FeedController {
   @ApiResponse({
     status: 201,
     type: Like,
-    description: 'Like 객체 반환'
+    description: 'Like 객체 반환',
   })
   async addLike(
     @GetUser() user: User,
@@ -769,7 +752,7 @@ export class FeedController {
   })
   @ApiResponse({
     type: String,
-    description: '좋아요 성공여부 메시지 반환'
+    description: '좋아요 성공여부 메시지 반환',
   })
   async deleteLike(
     @GetUser() user: User,

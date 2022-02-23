@@ -281,12 +281,12 @@ export class FeedRepository {
             type: type,
             public: true,
             likeNum: { $lt: nextCount },
-          }
+          };
         } else {
           filter = {
             public: true,
             likeNum: { $lt: nextCount },
-          }
+          };
         }
         return await this.getSerachArticle(options, filter, OrderBy.POPULAR);
       }

@@ -3,7 +3,6 @@ import * as mongoose from 'mongoose';
 import { Article } from 'src/challenge/schemas/article.schema';
 import { User } from 'src/auth/schemas/user.schema';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsSemVer, IsString } from 'class-validator';
 import { Category } from 'src/auth/schemas/category.schema';
 
 export type ScrapDocument = Scrap & Document;

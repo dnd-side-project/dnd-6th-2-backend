@@ -29,6 +29,7 @@ import { User } from 'src/auth/schemas/user.schema';
 import { Article } from 'src/challenge/schemas/article.schema';
 import { UpdateArticleDto } from 'src/challenge/dto/update-article.dto';
 import { CreateArticleDto } from 'src/challenge/dto/create-article.dto';
+import { GetMainFeedResDto } from 'src/feed/dto/response.dto';
 
 @ApiTags('my-article')
 @ApiBearerAuth('accessToken')
@@ -63,14 +64,13 @@ export class MyArticleController {
       '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
   })
   @ApiResponse({
-    status:200,
-    type: [Article],
-    description: 'Article 객체 배열 반환'
+    status: 200,
+    type: GetMainFeedResDto,
   })
   @ApiResponse({
-    status:404,
+    status: 404,
     type: String,
-    description: '더 이상 페이지 없을 때, 안내 메시지 반환'
+    description: '더 이상 페이지 없을 때, 안내 메시지 반환',
   })
   async getMyArticle(
     @GetUser() user: User,
@@ -104,9 +104,9 @@ export class MyArticleController {
     description: '자유 글쓰기를 작성하고 공개글로 게시합니다.',
   })
   @ApiResponse({
-    status:200,
+    status: 200,
     type: Article,
-    description: 'Article 객체 반환'
+    description: 'Article 객체 반환',
   })
   @ApiBody({ type: CreateArticleDto })
   async saveMyArticle(
@@ -122,9 +122,9 @@ export class MyArticleController {
     description: '자유 글쓰기를 작성하고 임시 저장합니다.',
   })
   @ApiResponse({
-    status:200,
+    status: 200,
     type: Article,
-    description: 'Article 객체 반환'
+    description: 'Article 객체 반환',
   })
   @ApiBody({ type: CreateArticleDto })
   async saveMyArticleTemp(
@@ -149,14 +149,13 @@ export class MyArticleController {
       '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
   })
   @ApiResponse({
-    status:200,
-    type: [Article],
-    description: 'Article 객체 배열 반환'
+    status: 200,
+    type: GetMainFeedResDto,
   })
   @ApiResponse({
-    status:404,
+    status: 404,
     type: String,
-    description: '더 이상 페이지 없을 때, 안내 메시지 반환'
+    description: '더 이상 페이지 없을 때, 안내 메시지 반환',
   })
   async getMyArticleTemp(
     @GetUser() user: User,
@@ -189,9 +188,9 @@ export class MyArticleController {
     description: '저장 완료된 나의 글의 상세페이지를 조회합니다.',
   })
   @ApiResponse({
-    status:200,
+    status: 200,
     type: Article,
-    description: 'Article 객체 반환'
+    description: 'Article 객체 반환',
   })
   async getMyArticleOne(
     @Param('articleId') articleId: string,
@@ -213,7 +212,7 @@ export class MyArticleController {
   })
   @ApiResponse({
     type: Article,
-    description: '수정된 Article 객체 반환'
+    description: '수정된 Article 객체 반환',
   })
   @ApiBody({ type: CreateArticleDto })
   async updateMyArticle(
@@ -235,7 +234,7 @@ export class MyArticleController {
   })
   @ApiResponse({
     type: Number,
-    description: '삭제 개수 number 반환'
+    description: '삭제 개수 number 반환',
   })
   async deleteArticle(
     @GetUser() user: User,
