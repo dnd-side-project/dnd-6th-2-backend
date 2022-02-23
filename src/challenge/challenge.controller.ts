@@ -46,8 +46,13 @@ export class ChallengeController {
       '매일 다른 글감을 랜덤으로 제공(조회)하고, 챌린지에 해당하는 글들을 확인한다.',
   })
   @ApiResponse({
-    status: 200,
-    description: '글감 조회 성공, 해당 글감에 해당하는 챌린지글들 반환',
+    status:200,
+    type: KeyWord,
+    description: '글감인 KeyWord 객체 반환',
+  })
+  @ApiResponse({
+    type: [Article],
+    description: '해당 글감에 해당하는 챌린지 Article 객체 배열 반환, 챌린지 글 카운트 number 반환',
   })
   async getChallenge(@GetUser() user: User, @Res() res): Promise<any> {
     const randomArticles = await this.challengeService.getRandom(user);
@@ -76,7 +81,7 @@ export class ChallengeController {
   })
   @ApiResponse({
     status: 201,
-    description: 'state=true, 챌린지 성공',
+    description: 'state=true, 챌린지 성공, DB 입력된 Article 객체 반환',
     type: Article,
   })
   @ApiBody({ type: CreateArticleDto })
@@ -105,7 +110,8 @@ export class ChallengeController {
   })
   @ApiResponse({
     status: 201,
-    description: 'state=false, 임시저장 (챌린지 성공X)',
+    description: 'state=false, 임시저장 (챌린지 성공X), DB 입력된 Article 객체 반환',
+    type: Article
   })
   @ApiBody({ type: CreateArticleDto })
   tempArticle(

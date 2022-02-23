@@ -62,6 +62,16 @@ export class MyArticleController {
     description:
       '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
   })
+  @ApiResponse({
+    status:200,
+    type: [Article],
+    description: 'Article 객체 배열 반환'
+  })
+  @ApiResponse({
+    status:404,
+    type: String,
+    description: '더 이상 페이지 없을 때, 안내 메시지 반환'
+  })
   async getMyArticle(
     @GetUser() user: User,
     @Query() query,
@@ -75,7 +85,7 @@ export class MyArticleController {
       );
       if (articles.length === 0) {
         return res
-          .status(HttpStatus.OK)
+          .status(HttpStatus.NOT_FOUND)
           .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
       } else {
         const last = articles[articles.length - 1];
@@ -93,6 +103,11 @@ export class MyArticleController {
     summary: '자유 글쓰기 API',
     description: '자유 글쓰기를 작성하고 공개글로 게시합니다.',
   })
+  @ApiResponse({
+    status:200,
+    type: Article,
+    description: 'Article 객체 반환'
+  })
   @ApiBody({ type: CreateArticleDto })
   async saveMyArticle(
     @GetUser() user: User,
@@ -105,6 +120,11 @@ export class MyArticleController {
   @ApiOperation({
     summary: '자유 글쓰기 임시저장 API',
     description: '자유 글쓰기를 작성하고 임시 저장합니다.',
+  })
+  @ApiResponse({
+    status:200,
+    type: Article,
+    description: 'Article 객체 반환'
   })
   @ApiBody({ type: CreateArticleDto })
   async saveMyArticleTemp(
@@ -127,6 +147,16 @@ export class MyArticleController {
     required: false,
     description:
       '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
+  })
+  @ApiResponse({
+    status:200,
+    type: [Article],
+    description: 'Article 객체 배열 반환'
+  })
+  @ApiResponse({
+    status:404,
+    type: String,
+    description: '더 이상 페이지 없을 때, 안내 메시지 반환'
   })
   async getMyArticleTemp(
     @GetUser() user: User,
@@ -158,6 +188,11 @@ export class MyArticleController {
     summary: '나의 글 상세 조회 API',
     description: '저장 완료된 나의 글의 상세페이지를 조회합니다.',
   })
+  @ApiResponse({
+    status:200,
+    type: Article,
+    description: 'Article 객체 반환'
+  })
   async getMyArticleOne(
     @Param('articleId') articleId: string,
     @Res() res,
@@ -176,6 +211,10 @@ export class MyArticleController {
     summary: '나의 글 수정 API',
     description: '나의 글을 수정합니다.',
   })
+  @ApiResponse({
+    type: Article,
+    description: '수정된 Article 객체 반환'
+  })
   @ApiBody({ type: CreateArticleDto })
   async updateMyArticle(
     @GetUser() user: User,
@@ -193,6 +232,10 @@ export class MyArticleController {
   @ApiOperation({
     summary: '나의 글 삭제 API',
     description: '나의 글들을 삭제하고 삭제 개수를 반환합니다.',
+  })
+  @ApiResponse({
+    type: Number,
+    description: '삭제 개수 number 반환'
   })
   async deleteArticle(
     @GetUser() user: User,
