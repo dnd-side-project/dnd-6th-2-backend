@@ -36,5 +36,6 @@ import { HistoryRepository } from './repository/history.repository';
     HistoryRepository,
   ],
   controllers: [FeedController],
+  exports: [FeedService]
 })
 export class FeedModule {}
