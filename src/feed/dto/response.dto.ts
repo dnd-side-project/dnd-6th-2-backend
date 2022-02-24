@@ -47,7 +47,7 @@ export class NotFoundSubFeedResDto {
 
   @ApiProperty({
     type: String,
-    description: '페이지 없음 안내 메시지',
+    description: '해당 엔드포인트 관련 메세지',
   })
   message: string;
 }
