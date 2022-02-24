@@ -43,6 +43,7 @@ import {
   GetSubFeedResDto,
   NotFoundSubFeedResDto,
 } from './dto/response.dto';
+import {  MessageResDto } from 'src/relay/dto/response.dto';
 
 @ApiBearerAuth('accessToken')
 @Controller('feed')
@@ -84,20 +85,27 @@ export class FeedController {
   })
   @ApiResponse({
     status: 404,
-    type: String,
-    description: '더 이상 페이지가 없을 때 페이지가 없다는 메시지 반환',
+    type: MessageResDto,
   })
   async getMainFeed(@Query() query, @Res() res): Promise<Article[]> {
     try {
-      const articles = await this.feedService.getMainFeed(query);
-      if (articles.length === 0) {
+      const articleCheck = await this.feedService.articleCheck();
+      if(articleCheck.length === 0){
         return res
-          .status(HttpStatus.NOT_FOUND)
-          .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
-      } else {
-        const last = articles[articles.length - 1];
-        const next_cursor = `${last._id}_${last.likeNum}`;
-        return res.status(HttpStatus.OK).json({ articles, next_cursor });
+        .status(HttpStatus.NOT_FOUND)
+        .json({ message: 'Article Schema에 글이 없습니다.' });
+      }
+      else{
+        const articles = await this.feedService.getMainFeed(query);
+        if (articles.length === 0) {
+          return res
+            .status(HttpStatus.NOT_FOUND)
+            .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
+        } else {
+          const last = articles[articles.length - 1];
+          const next_cursor = `${last._id}_${last.likeNum}`;
+          return res.status(HttpStatus.OK).json({ articles, next_cursor });
+        }
       }
     } catch (e) {
       this.logger.error('피드 전체 조회 ERR ' + e);
@@ -134,21 +142,29 @@ export class FeedController {
       const subscribeUserList: any[] = await this.feedService.findAllSubUser(
         user,
       );
-      const articles = await this.feedService.getSubFeedAll(user, query.cursor);
-      if (articles.length === 0) {
-        return res.status(HttpStatus.NOT_FOUND).json({
-          subscribeUserList,
-          message: '더 이상의 페이지는 존재하지 않습니다.',
-        });
-      } else {
-        const last = articles[articles.length - 1];
-        const next_cursor = `${last._id}`;
+      const articleCheck = await this.feedService.articleCheck();
+      if(articleCheck.length === 0){
         return res
-          .status(HttpStatus.OK)
-          .json({ articles, subscribeUserList, next_cursor });
+        .status(HttpStatus.NOT_FOUND)
+        .json({subscribeUserList, message: 'Article Schema에 글이 없습니다.' });
+      }
+      else{
+        const articles = await this.feedService.getSubFeedAll(user, query.cursor);
+        if (articles.length === 0) {
+          return res.status(HttpStatus.NOT_FOUND).json({
+            subscribeUserList,
+            message: '더 이상의 페이지는 존재하지 않습니다.',
+          });
+        } else {
+          const last = articles[articles.length - 1];
+          const next_cursor = `${last._id}`;
+          return res
+            .status(HttpStatus.OK)
+            .json({ articles, subscribeUserList, next_cursor });
+        }
       }
     } catch (e) {
-      this.logger.error('피드 전체 조회 ERR ' + e);
+      this.logger.error('구독 피드 조회 ERR ' + e);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
     }
   }
@@ -247,8 +263,7 @@ export class FeedController {
     description: '구독할 작가(글쓴이)의 id',
   })
   @ApiResponse({
-    type: String,
-    description: '구독 성공여부 메시지 반환',
+    type: MessageResDto,
   })
   async subUser(
     @GetUser() user: User,
@@ -282,8 +297,7 @@ export class FeedController {
     description: '구독을 취소할 작가(글쓴이)의 id',
   })
   @ApiResponse({
-    type: String,
-    description: '구독 취소 성공 여부 메시지를 반환합니다.',
+    type: MessageResDto,
   })
   async updateSubUser(
     @GetUser() user: User,
@@ -340,8 +354,7 @@ export class FeedController {
   })
   @ApiResponse({
     status: 404,
-    type: String,
-    description: '검색결과가 없다는 메시지 반환',
+    type: MessageResDto
   })
   @ApiQuery({ name: 'content', description: '검색할 내용' })
   async searchArticle(
@@ -351,15 +364,23 @@ export class FeedController {
   ): Promise<any[]> {
     try {
       await this.feedService.saveHistory(user, query.content);
-      const articles = await this.feedService.searchArticle(query);
-      if (articles.length === 0) {
+      const articleCheck = await this.feedService.articleCheck();
+      if(articleCheck.length === 0){
         return res
-          .status(HttpStatus.NOT_FOUND)
-          .json({ message: '검색 결과가 없습니다.' });
-      } else {
-        const last = articles[articles.length - 1];
-        const next_cursor = `${last._id}_${last.likeNum}`;
-        return res.status(HttpStatus.OK).json({ articles, next_cursor });
+        .status(HttpStatus.NOT_FOUND)
+        .json({message: 'Article Schema에 글이 없습니다.' });
+      }
+      else{
+        const articles = await this.feedService.searchArticle(query);
+        if (articles.length === 0) {
+          return res
+            .status(HttpStatus.NOT_FOUND)
+            .json({ message: '검색 결과가 없습니다.' });
+        } else {
+          const last = articles[articles.length - 1];
+          const next_cursor = `${last._id}_${last.likeNum}`;
+          return res.status(HttpStatus.OK).json({ articles, next_cursor });
+        }
       }
     } catch (e) {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(e);
@@ -447,8 +468,7 @@ export class FeedController {
     description: '삭제할 글의 id',
   })
   @ApiResponse({
-    type: String,
-    description: '삭제 성공 여부 메시지 반환',
+    type: MessageResDto
   })
   async deleteArticle(
     @GetUser() user: User,
@@ -597,8 +617,7 @@ export class FeedController {
     description: '삭제하려는 댓글의 아이디',
   })
   @ApiResponse({
-    type: String,
-    description: '삭제 성공 여부 메시지 반환',
+    type: MessageResDto
   })
   async deleteComment(
     @GetUser() user: User,
@@ -639,8 +658,7 @@ export class FeedController {
   })
   @ApiResponse({
     status: 400,
-    type: String,
-    description: '이미 스크랩한 글일시, 안내 메시지 반환',
+    type: MessageResDto,
   })
   async addScrap(
     @GetUser() user: User,
@@ -679,8 +697,7 @@ export class FeedController {
     description: '스크랩을 취소할 글의 id',
   })
   @ApiResponse({
-    type: String,
-    description: '스크랩 취소 성공 여부 메시지 반환',
+    type: MessageResDto,
   })
   async deleteScrap(
     @GetUser() user: User,
@@ -751,8 +768,7 @@ export class FeedController {
     description: '좋아요를 취소할 글의 id',
   })
   @ApiResponse({
-    type: String,
-    description: '좋아요 성공여부 메시지 반환',
+    type: MessageResDto,
   })
   async deleteLike(
     @GetUser() user: User,
