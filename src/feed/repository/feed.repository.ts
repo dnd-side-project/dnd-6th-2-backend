@@ -75,7 +75,7 @@ export class FeedRepository {
 
   async getMainFeed(query): Promise<Article[]> {
     const { tags, orderBy, cursor } = query;
-    
+
     if (!cursor) {
       const last = await this.findAllLastArticle(orderBy, { tags });
       const lastId = last[0]._id;
@@ -313,6 +313,7 @@ export class FeedRepository {
       $inc: { articleCount: -1 },
     });
 
+    console.log(article.createdAt.toDateString());
     const keyWord = await this.KeyWordModel.findOne({
       updateDay: article.createdAt.toDateString(),
     });
@@ -328,6 +329,9 @@ export class FeedRepository {
         $inc: {
           stampCount: -1,
         },
+        $pull: {
+          challengeHistory: article.createdAt.toDateString(),
+        },
       });
     }
     //글감이 오늘자 글감이면 state까지 바꿔줌
@@ -341,6 +345,9 @@ export class FeedRepository {
         },
         $inc: {
           stampCount: -1,
+        },
+        $pull: {
+          challengeHistory: article.createdAt.toDateString(),
         },
       });
     }

@@ -165,6 +165,16 @@ export class MyArticleRepository {
     //삭제하려는 모든 글들 찾기
     const articles = await this.ArticleModel.find({ _id: articleId });
 
+    const challengeArticles: string[] = [];
+    for (let i = 0; i < articles.length; i++) {
+      if (articles[i].type == 'challenge') {
+        challengeArticles.push(articles[i].createdAt.toDateString());
+      }
+    }
+
+    new Set(challengeArticles);
+    const challengeDate: string[] = Array.from(challengeArticles);
+
     //삭제하는 글들에 해당하는 글감 찾아줌
     for (let i = 0; i < articles.length; i++) {
       var keyWord = await this.KeyWordModel.find({
@@ -225,6 +235,9 @@ export class MyArticleRepository {
       await this.UserModel.findByIdAndUpdate(user._id, {
         $inc: {
           stampCount: -keyWord.length,
+        },
+        $pullAll: {
+          challengeHistory: challengeDate,
         },
       });
       if (loginUser.state == true && todayChallenge.length == 0) {

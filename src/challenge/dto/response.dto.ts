@@ -20,4 +20,10 @@ export class GetChallengeMain {
     description: '챌린지 글 개수',
   })
   challengeCount: number;
+
+  @ApiProperty({
+    type: [String],
+    description: '챌린지 수행 날짜의 배열',
+  })
+  challengeHistory: [string];
 }

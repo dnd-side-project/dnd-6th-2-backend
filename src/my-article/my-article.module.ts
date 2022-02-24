@@ -27,7 +27,7 @@ import { FeedModule } from 'src/feed/feed.module';
       { name: Category.name, schema: CategorySchema },
     ]),
     AuthModule,
-    FeedModule
+    FeedModule,
   ],
   providers: [MyArticleService, MyArticleRepository],
   controllers: [MyArticleController],
