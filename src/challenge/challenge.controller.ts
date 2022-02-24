@@ -52,10 +52,13 @@ export class ChallengeController {
   })
   async getChallenge(@GetUser() user: User, @Res() res): Promise<any> {
     const randomArticles = await this.challengeService.getRandom(user);
-    const keyword = randomArticles[0]
-    const articles = randomArticles[1]
+    const keyword = randomArticles[0];
+    const articles = randomArticles[1];
     const challengeCount = randomArticles[1].length;
-    res.status(HttpStatus.OK).json({ keyword, articles, challengeCount });
+    const challengeHistory = randomArticles[2].challengeHistory;
+    res
+      .status(HttpStatus.OK)
+      .json({ keyword, articles, challengeCount, challengeHistory });
   }
 
   @Get('article')

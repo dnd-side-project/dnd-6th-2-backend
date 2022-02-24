@@ -115,6 +115,7 @@ export class ChallengeRepository {
     const article = await new this.ArticleModel(createArticleDto);
 
     const categoryId = createArticleDto.category;
+    const today = new Date().toDateString();
 
     if (createArticleDto.public == true) {
       await this.UserModel.findByIdAndUpdate(user._id, {
@@ -134,6 +135,9 @@ export class ChallengeRepository {
         },
         $set: {
           state: true,
+        },
+        $addToSet: {
+          challengeHistory: today,
         },
       });
     }

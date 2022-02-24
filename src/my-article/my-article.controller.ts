@@ -72,7 +72,7 @@ export class MyArticleController {
   })
   @ApiResponse({
     status: 404,
-    type: MessageResDto
+    type: MessageResDto,
   })
   async getMyArticle(
     @GetUser() user: User,
@@ -81,12 +81,11 @@ export class MyArticleController {
   ): Promise<Article[]> {
     try {
       const articleCheck = await this.feedService.articleCheck();
-      if(articleCheck.length === 0){
+      if (articleCheck.length === 0) {
         return res
-        .status(HttpStatus.NOT_FOUND)
-        .json({ message: 'Article Schema에 글이 존재하지 않습니다.' });
-      }
-      else{
+          .status(HttpStatus.NOT_FOUND)
+          .json({ message: 'Article Schema에 글이 존재하지 않습니다.' });
+      } else {
         const articles: Article[] = await this.myArticleService.findMyArticle(
           user,
           query.cursor,
@@ -164,7 +163,7 @@ export class MyArticleController {
   })
   @ApiResponse({
     status: 404,
-    type: MessageResDto
+    type: MessageResDto,
   })
   async getMyArticleTemp(
     @GetUser() user: User,
@@ -173,16 +172,13 @@ export class MyArticleController {
   ): Promise<Article[]> {
     try {
       const articleCheck = await this.feedService.articleCheck();
-      if(articleCheck.length === 0){
+      if (articleCheck.length === 0) {
         return res
-        .status(HttpStatus.NOT_FOUND)
-        .json({ message: 'Article Schema에 글이 존재하지 않습니다.' });
-      }
-      else{
-        const articles: Article[] = await this.myArticleService.findMyArticleTemp(
-          user,
-          query.cursor,
-        );
+          .status(HttpStatus.NOT_FOUND)
+          .json({ message: 'Article Schema에 글이 존재하지 않습니다.' });
+      } else {
+        const articles: Article[] =
+          await this.myArticleService.findMyArticleTemp(user, query.cursor);
         if (articles.length === 0) {
           return res
             .status(HttpStatus.OK)

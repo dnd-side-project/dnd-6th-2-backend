@@ -108,6 +108,13 @@ export class User {
   articleCount: number;
 
   @ApiProperty({
+    type: [String],
+    description: '챌린지 수행 날짜 배열',
+  })
+  @Prop({ default: null })
+  challengeHistory: [string];
+
+  @ApiProperty({
     type: Number,
     description: '유저의 팔로워 숫자',
   })
