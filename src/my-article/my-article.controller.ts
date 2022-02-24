@@ -29,6 +29,9 @@ import { User } from 'src/auth/schemas/user.schema';
 import { Article } from 'src/challenge/schemas/article.schema';
 import { UpdateArticleDto } from 'src/challenge/dto/update-article.dto';
 import { CreateArticleDto } from 'src/challenge/dto/create-article.dto';
+import { GetMainFeedResDto } from 'src/feed/dto/response.dto';
+import { FeedService } from 'src/feed/feed.service';
+import { MessageResDto } from 'src/relay/dto/response.dto';
 
 @ApiTags('my-article')
 @ApiBearerAuth('accessToken')
@@ -37,6 +40,7 @@ import { CreateArticleDto } from 'src/challenge/dto/create-article.dto';
 export class MyArticleController {
   constructor(
     private myArticleService: MyArticleService,
+    private feedService: FeedService,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -63,14 +67,12 @@ export class MyArticleController {
       '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
   })
   @ApiResponse({
-    status:200,
-    type: [Article],
-    description: 'Article 객체 배열 반환'
+    status: 200,
+    type: GetMainFeedResDto,
   })
   @ApiResponse({
-    status:404,
-    type: String,
-    description: '더 이상 페이지 없을 때, 안내 메시지 반환'
+    status: 404,
+    type: MessageResDto
   })
   async getMyArticle(
     @GetUser() user: User,
@@ -78,19 +80,27 @@ export class MyArticleController {
     @Res() res,
   ): Promise<Article[]> {
     try {
-      const articles: Article[] = await this.myArticleService.findMyArticle(
-        user,
-        query.cursor,
-        query.type,
-      );
-      if (articles.length === 0) {
+      const articleCheck = await this.feedService.articleCheck();
+      if(articleCheck.length === 0){
         return res
-          .status(HttpStatus.NOT_FOUND)
-          .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
-      } else {
-        const last = articles[articles.length - 1];
-        const next_cursor = `${last._id}`;
-        return res.status(HttpStatus.OK).json({ articles, next_cursor });
+        .status(HttpStatus.NOT_FOUND)
+        .json({ message: 'Article Schema에 글이 존재하지 않습니다.' });
+      }
+      else{
+        const articles: Article[] = await this.myArticleService.findMyArticle(
+          user,
+          query.cursor,
+          query.type,
+        );
+        if (articles.length === 0) {
+          return res
+            .status(HttpStatus.NOT_FOUND)
+            .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
+        } else {
+          const last = articles[articles.length - 1];
+          const next_cursor = `${last._id}`;
+          return res.status(HttpStatus.OK).json({ articles, next_cursor });
+        }
       }
     } catch (e) {
       this.logger.error('나의 글 전체 조회 ERR ' + e);
@@ -104,9 +114,9 @@ export class MyArticleController {
     description: '자유 글쓰기를 작성하고 공개글로 게시합니다.',
   })
   @ApiResponse({
-    status:200,
+    status: 200,
     type: Article,
-    description: 'Article 객체 반환'
+    description: 'Article 객체 반환',
   })
   @ApiBody({ type: CreateArticleDto })
   async saveMyArticle(
@@ -122,9 +132,9 @@ export class MyArticleController {
     description: '자유 글쓰기를 작성하고 임시 저장합니다.',
   })
   @ApiResponse({
-    status:200,
+    status: 200,
     type: Article,
-    description: 'Article 객체 반환'
+    description: 'Article 객체 반환',
   })
   @ApiBody({ type: CreateArticleDto })
   async saveMyArticleTemp(
@@ -149,14 +159,12 @@ export class MyArticleController {
       '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
   })
   @ApiResponse({
-    status:200,
-    type: [Article],
-    description: 'Article 객체 배열 반환'
+    status: 200,
+    type: GetMainFeedResDto,
   })
   @ApiResponse({
-    status:404,
-    type: String,
-    description: '더 이상 페이지 없을 때, 안내 메시지 반환'
+    status: 404,
+    type: MessageResDto
   })
   async getMyArticleTemp(
     @GetUser() user: User,
@@ -164,18 +172,26 @@ export class MyArticleController {
     @Res() res,
   ): Promise<Article[]> {
     try {
-      const articles: Article[] = await this.myArticleService.findMyArticleTemp(
-        user,
-        query.cursor,
-      );
-      if (articles.length === 0) {
+      const articleCheck = await this.feedService.articleCheck();
+      if(articleCheck.length === 0){
         return res
-          .status(HttpStatus.OK)
-          .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
-      } else {
-        const last = articles[articles.length - 1];
-        const next_cursor = `${last._id}`;
-        return res.status(HttpStatus.OK).json({ articles, next_cursor });
+        .status(HttpStatus.NOT_FOUND)
+        .json({ message: 'Article Schema에 글이 존재하지 않습니다.' });
+      }
+      else{
+        const articles: Article[] = await this.myArticleService.findMyArticleTemp(
+          user,
+          query.cursor,
+        );
+        if (articles.length === 0) {
+          return res
+            .status(HttpStatus.OK)
+            .json({ message: '더 이상의 페이지는 존재하지 않습니다.' });
+        } else {
+          const last = articles[articles.length - 1];
+          const next_cursor = `${last._id}`;
+          return res.status(HttpStatus.OK).json({ articles, next_cursor });
+        }
       }
     } catch (e) {
       this.logger.error('임시보관함 조회 ERR ' + e);
@@ -189,9 +205,9 @@ export class MyArticleController {
     description: '저장 완료된 나의 글의 상세페이지를 조회합니다.',
   })
   @ApiResponse({
-    status:200,
+    status: 200,
     type: Article,
-    description: 'Article 객체 반환'
+    description: 'Article 객체 반환',
   })
   async getMyArticleOne(
     @Param('articleId') articleId: string,
@@ -213,7 +229,7 @@ export class MyArticleController {
   })
   @ApiResponse({
     type: Article,
-    description: '수정된 Article 객체 반환'
+    description: '수정된 Article 객체 반환',
   })
   @ApiBody({ type: CreateArticleDto })
   async updateMyArticle(
@@ -235,7 +251,7 @@ export class MyArticleController {
   })
   @ApiResponse({
     type: Number,
-    description: '삭제 개수 number 반환'
+    description: '삭제 개수 number 반환',
   })
   async deleteArticle(
     @GetUser() user: User,

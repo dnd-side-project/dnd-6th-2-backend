@@ -1,0 +1,23 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { KeyWord } from '../schemas/keyword.schema';
+import { Article } from '../schemas/article.schema';
+
+export class GetChallengeMain {
+  @ApiProperty({
+    type: KeyWord,
+    description: 'radomarticles에 들어가는 KeyWord 객체',
+  })
+  KeyWord: KeyWord;
+
+  @ApiProperty({
+    type: [Article],
+    description: 'radomarticles에 들어가는 Article 객체 배열',
+  })
+  Article: Article[];
+
+  @ApiProperty({
+    type: Number,
+    description: '챌린지 글 개수',
+  })
+  challengeCount: number;
+}

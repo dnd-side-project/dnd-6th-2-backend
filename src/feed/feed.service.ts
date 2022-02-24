@@ -18,8 +18,12 @@ export class FeedService {
   constructor(
     private readonly feedRepository: FeedRepository,
     private readonly subFeedRepository: SubFeedRepository,
-    private readonly historyRepository: HistoryRepository
+    private readonly historyRepository: HistoryRepository,
   ) {}
+
+  async articleCheck() : Promise<Article[]> {
+    return this.feedRepository.articleCheck();
+  }
 
   async getMainFeed(query): Promise<Article[]> {
     return this.feedRepository.getMainFeed(query);

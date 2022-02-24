@@ -18,6 +18,10 @@ export class MyPageService {
     return await this.myPageRepository.getFollowers(user);
   }
 
+  async getAllCategory(user: User) {
+    return await this.myPageRepository.getAllCategory(user);
+  }
+
   async createCategory(title: string, user: User) {
     return await this.myPageRepository.createCategory(title, user);
   }

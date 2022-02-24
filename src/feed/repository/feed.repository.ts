@@ -30,6 +30,10 @@ export class FeedRepository {
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
   ) {}
 
+  async articleCheck(): Promise<Article[]> {
+    return await this.ArticleModel.find();
+  }
+
   async findAllLastArticle(orderBy: OrderBy, filter) {
     const { tags } = filter;
     if (tags) {
@@ -71,7 +75,7 @@ export class FeedRepository {
 
   async getMainFeed(query): Promise<Article[]> {
     const { tags, orderBy, cursor } = query;
-
+    
     if (!cursor) {
       const last = await this.findAllLastArticle(orderBy, { tags });
       const lastId = last[0]._id;
@@ -281,12 +285,12 @@ export class FeedRepository {
             type: type,
             public: true,
             likeNum: { $lt: nextCount },
-          }
+          };
         } else {
           filter = {
             public: true,
             likeNum: { $lt: nextCount },
-          }
+          };
         }
         return await this.getSerachArticle(options, filter, OrderBy.POPULAR);
       }

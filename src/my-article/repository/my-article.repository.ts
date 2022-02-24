@@ -19,34 +19,32 @@ export class MyArticleRepository {
     @InjectModel(KeyWord.name)
     private KeyWordModel: Model<KeyWordDocument>,
     @InjectModel(Category.name)
-    private CategoryModel: Model<CategoryDocument>
+    private CategoryModel: Model<CategoryDocument>,
   ) {}
 
   async findMyArticle(user, cursor, type): Promise<Article[]> {
     if (!cursor) {
-      if(type){
+      if (type) {
         const filter = {
           user: user._id,
           type: type,
         };
         return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
-      }
-      else{
+      } else {
         const filter = {
           user: user._id,
         };
         return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
       }
     } else {
-      if(type){
+      if (type) {
         const filter = {
           user: user._id,
           type: type,
           _id: { $lt: cursor },
         };
         return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
-      }
-      else{
+      } else {
         const filter = {
           user: user._id,
           _id: { $lt: cursor },
@@ -63,18 +61,18 @@ export class MyArticleRepository {
     createArticleDto.user = user._id;
     createArticleDto.keyWord = null;
     createArticleDto.state = false;
-    createArticleDto.type = 'free'
+    createArticleDto.type = 'free';
 
     const article = await new this.ArticleModel(createArticleDto);
     if (createArticleDto.public == true) {
       await this.UserModel.findByIdAndUpdate(user._id, {
         $inc: {
           articleCount: 1,
-        }
+        },
       });
-      await this.CategoryModel.findByIdAndUpdate(createArticleDto.category,{
-        $inc:{articleCount: 1}
-      })
+      await this.CategoryModel.findByIdAndUpdate(createArticleDto.category, {
+        $inc: { articleCount: 1 },
+      });
     }
     return article.save();
   }
@@ -86,12 +84,12 @@ export class MyArticleRepository {
     createArticleDto.user = user._id;
     createArticleDto.keyWord = null;
     createArticleDto.state = false;
-    createArticleDto.type = 'free'
+    createArticleDto.type = 'free';
 
     await this.UserModel.findByIdAndUpdate(user._id, {
       $addToSet: {
         categories: createArticleDto.category,
-        },
+      },
     });
     const article = await new this.ArticleModel(createArticleDto);
     return article.save();
@@ -127,7 +125,9 @@ export class MyArticleRepository {
   ): Promise<Article> {
     const article = await this.ArticleModel.findById(articleId);
 
-    const category = await this.CategoryModel.findById(updateArticleDto.category)
+    const category = await this.CategoryModel.findById(
+      updateArticleDto.category,
+    );
 
     if (article.public == true) {
       if (updateArticleDto.public == false) {
@@ -180,7 +180,7 @@ export class MyArticleRepository {
     const publicArticle = await this.ArticleModel.find({
       _id: articleId,
       public: true,
-    })
+    });
 
     const publicArticleCount = await this.ArticleModel.find({
       _id: articleId,
@@ -193,11 +193,11 @@ export class MyArticleRepository {
       },
     });
 
-    if(publicArticle){
-      for(var i=0; i<publicArticle.length; i++){
+    if (publicArticle) {
+      for (let i = 0; i < publicArticle.length; i++) {
         await this.CategoryModel.findByIdAndUpdate(publicArticle[i].category, {
-          $inc: {articleCount: -1}
-        })
+          $inc: { articleCount: -1 },
+        });
       }
     }
 

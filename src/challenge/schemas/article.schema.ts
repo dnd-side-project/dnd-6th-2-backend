@@ -146,7 +146,7 @@ export class Article {
     description: 'Article의 type',
     default: null,
   })
-  type: String;
+  type: string;
 
   /* timestamps */
   @ApiProperty({
