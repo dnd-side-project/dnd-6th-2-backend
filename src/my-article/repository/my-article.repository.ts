@@ -29,12 +29,12 @@ export class MyArticleRepository {
           user: user._id,
           type: type,
         };
-        return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+        return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15).populate('user');
       } else {
         const filter = {
           user: user._id,
         };
-        return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+        return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15).populate('user');
       }
     } else {
       if (type) {
@@ -98,7 +98,7 @@ export class MyArticleRepository {
   async findMyArticleTemp(user, cursor): Promise<Article[]> {
     const filter = { user: user._id, state: false, public: false };
     if (!cursor) {
-      return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+      return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15).populate('user');
     } else {
       const filter = {
         user: user._id,
@@ -106,7 +106,7 @@ export class MyArticleRepository {
         public: false,
         _id: { $lt: cursor },
       };
-      return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+      return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15).populate('user');
     }
   }
 

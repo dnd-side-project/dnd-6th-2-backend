@@ -313,7 +313,6 @@ export class FeedRepository {
       $inc: { articleCount: -1 },
     });
 
-    console.log(article.createdAt.toDateString());
     const keyWord = await this.KeyWordModel.findOne({
       updateDay: article.createdAt.toDateString(),
     });
