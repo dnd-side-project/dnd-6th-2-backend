@@ -63,7 +63,7 @@ export class ChallengeRepository {
       user: user,
       state: true,
       keyWord: presentKeyWord[0].content,
-    });
+    }).populate('user')
     result.push(challenge);
     const userinfo = await this.UserModel.findById(user._id);
     result.push(userinfo);
