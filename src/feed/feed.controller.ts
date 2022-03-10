@@ -326,18 +326,13 @@ export class FeedController {
   @Get('/search')
   @ApiOperation({
     summary: '피드에서 검색하기',
-    description: '제목, 내용, 제목+내용으로 검색한다.',
+    description: '제목+내용으로 검색한다.',
   })
   @ApiQuery({
     name: 'cursor',
     required: false,
     description:
       '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
-  })
-  @ApiQuery({
-    name: 'option',
-    description:
-      '제목(title),내용(content),제목+내용(title+content) 조건을 주는 쿼리',
   })
   @ApiQuery({
     name: 'orderBy',

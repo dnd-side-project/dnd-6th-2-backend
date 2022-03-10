@@ -197,19 +197,13 @@ export class FeedRepository {
   }
 
   async searchArticle(query): Promise<any[]> {
-    const { cursor, option, content, orderBy, type } = query;
+    const { cursor, content, orderBy, type } = query;
 
     let options = [];
-    if (option == 'title') {
-      options = [{ title: new RegExp(content) }];
-    } else if (option == 'content') {
-      options = [{ content: new RegExp(content) }];
-    } else if (option == 'title+content') {
-      options = [
-        { title: new RegExp(content) },
-        { content: new RegExp(content) },
-      ];
-    }
+    options = [
+      { title: new RegExp(content) },
+      { content: new RegExp(content) },
+    ];
     if (!cursor) {
       const last = await this.findAllLastSearchArticle(orderBy, type, options);
       if (last.length === 0) {
