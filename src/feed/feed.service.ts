@@ -21,7 +21,7 @@ export class FeedService {
     private readonly historyRepository: HistoryRepository,
   ) {}
 
-  async articleCheck() : Promise<Article[]> {
+  async articleCheck(): Promise<Article[]> {
     return this.feedRepository.articleCheck();
   }
 

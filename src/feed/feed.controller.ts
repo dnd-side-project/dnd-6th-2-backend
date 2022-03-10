@@ -43,7 +43,7 @@ import {
   GetSubFeedResDto,
   NotFoundSubFeedResDto,
 } from './dto/response.dto';
-import {  MessageResDto } from 'src/relay/dto/response.dto';
+import { MessageResDto } from 'src/relay/dto/response.dto';
 
 @ApiBearerAuth('accessToken')
 @Controller('feed')
@@ -90,12 +90,11 @@ export class FeedController {
   async getMainFeed(@Query() query, @Res() res): Promise<Article[]> {
     try {
       const articleCheck = await this.feedService.articleCheck();
-      if(articleCheck.length === 0){
+      if (articleCheck.length === 0) {
         return res
-        .status(HttpStatus.NOT_FOUND)
-        .json({ message: 'Article Schema에 글이 없습니다.' });
-      }
-      else{
+          .status(HttpStatus.NOT_FOUND)
+          .json({ message: 'Article Schema에 글이 없습니다.' });
+      } else {
         const articles = await this.feedService.getMainFeed(query);
         if (articles.length === 0) {
           return res
@@ -143,13 +142,16 @@ export class FeedController {
         user,
       );
       const articleCheck = await this.feedService.articleCheck();
-      if(articleCheck.length === 0){
-        return res
-        .status(HttpStatus.NOT_FOUND)
-        .json({subscribeUserList, message: 'Article Schema에 글이 없습니다.' });
-      }
-      else{
-        const articles = await this.feedService.getSubFeedAll(user, query.cursor);
+      if (articleCheck.length === 0) {
+        return res.status(HttpStatus.NOT_FOUND).json({
+          subscribeUserList,
+          message: 'Article Schema에 글이 없습니다.',
+        });
+      } else {
+        const articles = await this.feedService.getSubFeedAll(
+          user,
+          query.cursor,
+        );
         if (articles.length === 0) {
           return res.status(HttpStatus.NOT_FOUND).json({
             subscribeUserList,
@@ -354,7 +356,7 @@ export class FeedController {
   })
   @ApiResponse({
     status: 404,
-    type: MessageResDto
+    type: MessageResDto,
   })
   @ApiQuery({ name: 'content', description: '검색할 내용' })
   async searchArticle(
@@ -365,12 +367,11 @@ export class FeedController {
     try {
       await this.feedService.saveHistory(user, query.content);
       const articleCheck = await this.feedService.articleCheck();
-      if(articleCheck.length === 0){
+      if (articleCheck.length === 0) {
         return res
-        .status(HttpStatus.NOT_FOUND)
-        .json({message: 'Article Schema에 글이 없습니다.' });
-      }
-      else{
+          .status(HttpStatus.NOT_FOUND)
+          .json({ message: 'Article Schema에 글이 없습니다.' });
+      } else {
         const articles = await this.feedService.searchArticle(query);
         if (articles.length === 0) {
           return res
@@ -468,7 +469,7 @@ export class FeedController {
     description: '삭제할 글의 id',
   })
   @ApiResponse({
-    type: MessageResDto
+    type: MessageResDto,
   })
   async deleteArticle(
     @GetUser() user: User,
@@ -617,7 +618,7 @@ export class FeedController {
     description: '삭제하려는 댓글의 아이디',
   })
   @ApiResponse({
-    type: MessageResDto
+    type: MessageResDto,
   })
   async deleteComment(
     @GetUser() user: User,

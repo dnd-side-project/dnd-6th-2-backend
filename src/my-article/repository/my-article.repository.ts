@@ -29,12 +29,12 @@ export class MyArticleRepository {
           user: user._id,
           type: type,
         };
-        return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+        return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15).populate('user');
       } else {
         const filter = {
           user: user._id,
         };
-        return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+        return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15).populate('user');
       }
     } else {
       if (type) {
@@ -98,7 +98,7 @@ export class MyArticleRepository {
   async findMyArticleTemp(user, cursor): Promise<Article[]> {
     const filter = { user: user._id, state: false, public: false };
     if (!cursor) {
-      return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+      return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15).populate('user');
     } else {
       const filter = {
         user: user._id,
@@ -106,7 +106,7 @@ export class MyArticleRepository {
         public: false,
         _id: { $lt: cursor },
       };
-      return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+      return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15).populate('user');
     }
   }
 
@@ -164,6 +164,16 @@ export class MyArticleRepository {
 
     //삭제하려는 모든 글들 찾기
     const articles = await this.ArticleModel.find({ _id: articleId });
+
+    const challengeArticles: string[] = [];
+    for (let i = 0; i < articles.length; i++) {
+      if (articles[i].type == 'challenge') {
+        challengeArticles.push(articles[i].createdAt.toDateString());
+      }
+    }
+
+    new Set(challengeArticles);
+    const challengeDate: string[] = Array.from(challengeArticles);
 
     //삭제하는 글들에 해당하는 글감 찾아줌
     for (let i = 0; i < articles.length; i++) {
@@ -225,6 +235,9 @@ export class MyArticleRepository {
       await this.UserModel.findByIdAndUpdate(user._id, {
         $inc: {
           stampCount: -keyWord.length,
+        },
+        $pullAll: {
+          challengeHistory: challengeDate,
         },
       });
       if (loginUser.state == true && todayChallenge.length == 0) {
