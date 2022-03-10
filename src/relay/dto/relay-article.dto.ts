@@ -14,7 +14,6 @@ export class RelayArticleDto {
     type: String,
     description: '선택한 카테고리의 id',
   })
-  @IsNotEmpty()
   @IsString()
   categoryId: string;
 }
