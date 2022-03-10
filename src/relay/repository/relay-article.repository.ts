@@ -45,7 +45,9 @@ export class RelayArticleRepository {
       return await this.articleModel
         .find({ type: 'relay', relay: relayId })
         .sort({ _id: 1 })
-        .limit(15);
+        .limit(15)
+        .populate('user')
+        .exec();
     } else {
       return await this.articleModel
         .find({ type: 'relay', relay: relayId, _id: { $gt: cursor } })
