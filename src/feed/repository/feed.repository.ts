@@ -294,7 +294,6 @@ export class FeedRepository {
   async findOneArticle(id): Promise<Article> {
     return await this.ArticleModel.findOne({ _id: id, public: true })
       .populate('user')
-      .populate('comments')
       .exec();
   }
 
@@ -382,6 +381,10 @@ export class FeedRepository {
       updateArticleDto,
       { new: true },
     );
+  }
+
+  async findArticleComment(articleId): Promise<Comment[]>{
+    return await this.CommentModel.find({article: articleId})
   }
 
   async findComment(commentId): Promise<Comment> {
