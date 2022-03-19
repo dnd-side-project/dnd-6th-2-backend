@@ -85,6 +85,10 @@ export class FeedService {
     return this.feedRepository.updateArticle(user, articleId, updateArticleDto);
   }
 
+  async findArticleComment(articleId): Promise<Comment[]>{
+    return this.feedRepository.findArticleComment(articleId);
+  }
+
   async findComment(commentId): Promise<Comment> {
     return this.feedRepository.findComment(commentId);
   }

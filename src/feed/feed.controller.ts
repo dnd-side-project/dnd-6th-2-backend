@@ -528,6 +528,29 @@ export class FeedController {
     }
   }
 
+  
+  @ApiTags('feed/{articleId}/comment')
+  @Get('/:articleId/comment')
+  @ApiOperation({
+    summary: '댓글 조회 API',
+    description: '글 상세페이지에서 댓글을 조회한다.',
+  })
+  @ApiParam({
+    name: 'articleId',
+    description: '상세 조회하는 글의 ID',
+  })
+  @ApiResponse({
+    status: 200,
+    type: [Comment],
+    description: 'comment 객체 배열 반환',
+  })
+  findArticleComment(
+    @GetUser() user: User,
+    @Param('articleId') articleId: string,
+  ): Promise<Comment[]> {
+    return this.feedService.findArticleComment(articleId);
+  }
+
   @ApiTags('feed/{articleId}/comment')
   @Post('/:articleId/comment')
   @ApiOperation({
