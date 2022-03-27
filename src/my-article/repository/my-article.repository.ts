@@ -113,7 +113,6 @@ export class MyArticleRepository {
   async findMyArticleOne(articleId): Promise<Article> {
     const article = await this.ArticleModel.findOne({ _id: articleId })
       .populate('user')
-      .populate('comments')
       .exec();
     return article;
   }
@@ -249,5 +248,9 @@ export class MyArticleRepository {
       }
     }
     return deleteCount;
+  }
+
+  async findArticleComment(articleId):Promise<Comment[]> {
+    return await this.CommentModel.find({article: articleId})
   }
 }
