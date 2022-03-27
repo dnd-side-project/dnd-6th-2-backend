@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Article } from 'src/challenge/schemas/article.schema';
+import { Comment } from 'src/feed/schemas/comment.schema';
 import { MyArticleRepository } from './repository/my-article.repository';
 
 @Injectable()
@@ -37,5 +38,9 @@ export class MyArticleService {
   async deleteMyArticle(user, articleId): Promise<any> {
     const articleIds: [string] = articleId.split(',');
     return this.myArticleRepository.deleteMyArticle(user, articleIds);
+  }
+
+  async findArticleComment(articleId): Promise<Comment[]> {
+    return this.myArticleRepository.findArticleComment(articleId)
   }
 }

@@ -20,6 +20,7 @@ import {
   ApiResponse,
   ApiQuery,
   ApiBody,
+  ApiParam,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { MyArticleService } from './my-article.service';
@@ -27,6 +28,7 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { User } from 'src/auth/schemas/user.schema';
 import { Article } from 'src/challenge/schemas/article.schema';
+import { Comment } from 'src/feed/schemas/comment.schema';
 import { UpdateArticleDto } from 'src/challenge/dto/update-article.dto';
 import { CreateArticleDto } from 'src/challenge/dto/create-article.dto';
 import { GetMainFeedResDto } from 'src/feed/dto/response.dto';
@@ -254,5 +256,26 @@ export class MyArticleController {
     @Param('articleId') articleId: [string],
   ): Promise<any> {
     return await this.myArticleService.deleteMyArticle(user, articleId);
+  }
+
+  @Get('/:articleId/comment')
+  @ApiOperation({
+    summary: '댓글 조회 API',
+    description: '나의 글 상세페이지에서 댓글을 조회한다.',
+  })
+  @ApiParam({
+    name: 'articleId',
+    description: '상세 조회하는 글의 ID',
+  })
+  @ApiResponse({
+    status: 200,
+    type: [Comment],
+    description: 'comment 객체 배열 반환',
+  })
+  findArticleComment(
+    @GetUser() user: User,
+    @Param('articleId') articleId: string,
+  ): Promise<Comment[]> {
+    return this.myArticleService.findArticleComment(articleId);
   }
 }
