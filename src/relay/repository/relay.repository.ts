@@ -289,6 +289,12 @@ export class RelayRepository {
         '현재 정원보다 적은 인원수로 수정할 수 없습니다.',
       );
     }
+    if (updateRelayDto.title) {
+      await this.articleModel.updateMany(
+        { _id: relayId },
+        { $set: { title: updateRelayDto.title } },
+      );
+    }
     return await this.relayModel.findByIdAndUpdate(relayId, updateRelayDto, {
       new: true,
     });

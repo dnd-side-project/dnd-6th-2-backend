@@ -73,8 +73,13 @@ export class RelayArticleRepository {
     await this.checkMember(relayId, user._id);
 
     const { content, categoryId } = relayArticleDto;
+    const { title } = await this.relayModel.findById(relayId, {
+      _id: 0,
+      title: 1,
+    });
     const article = new this.articleModel({
       user,
+      title,
       content,
       type: 'relay',
       relay: relayId,
