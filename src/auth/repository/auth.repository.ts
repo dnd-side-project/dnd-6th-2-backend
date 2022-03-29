@@ -76,7 +76,7 @@ export class AuthRepository {
     try {
       return await this.userModel.findOneAndUpdate(
         { email },
-        { $set: { hashedToken: null } },
+        { $unset: { hashedToken: 1 } },
       );
     } catch (e) {
       throw new NotFoundException('가입되어 있지 않은 메일입니다.');
@@ -192,13 +192,11 @@ export class AuthRepository {
     const { email, authCode } = authCodeDto;
     const user = await this.findUserByEmail(email);
 
+    await this.removeAuthCode(email);
     if (user.mailAuthCode === authCode) {
-      await this.removeAuthCode(email);
-      return true;
+      return { verifyCode: true };
     } else {
-      throw new UnauthorizedException(
-        '인증에 실패했습니다. 다시 시도해주세요.',
-      );
+      return { verifyCode: false };
     }
   }
 

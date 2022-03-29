@@ -6,6 +6,7 @@ import {
   Patch,
   Post,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -104,12 +105,21 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     type: CheckResDto,
-    description: '인증 성공',
+    description: '인증 성공 (verifyCode: true)',
+  })
+  @ApiResponse({
+    status: 401,
+    type: CheckResDto,
+    description: '인증 실패 (verifyCode: false)',
   })
   @Post('/email/check')
   async verifyAuthCode(@Body() authCodeDto: AuthCodeDto, @Res() res: Response) {
     const result = await this.authService.verifyAuthCode(authCodeDto);
-    return res.status(HttpStatus.OK).json({ result, message: '인증 성공' });
+    if (result.verifyCode) {
+      return res.status(HttpStatus.OK).json(result);
+    } else {
+      throw new UnauthorizedException(result);
+    }
   }
 
   @ApiOperation({

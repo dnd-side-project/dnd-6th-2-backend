@@ -125,7 +125,7 @@ export class User {
   @ApiProperty({
     type: String,
   })
-  @Prop({ default: null })
+  @Prop()
   hashedToken: string; // 원래는 refresh token 저장, 현재는 access token 저장
 
   @ApiProperty({
