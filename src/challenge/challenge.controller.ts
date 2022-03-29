@@ -10,6 +10,7 @@ import {
   UseGuards,
   Res,
   HttpStatus,
+  Param,
 } from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
 import { KeyWord } from './schemas/keyword.schema';
@@ -20,6 +21,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiParam,
 } from '@nestjs/swagger';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { Article } from './schemas/article.schema';
@@ -29,6 +31,7 @@ import { User } from 'src/auth/schemas/user.schema';
 import { AuthGuard } from '@nestjs/passport';
 import { Tip } from './schemas/tip.schema';
 import { GetChallengeMain } from './dto/response.dto';
+import { GetMonthlyDto } from './dto/response.dto';
 
 @ApiTags('challenge')
 @ApiBearerAuth('accessToken')
@@ -60,6 +63,42 @@ export class ChallengeController {
       .status(HttpStatus.OK)
       .json({ keyword, articles, challengeCount, challengeHistory });
   }
+
+  @Get('/:month/:year')
+  @ApiOperation({
+    summary: '캘린더 API',
+    description:
+      '캘린더에서 월 별 도장 개수와 수행 날짜를 확인한다.',
+  })
+  @ApiParam({
+    name: 'month',
+    description: '확인하고자 하는 월의 toDateString 형태',
+    example:'Mar'
+  })
+  @ApiParam({
+    name: 'year',
+    description: '확인하고자 하는 년도의 toDateString 형태',
+    example:'2022'
+  })
+  @ApiResponse({
+    status: 200,
+    type: GetMonthlyDto
+  })
+  async getMonthly(@GetUser() user: User, @Res() res, @Param('month') month: string, @Param('year') year: string): Promise<any> {
+    const randomArticles = await this.challengeService.getRandom(user);
+    const challengeHistory = randomArticles[2].challengeHistory;
+    let monthlyChallengeHistory:String[] = [];
+    for(var i=0; i<challengeHistory.length; i++){
+      if(challengeHistory[i].includes(month) == true && challengeHistory[i].includes(year) == true){
+        monthlyChallengeHistory.push(challengeHistory[i])
+      }
+    }
+    const monthlyStamp:Number = monthlyChallengeHistory.length
+    res
+      .status(HttpStatus.OK)
+      .json({ monthlyChallengeHistory, monthlyStamp });
+  }
+
 
   @Get('article')
   @ApiOperation({
