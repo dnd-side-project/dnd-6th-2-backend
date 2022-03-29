@@ -326,18 +326,13 @@ export class FeedController {
   @Get('/search')
   @ApiOperation({
     summary: '피드에서 검색하기',
-    description: '제목, 내용, 제목+내용으로 검색한다.',
+    description: '제목+내용으로 검색한다.',
   })
   @ApiQuery({
     name: 'cursor',
     required: false,
     description:
       '이전 페이지에서 반환된 next_cursor의 값을 받아 요청합니다(페이지네이션). 첫번째 페이지인 경우는 null 값을 보냅니다.',
-  })
-  @ApiQuery({
-    name: 'option',
-    description:
-      '제목(title),내용(content),제목+내용(title+content) 조건을 주는 쿼리',
   })
   @ApiQuery({
     name: 'orderBy',
@@ -531,6 +526,29 @@ export class FeedController {
       this.logger.error('피드 글 수정 ERR ' + e);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: e });
     }
+  }
+
+  
+  @ApiTags('feed/{articleId}/comment')
+  @Get('/:articleId/comment')
+  @ApiOperation({
+    summary: '댓글 조회 API',
+    description: '글 상세페이지에서 댓글을 조회한다.',
+  })
+  @ApiParam({
+    name: 'articleId',
+    description: '상세 조회하는 글의 ID',
+  })
+  @ApiResponse({
+    status: 200,
+    type: [Comment],
+    description: 'comment 객체 배열 반환',
+  })
+  findArticleComment(
+    @GetUser() user: User,
+    @Param('articleId') articleId: string,
+  ): Promise<Comment[]> {
+    return this.feedService.findArticleComment(articleId);
   }
 
   @ApiTags('feed/{articleId}/comment')

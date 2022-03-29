@@ -45,7 +45,9 @@ export class RelayArticleRepository {
       return await this.articleModel
         .find({ type: 'relay', relay: relayId })
         .sort({ _id: 1 })
-        .limit(15);
+        .limit(15)
+        .populate('user')
+        .exec();
     } else {
       return await this.articleModel
         .find({ type: 'relay', relay: relayId, _id: { $gt: cursor } })
@@ -71,7 +73,6 @@ export class RelayArticleRepository {
     await this.checkMember(relayId, user._id);
 
     const { content, categoryId } = relayArticleDto;
-    await this.checkCategory(categoryId, user);
     const article = new this.articleModel({
       user,
       content,
@@ -79,13 +80,16 @@ export class RelayArticleRepository {
       relay: relayId,
     });
     await article.save();
-    await this.categoryModel.findByIdAndUpdate(categoryId, {
-      $inc: { articleCount: 1 },
-    });
     await this.relayModel.findByIdAndUpdate(relayId, {
       $inc: { articleCount: 1 },
     });
     if (categoryId) {
+      // FIX: 무조건 category 지정하도록 수정
+      await this.checkCategory(categoryId, user);
+      await this.categoryModel.findByIdAndUpdate(categoryId, {
+        $inc: { articleCount: 1 },
+      });
+
       return await this.articleModel.findByIdAndUpdate(
         article._id,
         { category: categoryId, $set: { public: true } },
