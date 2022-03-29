@@ -27,3 +27,20 @@ export class GetChallengeMain {
   })
   challengeHistory: [string];
 }
+
+export class GetMonthlyDto {
+
+  @ApiProperty({
+    type: [String],
+    description: '챌린지 수행 날짜의 배열',
+  })
+  monthlyChallengeHistory: [string];
+
+  @ApiProperty({
+    type: Number,
+    description: '각 월 별 도장 개수',
+  })
+  monthlyStamp: Number;
+}
+
+
