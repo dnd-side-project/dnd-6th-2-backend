@@ -43,13 +43,13 @@ export class MyArticleRepository {
           type: type,
           _id: { $lt: cursor },
         };
-        return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+        return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15).populate('user');
       } else {
         const filter = {
           user: user._id,
           _id: { $lt: cursor },
         };
-        return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15);
+        return await this.ArticleModel.find(filter).sort({ _id: -1 }).limit(15).populate('user');
       }
     }
   }
