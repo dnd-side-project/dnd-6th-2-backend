@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { AuthCredentialDto } from './dto/auth.dto';
+import { LoginDto } from './dto/login.dto';
 import { AuthRepository } from './repository/auth.repository';
 import { User } from './schemas/user.schema';
 import { MailerService } from '@nestjs-modules/mailer';
@@ -13,12 +13,28 @@ export class AuthService {
     private mailerService: MailerService,
   ) {}
 
-  async signUp(signUpDto: SignUpDto): Promise<User> {
-    return this.authRepository.signUp(signUpDto);
+  async signUp(signUpDto: SignUpDto) {
+    return await this.authRepository.signUp(signUpDto);
   }
 
-  async logIn(authCredentialDto: AuthCredentialDto) {
-    return this.authRepository.logIn(authCredentialDto);
+  async validateUser(loginDto: LoginDto) {
+    return await this.authRepository.validateUser(loginDto);
+  }
+
+  async validateAccess(email: string) {
+    return await this.authRepository.validateAccess(email);
+  }
+
+  async validateRefresh(email: string, refreshToken: string) {
+    return await this.authRepository.validateRefresh(email, refreshToken);
+  }
+
+  async getAccessToken(email: string) {
+    return await this.authRepository.getAccessToken(email);
+  }
+
+  async logIn(user: User) {
+    return await this.authRepository.logIn(user);
   }
 
   async sendEmail(email: string): Promise<number> {
@@ -37,7 +53,7 @@ export class AuthService {
       await this.mailerService.sendMail(mailOptions);
       await this.authRepository.storeAuthCode(email, authCode);
 
-      return authCode; // test
+      return authCode;
     } catch (e) {
       throw new InternalServerErrorException('이메일 발신에 실패했습니다.');
     }
@@ -47,14 +63,15 @@ export class AuthService {
     return await this.authRepository.verifyAuthCode(authCodeDto);
   }
 
-  async changePassword(authCredentialDto: AuthCredentialDto): Promise<User> {
-    return await this.authRepository.changePassword(authCredentialDto);
+  async removeAuthCode(email: string) {
+    return await this.authRepository.removeAuthCode(email);
   }
 
-  async logOut(email: string) {
-    await this.authRepository.removeAuthCode(email);
-    return await this.authRepository.removeAccessToken(email);
-    // FIX
-    // return await this.authRepository.removeRefreshToken(email);
+  async changePassword(loginDto: LoginDto) {
+    return await this.authRepository.changePassword(loginDto);
+  }
+
+  async logOut(userId: string, refreshToken: string) {
+    return await this.authRepository.logOut(userId, refreshToken);
   }
 }
