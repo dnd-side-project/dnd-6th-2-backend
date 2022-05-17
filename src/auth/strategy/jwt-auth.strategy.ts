@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { AuthRepository } from '../repository/auth.repository';
+import { AuthService } from '../auth.service';
 
 @Injectable()
 export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(private readonly authRepository: AuthRepository) {
+  constructor(private readonly authService: AuthService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: process.env.SECRET_KEY,
@@ -15,10 +15,11 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt') {
 
   async validate(payload) {
     const { email } = payload;
-    // FIX
-    // const user = await this.authRepository.findUserByEmail(email);
-    const user = await this.authRepository.validateUser(email);
+    const user = await this.authService.validateAccess(email);
 
+    if (!user) {
+      throw new NotFoundException();
+    }
     return user;
   }
 }
