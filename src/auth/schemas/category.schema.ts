@@ -7,7 +7,7 @@ const options: SchemaOptions = {
   versionKey: false,
 };
 
-export type CategoryDocument = Category & Document;
+export type CategoryDocument = Category & mongoose.Document;
 
 @Schema(options)
 export class Category {
