@@ -7,7 +7,7 @@ const options: SchemaOptions = {
   versionKey: false,
 };
 
-export type CategoryDocument = Category & Document;
+export type CategoryDocument = Category & mongoose.Document;
 
 @Schema(options)
 export class Category {
@@ -18,7 +18,8 @@ export class Category {
   _id: string;
 
   @ApiProperty({
-    type: User,
+    type: mongoose.Schema.Types.ObjectId,
+    description: '카테고리를 만든 유저',
   })
   @Prop({
     type: mongoose.Schema.Types.ObjectId,

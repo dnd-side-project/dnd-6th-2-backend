@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsNumber } from 'class-validator';
 
 export class MailAuthDto {
   @ApiProperty({
@@ -8,7 +8,7 @@ export class MailAuthDto {
     example: 'user@gmail.com',
   })
   @IsNotEmpty()
-  @IsString()
+  @IsEmail()
   email: string;
 }
 
@@ -19,7 +19,7 @@ export class AuthCodeDto {
     example: 'user@gmail.com',
   })
   @IsNotEmpty()
-  @IsString()
+  @IsEmail()
   email: string;
 
   @ApiProperty({

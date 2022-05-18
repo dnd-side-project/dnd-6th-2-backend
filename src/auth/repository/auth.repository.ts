@@ -1,7 +1,7 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
-import { AuthCredentialDto } from '../dto/auth.dto';
+import { LoginDto } from '../dto/login.dto';
 import { User, UserDocument } from '../schemas/user.schema';
 import {
   BadRequestException,
@@ -11,126 +11,114 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { AuthCodeDto } from '../dto/change-password.dto';
 import { SignUpDto } from '../dto/signup.dto';
+import { BlackList, BlackListDocument } from '../schemas/blacklist.schema';
+import { Notice, NoticeDocument } from 'src/relay/schemas/notice.schema';
+import { Relay, RelayDocument } from 'src/relay/schemas/relay.schema';
+import { Category, CategoryDocument } from '../schemas/category.schema';
+import { Comment, CommentDocument } from 'src/feed/schemas/comment.schema';
+import { Scrap, ScrapDocument } from 'src/feed/schemas/scrap.schema';
+import { Like, LikeDocument } from 'src/feed/schemas/like.schema';
+import { Article, ArticleDocument } from 'src/challenge/schemas/article.schema';
+import { History, HistoryDocument } from 'src/feed/schemas/history.schema';
 
 export class AuthRepository {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(BlackList.name)
+    private blackListModel: Model<BlackListDocument>,
+    @InjectModel(Notice.name) private noticeModel: Model<NoticeDocument>,
+    @InjectModel(Relay.name) private relayModel: Model<RelayDocument>,
+    @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
+    @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
+    @InjectModel(Scrap.name) private scrapModel: Model<ScrapDocument>,
+    @InjectModel(Like.name) private likeModel: Model<LikeDocument>,
+    @InjectModel(Article.name) private articleModel: Model<ArticleDocument>,
+    @InjectModel(History.name) private historyModel: Model<HistoryDocument>,
     private jwtService: JwtService,
   ) {}
 
   async findUserByEmail(email: string): Promise<User> {
     const user = await this.userModel.findOne({ email });
-
     if (!user) {
       throw new UnauthorizedException('가입되어 있지 않은 메일입니다.');
     }
-
     return user;
   }
 
-  async getAccessToken(email: string) {
-    const accessToken = this.jwtService.sign({ email }, { expiresIn: '30d' });
-    // const accessToken = this.jwtService.sign({ email }, { expiresIn: '3h' });
-
-    return accessToken;
-  }
-
-  // FIX
-  // async getRefreshToken(email: string) {
-  //   const refreshToken = this.jwtService.sign({ email }, { expiresIn: '14d' });
-
-  //   return refreshToken;
-  // }
-
-  // FIX
-  async updateAccessToken(email: string, accessToken: string) {
-    const salt = await bcrypt.genSalt();
-    const hashedAccessToken = await bcrypt.hash(accessToken, salt);
-
-    try {
-      return await this.userModel.findOneAndUpdate(
-        { email },
-        { hashedToken: hashedAccessToken },
-      );
-    } catch (e) {
-      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
-    }
-  }
-
-  // async updateRefreshToken(email: string, refreshToken: string) {
-  //   const salt = await bcrypt.genSalt();
-  //   const hashedRefreshToken = await bcrypt.hash(refreshToken, salt);
-
-  //   try {
-  //     return await this.userModel.findOneAndUpdate(
-  //       { email },
-  //       { hashedRefreshToken },
-  //     );
-  //   } catch (e) {
-  //     throw new NotFoundException('가입되어 있지 않은 메일입니다.');
-  //   }
-  // }
-
-  // FIX
-  async removeAccessToken(email: string) {
-    try {
-      return await this.userModel.findOneAndUpdate(
-        { email },
-        { $unset: { hashedToken: 1 } },
-      );
-    } catch (e) {
-      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
-    }
-  }
-
-  // async removeRefreshToken(email: string) {
-  //   // for logout
-  //   try {
-  //     return await this.userModel.findOneAndUpdate(
-  //       { email },
-  //       { $unset: { hashedRefreshToken: 1 } },
-  //     );
-  //   } catch (e) {
-  //     throw new NotFoundException('가입되어 있지 않은 메일입니다.');
-  //   }
-  // }
-
-  async validateUser(email: string) {
-    const user = await this.findUserByEmail(email);
-
-    if (!user.hashedToken) {
-      throw new UnauthorizedException('로그인이 필요합니다.');
+  async findUserObjectByEmail(email: string) {
+    const user = await this.userModel.findOne({ email }).lean();
+    if (!user) {
+      throw new UnauthorizedException('가입되어 있지 않은 메일입니다.');
     }
     return user;
   }
 
-  async validateRefresh(email: string, refreshToken: string) {
-    return await this.findUserByEmail(email);
-    // FIX
-    // const user = await this.findUserByEmail(email);
+  async validateUser(email: string, password: string) {
+    const user = await this.findUserObjectByEmail(email);
+    if (user && (await bcrypt.compare(password, user.password))) {
+      const { password, refreshToken, mailAuthCode, ...result } = user;
+      return result;
+    }
+    return null;
+  }
 
-    // if (await bcrypt.compare(refreshToken, user.hashedRefreshToken)) {
-    //   return user;
-    // } else {
-    //   throw new UnauthorizedException('로그인이 필요합니다.');
-    // }
+  async validateAccess(email: string) {
+    const user = await this.findUserObjectByEmail(email);
+    if (user) {
+      const { password, refreshToken, mailAuthCode, ...result } = user;
+      return result;
+    }
+    return null;
+  }
+
+  async validateRefresh(email: string) {
+    const { refreshToken } = await this.userModel
+      .findOne({ email })
+      .select('refreshToken');
+
+    if (await this.blackListModel.exists({ refreshToken })) {
+      await this.userModel.findOneAndUpdate(
+        { email },
+        { $set: { refreshToken: null } },
+      );
+      return null;
+    } else {
+      const user = await this.findUserObjectByEmail(email);
+      if (
+        user &&
+        user.refreshToken &&
+        (await bcrypt.compare(refreshToken, user.refreshToken))
+      ) {
+        const { password, refreshToken, mailAuthCode, ...result } = user;
+        return result;
+      } else {
+        const blacklist = new this.blackListModel({
+          refreshToken,
+          user: user._id,
+        });
+        await blacklist.save();
+        await this.userModel.findOneAndUpdate(
+          { email },
+          { $set: { refreshToken: null } },
+        );
+        return null;
+      }
+    }
   }
 
   async checkEmail(email: string) {
-    const check = await this.userModel.exists({ email });
-    if (check) {
+    if (await this.userModel.exists({ email })) {
       throw new BadRequestException('이미 가입되어 있는 메일입니다.');
     }
   }
 
   async checkNickname(nickname: string) {
-    const check = await this.userModel.exists({ nickname });
-    if (check) {
+    if (await this.userModel.exists({ nickname })) {
       throw new BadRequestException('이미 존재하는 닉네임입니다.');
     }
   }
 
-  async signUp(signUpDto: SignUpDto): Promise<User> {
+  async signUp(signUpDto: SignUpDto) {
     const { email, password, nickname, genre, bio } = signUpDto;
 
     await this.checkEmail(email);
@@ -146,35 +134,48 @@ export class AuthRepository {
       bio,
     });
     await user.save();
-    user.password = undefined;
-
-    return user;
+    return user.email;
   }
 
-  async logIn(authCredentialDto: AuthCredentialDto) {
-    const { email, password } = authCredentialDto;
-    const user = await this.findUserByEmail(email);
+  async getAccessToken(email: string) {
+    const accessToken = this.jwtService.sign({ email }, { expiresIn: '3h' });
 
-    if (await bcrypt.compare(password, user.password)) {
-      const accessToken = await this.getAccessToken(email);
-      await this.updateAccessToken(email, accessToken);
-      // FIX
-      // const refreshToken = await this.getRefreshToken(email);
+    return accessToken;
+  }
 
-      // await this.updateRefreshToken(email, refreshToken);
+  async getRefreshToken(email: string) {
+    const refreshToken = this.jwtService.sign({ email }, { expiresIn: '30d' });
 
-      // return { accessToken, refreshToken };
-      return accessToken;
-    } else {
-      throw new UnauthorizedException('로그인에 실패했습니다.');
+    return refreshToken;
+  }
+
+  async storeRefreshToken(email: string, refreshToken: string) {
+    const salt = await bcrypt.genSalt();
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, salt);
+
+    try {
+      return await this.userModel.findOneAndUpdate(
+        { email },
+        { $set: { refreshToken: hashedRefreshToken } },
+      );
+    } catch (e) {
+      throw new NotFoundException('가입되어 있지 않은 메일입니다.');
     }
+  }
+
+  async logIn(user: User) {
+    const accessToken = await this.getAccessToken(user.email);
+    const refreshToken = await this.getRefreshToken(user.email);
+    await this.storeRefreshToken(user.email, refreshToken);
+
+    return { accessToken, refreshToken };
   }
 
   async storeAuthCode(email: string, authCode: number) {
     try {
       return await this.userModel.findOneAndUpdate(
         { email },
-        { mailAuthCode: authCode },
+        { $set: { mailAuthCode: authCode } },
       );
     } catch (e) {
       throw new NotFoundException('가입되어 있지 않은 메일입니다.');
@@ -182,9 +183,9 @@ export class AuthRepository {
   }
 
   async removeAuthCode(email: string) {
-    return await this.userModel.updateOne(
+    return await this.userModel.findOneAndUpdate(
       { email },
-      { $unset: { mailAuthCode: 1 } },
+      { $set: { mailAuthCode: null } },
     );
   }
 
@@ -200,8 +201,8 @@ export class AuthRepository {
     }
   }
 
-  async changePassword(authCredentialDto: AuthCredentialDto): Promise<User> {
-    const { email, password } = authCredentialDto;
+  async changePassword(loginDto: LoginDto): Promise<User> {
+    const { email, password } = loginDto;
     const found = await this.findUserByEmail(email);
 
     await this.checkEmail(email);
@@ -209,15 +210,56 @@ export class AuthRepository {
       const salt = await bcrypt.genSalt();
       const hashedPW = await bcrypt.hash(password, salt);
 
-      const user = await this.userModel.findOneAndUpdate(
+      return await this.userModel.findOneAndUpdate(
         { email },
-        { password: hashedPW },
+        { $set: { password: hashedPW } },
       );
-      user.password = undefined;
-
-      return user; // test
     } else {
       throw new BadRequestException('기존 비밀번호와 동일한 비밀번호입니다.');
     }
+  }
+
+  async logOut(email: string) {
+    // get refresh token
+    const { _id, refreshToken } = await this.userModel
+      .findOne({ email })
+      .select('_id refreshToken');
+
+    if (!(await this.blackListModel.exists({ refreshToken }))) {
+      const blacklist = new this.blackListModel({
+        refreshToken,
+        user: _id,
+      });
+      await blacklist.save();
+    }
+    return await this.userModel.findByIdAndUpdate(_id, {
+      $set: { refreshToken: null },
+    });
+  }
+
+  async signOut(userId: string) {
+    await this.noticeModel.deleteMany({ user: userId });
+    const { relays } = await this.userModel
+      .findById(userId)
+      .populate('relays')
+      .lean();
+    relays.forEach(async (relayId) => {
+      await this.relayModel.updateMany(
+        { _id: relayId },
+        {
+          $pull: { members: userId },
+          $inc: { membersCount: -1 },
+        },
+      );
+    });
+    await this.relayModel.deleteMany({ host: userId });
+    await this.categoryModel.deleteMany({ user: userId });
+    await this.commentModel.deleteMany({ user: userId });
+    await this.scrapModel.deleteMany({ user: userId });
+    await this.likeModel.deleteMany({ user: userId });
+    await this.articleModel.deleteMany({ user: userId });
+    await this.historyModel.deleteMany({ user: userId });
+    await this.blackListModel.deleteMany({ user: userId });
+    await this.userModel.deleteMany({ _id: userId });
   }
 }

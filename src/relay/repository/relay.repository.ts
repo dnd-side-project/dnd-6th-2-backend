@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User } from 'src/auth/schemas/user.schema';
+import { User, UserDocument } from 'src/auth/schemas/user.schema';
 import { Article, ArticleDocument } from 'src/challenge/schemas/article.schema';
 import { CreateRelayDto } from '../dto/create-relay.dto';
 import { UpdateRelayDto } from '../dto/update-relay.dto';
@@ -18,6 +18,7 @@ export class RelayRepository {
     @InjectModel(Relay.name) private relayModel: Model<RelayDocument>,
     @InjectModel(Article.name) private articleModel: Model<ArticleDocument>,
     @InjectModel(Notice.name) private noticeModel: Model<NoticeDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
   async findRelayById(relayId: string): Promise<Relay> {
@@ -43,9 +44,12 @@ export class RelayRepository {
     const relay = await this.findRelayById(relayId);
 
     if (relay.membersCount < relay.headCount) {
-      return await this.relayModel.findByIdAndUpdate(relayId, {
+      await this.relayModel.findByIdAndUpdate(relayId, {
         $push: { members: user },
         $inc: { membersCount: 1 },
+      });
+      return await this.userModel.findByIdAndUpdate(user._id, {
+        $push: { relays: relayId },
       });
     } else {
       throw new ForbiddenException('정원 제한으로 인해 입장할 수 없습니다.');
@@ -59,6 +63,9 @@ export class RelayRepository {
       throw new ForbiddenException('호스트는 퇴장할 수 없습니다.');
     }
     try {
+      await this.userModel.findByIdAndUpdate(user._id, {
+        $pull: { relays: relayId },
+      });
       return await this.relayModel.findByIdAndUpdate(relayId, {
         $pull: { members: user._id },
         $inc: { membersCount: -1 },
@@ -255,8 +262,6 @@ export class RelayRepository {
     user: User,
   ): Promise<Relay> {
     const { title, tags, notice, headCount } = createRelayDto;
-    const Notice = new this.noticeModel({ notice });
-    await Notice.save();
     const relay = new this.relayModel({
       title,
       tags,
@@ -264,6 +269,12 @@ export class RelayRepository {
       host: user,
     });
     await relay.save();
+    const Notice = new this.noticeModel({
+      relay: relay._id,
+      user: user._id,
+      notice,
+    });
+    await Notice.save();
     await this.relayModel.findByIdAndUpdate(relay._id, {
       $push: { notice: Notice },
     });
@@ -291,26 +302,35 @@ export class RelayRepository {
     }
     if (updateRelayDto.title) {
       await this.articleModel.updateMany(
-        { _id: relayId },
+        { relay: relayId },
         { $set: { title: updateRelayDto.title } },
       );
     }
-    return await this.relayModel.findByIdAndUpdate(relayId, updateRelayDto, {
-      new: true,
-    });
+    return await this.relayModel.findByIdAndUpdate(
+      relayId,
+      { $set: updateRelayDto },
+      { new: true },
+    );
   }
 
   async deleteRelay(relayId: string, user: User) {
     await this.checkUser(relayId, user._id);
-    // TODO: deleteLike
+
     await this.articleModel.deleteMany({ relay: relayId });
-    return await this.relayModel.findByIdAndDelete(relayId);
+    await this.relayModel.findByIdAndDelete(relayId);
+    return await this.userModel.findByIdAndUpdate(user._id, {
+      $pull: { relays: relayId },
+    });
   }
 
   async AddNoticeToRelay(relayId: string, notice: string, user: User) {
     await this.checkUser(relayId, user._id);
 
-    const Notice = new this.noticeModel({ notice });
+    const Notice = new this.noticeModel({
+      relay: relayId,
+      user: user._id,
+      notice,
+    });
     await Notice.save();
     await this.relayModel.findByIdAndUpdate(relayId, {
       $push: { notice: Notice },

@@ -3,9 +3,23 @@ import { ApiProperty } from '@nestjs/swagger';
 export class LoginResDto {
   @ApiProperty({
     type: String,
-    description: '액세스 토큰',
+    description: '발급된 액세스 토큰. (클라이언트단에 저장 필요)',
   })
-  accessToken: string;
+  access: string;
+
+  @ApiProperty({
+    type: String,
+    description: '발급된 액세스 토큰. (클라이언트단에 저장 필요)',
+  })
+  refresh: string;
+}
+
+export class SignUpResDto {
+  @ApiProperty({
+    type: String,
+    description: '회원가입한 유저의 이메일',
+  })
+  email: string;
 }
 
 export class CodeResDto {
@@ -32,4 +46,12 @@ export class CheckResDto {
     type: String,
   })
   message: string;
+}
+
+export class RefreshResDto {
+  @ApiProperty({
+    type: String,
+    description: '새로 발급된 액세스 토큰',
+  })
+  access: string;
 }

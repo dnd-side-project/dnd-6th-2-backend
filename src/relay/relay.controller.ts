@@ -33,11 +33,7 @@ import { Relay } from './schemas/relay.schema';
 import { Notice } from './schemas/notice.schema';
 import { Article } from 'src/challenge/schemas/article.schema';
 import { Like } from 'src/feed/schemas/like.schema';
-import {
-  GetRelayArticleResDto,
-  GetRelayResDto,
-  MessageResDto,
-} from './dto/response.dto';
+import { GetRelayArticleResDto, GetRelayResDto } from './dto/response.dto';
 
 @ApiBearerAuth('accessToken')
 @UseGuards(AuthGuard())
@@ -229,7 +225,7 @@ export class RelayController {
   })
   @ApiResponse({
     status: 200,
-    type: MessageResDto,
+    type: String,
     description: '릴레이 방 삭제 성공',
   })
   @Delete('/:relayId')
@@ -239,7 +235,7 @@ export class RelayController {
     @Res() res: Response,
   ) {
     await this.relayService.deleteRelay(relayId, user);
-    return res.status(HttpStatus.OK).json({ message: '릴레이 방 삭제 성공' });
+    return res.status(HttpStatus.OK).json('릴레이 방 삭제 성공');
   }
 
   @ApiTags('relay/notice')
@@ -329,7 +325,7 @@ export class RelayController {
   })
   @ApiResponse({
     status: 200,
-    type: MessageResDto,
+    type: String,
     description: '공지사항 삭제 성공',
   })
   @Delete('/:relayId/notice/:noticeId')
@@ -339,7 +335,7 @@ export class RelayController {
     @Res() res: Response,
   ) {
     await this.relayService.deleteNoticeToRelay(param, user);
-    return res.status(HttpStatus.OK).json({ message: '공지사항 삭제 성공' });
+    return res.status(HttpStatus.OK).json('공지사항 삭제 성공');
   }
 
   @ApiTags('relay')
@@ -354,7 +350,6 @@ export class RelayController {
   })
   @ApiResponse({
     status: 200,
-    type: MessageResDto,
     description: '릴레이 방 입장 성공',
   })
   @Post('/:relayId/join')
@@ -364,7 +359,7 @@ export class RelayController {
     @Res() res: Response,
   ) {
     await this.relayService.joinRelay(relayId, user);
-    return res.status(HttpStatus.OK).json({ message: '릴레이 방 입장 성공' });
+    return res.status(HttpStatus.OK).json('릴레이 방 입장 성공');
   }
 
   @ApiTags('relay')
@@ -380,7 +375,7 @@ export class RelayController {
   })
   @ApiResponse({
     status: 200,
-    type: MessageResDto,
+    type: String,
     description: '릴레이 방 퇴장 성공',
   })
   @Delete('/:relayId/join')
@@ -390,7 +385,7 @@ export class RelayController {
     @Res() res: Response,
   ) {
     await this.relayService.exitRelay(relayId, user);
-    return res.status(HttpStatus.OK).json({ message: '릴레이 방 퇴장 성공' });
+    return res.status(HttpStatus.OK).json('릴레이 방 퇴장 성공');
   }
 
   @ApiTags('relay')
@@ -544,7 +539,6 @@ export class RelayController {
   })
   @ApiResponse({
     status: 200,
-    type: MessageResDto,
     description: '릴레이 글 삭제 성공',
   })
   @Delete('/:relayId/article/:articleId')
@@ -554,7 +548,7 @@ export class RelayController {
     @Res() res: Response,
   ) {
     await this.relayService.deleteRelayArticle(param, user);
-    return res.status(HttpStatus.OK).json({ message: '릴레이 글 삭제 성공' });
+    return res.status(HttpStatus.OK).json('릴레이 글 삭제 성공');
   }
 
   @ApiTags('relay/like')
@@ -605,7 +599,7 @@ export class RelayController {
   })
   @ApiResponse({
     status: 200,
-    type: MessageResDto,
+    type: String,
     description: '좋아요 삭제 성공',
   })
   @Delete('/:relayId/article/:articleId/like')
@@ -615,6 +609,6 @@ export class RelayController {
     @Res() res: Response,
   ) {
     await this.relayService.deleteRelayLike(param, user);
-    return res.status(HttpStatus.OK).json({ message: '좋아요 삭제 성공' });
+    return res.status(HttpStatus.OK).json('좋아요 삭제 성공');
   }
 }

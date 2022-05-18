@@ -1,14 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
-export class AuthCredentialDto {
+export class LoginDto {
   @ApiProperty({
     type: String,
     description: '로그인에 필요한 사용자의 이메일',
     example: 'dnd@gmail.com',
   })
   @IsNotEmpty()
-  @IsString()
+  @IsEmail()
   readonly email: string;
 
   @ApiProperty({
