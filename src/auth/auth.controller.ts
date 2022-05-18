@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Headers,
   HttpStatus,
   Patch,
   Post,
@@ -118,7 +117,7 @@ export class AuthController {
   @ApiOperation({
     summary: '이메일 인증 확인을 위한 엔드포인트입니다',
     description:
-      '인증 메일로부터 받은 인증코드를 입력받아 인증 확인을 합니다. 해당 엔드포인트를 거쳐 인증이 된 것이 확인되면, 비밀번호 변경 엔드포인트로 이동합니다',
+      '인증 메일로부터 받은 인증코드를 입력받아 인증 확인을 합니다. 해당 엔드포인트를 거쳐 인증된 것이 확인되면, 비밀번호 변경 엔드포인트로 이동합니다',
   })
   @ApiBody({ type: AuthCodeDto })
   @ApiResponse({
@@ -161,7 +160,7 @@ export class AuthController {
   @ApiOperation({
     summary: '로그아웃을 하기 위한 엔드포인트입니다',
     description:
-      '로그인 상태의 사용자를 로그아웃 상태로 처리합니다 (로그아웃 요청 시, req.headers.auth.refresh에 리프레시 토큰을 담아 전달). - 로그아웃 성공 후, 클라이언트단에 저장된 액세스토큰과 리프레시토큰 모두 삭제.',
+      '로그인 상태의 사용자를 로그아웃 상태로 처리합니다. - 로그아웃 성공 후, 클라이언트단에 저장된 액세스토큰과 리프레시토큰 모두 삭제.',
   })
   @ApiResponse({
     status: 200,
@@ -171,13 +170,8 @@ export class AuthController {
   @ApiBearerAuth('refreshToken')
   @Patch('/logout')
   @UseGuards(AuthGuard())
-  async logOut(
-    @Headers() headers,
-    @GetUser() user: User,
-    @Res() res: Response,
-  ) {
-    const refreshToken = headers.auth.refresh;
-    await this.authService.logOut(user._id, refreshToken);
+  async logOut(@GetUser() user: User, @Res() res: Response) {
+    await this.authService.logOut(user.email);
 
     return res.status(HttpStatus.OK).json('로그아웃 성공');
   }

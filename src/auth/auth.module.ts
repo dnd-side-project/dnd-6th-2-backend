@@ -49,10 +49,10 @@ dotenv.config();
       //   },
       // },
     }),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: process.env.SECRET_KEY as string,
     }),
-    PassportModule.register({ defaultStrategy: 'jwt' }),
   ],
   controllers: [AuthController],
   providers: [

@@ -29,10 +29,16 @@ export class AuthRepository {
     return user;
   }
 
-  async validateUser(loginDto: LoginDto) {
-    const { email, password } = loginDto;
+  async findUserObjectByEmail(email: string) {
+    const user = await this.userModel.findOne({ email }).lean();
+    if (!user) {
+      throw new UnauthorizedException('가입되어 있지 않은 메일입니다.');
+    }
+    return user;
+  }
 
-    const user = await this.findUserByEmail(email);
+  async validateUser(email: string, password: string) {
+    const user = await this.findUserObjectByEmail(email);
     if (user && (await bcrypt.compare(password, user.password))) {
       const { password, refreshToken, mailAuthCode, ...result } = user;
       return result;
@@ -41,7 +47,7 @@ export class AuthRepository {
   }
 
   async validateAccess(email: string) {
-    const user = await this.findUserByEmail(email);
+    const user = await this.findUserObjectByEmail(email);
     if (user) {
       const { password, refreshToken, mailAuthCode, ...result } = user;
       return result;
@@ -49,12 +55,19 @@ export class AuthRepository {
     return null;
   }
 
-  async validateRefresh(email: string, refreshToken: string) {
+  async validateRefresh(email: string) {
+    const { refreshToken } = await this.userModel
+      .findOne({ email })
+      .select('refreshToken');
+
     if (await this.blackListModel.exists({ refreshToken })) {
-      await this.userModel.findOneAndUpdate({ email }, { refreshToken: null });
+      await this.userModel.findOneAndUpdate(
+        { email },
+        { $set: { refreshToken: null } },
+      );
       return null;
     } else {
-      const user = await this.findUserByEmail(email);
+      const user = await this.findUserObjectByEmail(email);
       if (
         user &&
         user.refreshToken &&
@@ -70,7 +83,7 @@ export class AuthRepository {
         await blacklist.save();
         await this.userModel.findOneAndUpdate(
           { email },
-          { refreshToken: null },
+          { $set: { refreshToken: null } },
         );
         return null;
       }
@@ -127,7 +140,7 @@ export class AuthRepository {
     try {
       return await this.userModel.findOneAndUpdate(
         { email },
-        { refreshToken: hashedRefreshToken },
+        { $set: { refreshToken: hashedRefreshToken } },
       );
     } catch (e) {
       throw new NotFoundException('가입되어 있지 않은 메일입니다.');
@@ -135,9 +148,9 @@ export class AuthRepository {
   }
 
   async logIn(user: User) {
-    const accessToken = await this.getAccessToken(user?.email);
-    const refreshToken = await this.getRefreshToken(user?.email);
-    await this.storeRefreshToken(user?.email, refreshToken);
+    const accessToken = await this.getAccessToken(user.email);
+    const refreshToken = await this.getRefreshToken(user.email);
+    await this.storeRefreshToken(user.email, refreshToken);
 
     return { accessToken, refreshToken };
   }
@@ -146,7 +159,7 @@ export class AuthRepository {
     try {
       return await this.userModel.findOneAndUpdate(
         { email },
-        { mailAuthCode: authCode },
+        { $set: { mailAuthCode: authCode } },
       );
     } catch (e) {
       throw new NotFoundException('가입되어 있지 않은 메일입니다.');
@@ -156,7 +169,7 @@ export class AuthRepository {
   async removeAuthCode(email: string) {
     return await this.userModel.findOneAndUpdate(
       { email },
-      { mailAuthCode: null },
+      { $set: { mailAuthCode: null } },
     );
   }
 
@@ -183,21 +196,28 @@ export class AuthRepository {
 
       return await this.userModel.findOneAndUpdate(
         { email },
-        { password: hashedPW },
+        { $set: { password: hashedPW } },
       );
     } else {
       throw new BadRequestException('기존 비밀번호와 동일한 비밀번호입니다.');
     }
   }
 
-  async logOut(userId: string, refreshToken: string) {
+  async logOut(email: string) {
+    // get refresh token
+    const { _id, refreshToken } = await this.userModel
+      .findOne({ email })
+      .select('_id refreshToken');
+
     if (!(await this.blackListModel.exists({ refreshToken }))) {
       const blacklist = new this.blackListModel({
         refreshToken,
-        user: userId,
+        user: _id,
       });
       await blacklist.save();
     }
-    await this.userModel.findByIdAndUpdate(userId, { refreshToken: null });
+    return await this.userModel.findByIdAndUpdate(_id, {
+      $set: { refreshToken: null },
+    });
   }
 }

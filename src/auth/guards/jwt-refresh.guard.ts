@@ -8,12 +8,9 @@ export class JwtRefreshGuard extends AuthGuard('jwt-refresh') {
     super();
   }
 
-  handleRequest(err, user, info, context) {
-    const request = context.switchToHttp().getRequest();
-    const refreshToken = request.headers.auth.refresh;
-
+  handleRequest(err, user) {
     if (err) {
-      this.authService.logOut(user._id, refreshToken);
+      this.authService.logOut(user._id);
       throw new UnauthorizedException(
         '리프레시 토큰 만료. 로그인이 필요합니다.',
       );

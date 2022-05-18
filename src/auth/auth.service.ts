@@ -17,16 +17,16 @@ export class AuthService {
     return await this.authRepository.signUp(signUpDto);
   }
 
-  async validateUser(loginDto: LoginDto) {
-    return await this.authRepository.validateUser(loginDto);
+  async validateUser(email: string, password: string) {
+    return await this.authRepository.validateUser(email, password);
   }
 
   async validateAccess(email: string) {
     return await this.authRepository.validateAccess(email);
   }
 
-  async validateRefresh(email: string, refreshToken: string) {
-    return await this.authRepository.validateRefresh(email, refreshToken);
+  async validateRefresh(email: string) {
+    return await this.authRepository.validateRefresh(email);
   }
 
   async getAccessToken(email: string) {
@@ -71,7 +71,7 @@ export class AuthService {
     return await this.authRepository.changePassword(loginDto);
   }
 
-  async logOut(userId: string, refreshToken: string) {
-    return await this.authRepository.logOut(userId, refreshToken);
+  async logOut(email: string) {
+    return await this.authRepository.logOut(email);
   }
 }
