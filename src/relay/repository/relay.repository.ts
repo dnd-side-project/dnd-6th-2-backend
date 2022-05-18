@@ -342,7 +342,9 @@ export class RelayRepository {
     const { relayId, noticeId } = param;
     await this.checkUser(relayId, user._id);
 
-    return await this.noticeModel.findByIdAndUpdate(noticeId, { notice });
+    return await this.noticeModel.findByIdAndUpdate(noticeId, {
+      $set: { notice },
+    });
   }
 
   async deleteNoticeToRelay(param, user: User) {

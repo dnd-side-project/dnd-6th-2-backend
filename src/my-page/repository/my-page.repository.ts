@@ -80,7 +80,7 @@ export class MyPageRepository {
     if (!check) {
       return await this.categoryModel.findByIdAndUpdate(
         categoryId,
-        { title },
+        { $set: { title } },
         { new: true },
       );
     } else {
@@ -147,7 +147,7 @@ export class MyPageRepository {
     const category = await this.categoryModel.findOne({ user, title });
     const article = await this.articleModel.findByIdAndUpdate(
       articleId,
-      { category: category._id },
+      { $set: { category: category._id } },
       { new: true },
     );
     if (!category || !article) {
@@ -227,7 +227,7 @@ export class MyPageRepository {
     const category = await this.categoryModel.findOne({ user, title });
     const scrap = await this.scrapModel.findByIdAndUpdate(
       scrapId,
-      { category: category._id },
+      { $set: { category: category._id } },
       { new: true },
     );
     if (!category || !scrap) {
