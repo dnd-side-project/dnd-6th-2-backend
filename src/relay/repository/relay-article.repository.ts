@@ -97,7 +97,7 @@ export class RelayArticleRepository {
 
       return await this.articleModel.findByIdAndUpdate(
         article._id,
-        { category: categoryId, $set: { public: true } },
+        { $set: { public: true, category: categoryId } },
         { new: true },
       );
     } else {
@@ -123,20 +123,20 @@ export class RelayArticleRepository {
     if (content && categoryId) {
       return await this.articleModel.findByIdAndUpdate(
         articleId,
-        { content, category: categoryId },
+        { $set: { content, category: categoryId } },
         { new: true },
       );
     } else {
       if (content) {
         return await this.articleModel.findByIdAndUpdate(
           articleId,
-          { content },
+          { $set: { content } },
           { new: true },
         );
       } else if (categoryId) {
         return await this.articleModel.findByIdAndUpdate(
           articleId,
-          { category: categoryId },
+          { $set: { category: categoryId } },
           { new: true },
         );
       }
