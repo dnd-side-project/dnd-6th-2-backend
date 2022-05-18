@@ -255,8 +255,6 @@ export class RelayRepository {
     user: User,
   ): Promise<Relay> {
     const { title, tags, notice, headCount } = createRelayDto;
-    const Notice = new this.noticeModel({ notice });
-    await Notice.save();
     const relay = new this.relayModel({
       title,
       tags,
@@ -264,6 +262,8 @@ export class RelayRepository {
       host: user,
     });
     await relay.save();
+    const Notice = new this.noticeModel({ relay: relay._id, notice });
+    await Notice.save();
     await this.relayModel.findByIdAndUpdate(relay._id, {
       $push: { notice: Notice },
     });
@@ -310,7 +310,7 @@ export class RelayRepository {
   async AddNoticeToRelay(relayId: string, notice: string, user: User) {
     await this.checkUser(relayId, user._id);
 
-    const Notice = new this.noticeModel({ notice });
+    const Notice = new this.noticeModel({ relay: relayId, notice });
     await Notice.save();
     await this.relayModel.findByIdAndUpdate(relayId, {
       $push: { notice: Notice },

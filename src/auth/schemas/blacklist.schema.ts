@@ -20,6 +20,7 @@ export class BlackList {
   refreshToken: string;
 
   @ApiProperty({
+    type: mongoose.Schema.Types.ObjectId,
     description: '해당 토큰을 발급받은 유저',
   })
   @Prop({

@@ -54,7 +54,8 @@ export class User {
   bio: string;
 
   @ApiProperty({
-    type: [Comment],
+    type: [mongoose.Schema.Types.ObjectId],
+    description: '유저가 작성한 댓글',
   })
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
@@ -63,7 +64,8 @@ export class User {
   comments: Comment[];
 
   @ApiProperty({
-    type: [User],
+    type: [mongoose.Schema.Types.ObjectId],
+    description: '유저가 구독한 구독자 목록',
   })
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
@@ -86,7 +88,7 @@ export class User {
   state: boolean;
 
   @ApiProperty({
-    type: [Category],
+    type: [mongoose.Schema.Types.ObjectId],
     description: '유저가 만든 카테고리 리스트',
   })
   @Prop({

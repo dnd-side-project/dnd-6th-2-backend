@@ -18,7 +18,8 @@ export class Category {
   _id: string;
 
   @ApiProperty({
-    type: User,
+    type: mongoose.Schema.Types.ObjectId,
+    description: '카테고리를 만든 유저',
   })
   @Prop({
     type: mongoose.Schema.Types.ObjectId,

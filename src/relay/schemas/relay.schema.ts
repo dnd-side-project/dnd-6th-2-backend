@@ -8,6 +8,7 @@ export type RelayDocument = Relay & Document;
 
 const options: SchemaOptions = {
   versionKey: false,
+  timestamps: true,
 };
 
 @Schema(options)
@@ -33,7 +34,7 @@ export class Relay {
   tags: string[];
 
   @ApiProperty({
-    type: [Notice],
+    type: [mongoose.Schema.Types.ObjectId],
     description: '릴레이 방의 공지사항',
   })
   @Prop({
@@ -44,7 +45,7 @@ export class Relay {
   notice: Notice[];
 
   @ApiProperty({
-    type: User,
+    type: mongoose.Schema.Types.ObjectId,
     description: '릴레이 방을 만든 호스트',
   })
   @Prop({
@@ -55,7 +56,7 @@ export class Relay {
   host: User;
 
   @ApiProperty({
-    type: [User],
+    type: [mongoose.Schema.Types.ObjectId],
     description: '릴레이 방에 참여하는 사용자들',
   })
   @Prop({
@@ -99,9 +100,9 @@ export class Relay {
 
   @ApiProperty({
     type: Date,
-    description: '작성 날짜와 시간',
+    description: '생성 날짜',
   })
-  @Prop({ default: Date.now() })
+  /* timestamps */
   createdAt: Date;
 }
 
