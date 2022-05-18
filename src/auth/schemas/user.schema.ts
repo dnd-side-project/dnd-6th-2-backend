@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory, SchemaOptions } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import * as mongoose from 'mongoose';
 import { Comment } from 'src/feed/schemas/comment.schema';
+import { Relay } from 'src/relay/schemas/relay.schema';
 import { Category } from './category.schema';
 
 const options: SchemaOptions = {
@@ -72,6 +73,16 @@ export class User {
     ref: 'User',
   })
   subscribeUser: User[];
+
+  @ApiProperty({
+    type: [mongoose.Schema.Types.ObjectId],
+    description: '유저가 참여하고 있는 릴레이 방',
+  })
+  @Prop({
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'Relay',
+  })
+  relays: Relay[];
 
   @ApiProperty({
     type: Number,

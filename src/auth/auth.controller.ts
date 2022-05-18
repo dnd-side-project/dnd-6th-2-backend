@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Patch,
@@ -18,7 +19,6 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { Response } from 'express';
-import { MessageResDto } from 'src/relay/dto/response.dto';
 import { AuthService } from './auth.service';
 import { GetUser } from './decorators/get-user.decorator';
 import { LoginDto } from './dto/login.dto';
@@ -148,7 +148,7 @@ export class AuthController {
   @ApiBody({ type: LoginDto })
   @ApiResponse({
     status: 200,
-    type: MessageResDto,
+    type: String,
     description: '비밀번호 재설정 성공',
   })
   @Patch('/password')
@@ -164,10 +164,10 @@ export class AuthController {
   })
   @ApiResponse({
     status: 200,
-    type: MessageResDto,
+    type: String,
     description: '로그아웃 성공',
   })
-  @ApiBearerAuth('refreshToken')
+  @ApiBearerAuth('accessToken')
   @Patch('/logout')
   @UseGuards(AuthGuard())
   async logOut(@GetUser() user: User, @Res() res: Response) {
@@ -199,10 +199,33 @@ export class AuthController {
     return res.status(HttpStatus.OK).json({ access: accessToken });
   }
 
+  @ApiOperation({
+    summary: '회원 탈퇴를 위한 엔드포인트입니다',
+    description:
+      '해당 유저와 관련된 서비스 내 모든 히스토리를 삭제하고, 유저 정보를 삭제해 회원 탈퇴를 완료합니다. - 탈퇴 성공 후, 클라이언트단에 저장된 액세스토큰과 리프레시토큰 모두 삭제.',
+  })
+  @ApiResponse({
+    status: 200,
+    type: String,
+    description: '회원 탈퇴 성공',
+  })
+  @ApiResponse({
+    status: 401,
+    description: '로그인 필요(로그아웃 상태)',
+  })
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AuthGuard())
+  @Delete('/signout')
+  async signOut(@GetUser() user: User, @Res() res: Response) {
+    await this.authService.signOut(user._id);
+
+    return res.status(HttpStatus.OK).json('회원 탈퇴 성공');
+  }
+
   // test
   @Get('/test')
   @UseGuards(AuthGuard())
-  test(@GetUser() user: User) {
+  test(@GetUser() user: User, @Res() res: Response) {
     return user;
   }
 }

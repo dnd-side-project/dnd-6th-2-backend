@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory, SchemaOptions } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import * as mongoose from 'mongoose';
+import { User } from 'src/auth/schemas/user.schema';
 import { Relay } from './relay.schema';
 
 export type NoticeDocument = Notice & Document;
@@ -26,6 +27,16 @@ export class Notice {
     ref: 'Relay',
   })
   relay: Relay;
+
+  @ApiProperty({
+    type: mongoose.Schema.Types.ObjectId,
+    description: '공지사항을 작성한 릴레이 방의 호스트 유저',
+  })
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  })
+  user: User;
 
   @ApiProperty({
     type: String,

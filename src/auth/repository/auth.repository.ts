@@ -12,12 +12,28 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthCodeDto } from '../dto/change-password.dto';
 import { SignUpDto } from '../dto/signup.dto';
 import { BlackList, BlackListDocument } from '../schemas/blacklist.schema';
+import { Notice, NoticeDocument } from 'src/relay/schemas/notice.schema';
+import { Relay, RelayDocument } from 'src/relay/schemas/relay.schema';
+import { Category, CategoryDocument } from '../schemas/category.schema';
+import { Comment, CommentDocument } from 'src/feed/schemas/comment.schema';
+import { Scrap, ScrapDocument } from 'src/feed/schemas/scrap.schema';
+import { Like, LikeDocument } from 'src/feed/schemas/like.schema';
+import { Article, ArticleDocument } from 'src/challenge/schemas/article.schema';
+import { History, HistoryDocument } from 'src/feed/schemas/history.schema';
 
 export class AuthRepository {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(BlackList.name)
     private blackListModel: Model<BlackListDocument>,
+    @InjectModel(Notice.name) private noticeModel: Model<NoticeDocument>,
+    @InjectModel(Relay.name) private relayModel: Model<RelayDocument>,
+    @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
+    @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
+    @InjectModel(Scrap.name) private scrapModel: Model<ScrapDocument>,
+    @InjectModel(Like.name) private likeModel: Model<LikeDocument>,
+    @InjectModel(Article.name) private articleModel: Model<ArticleDocument>,
+    @InjectModel(History.name) private historyModel: Model<HistoryDocument>,
     private jwtService: JwtService,
   ) {}
 
@@ -219,5 +235,31 @@ export class AuthRepository {
     return await this.userModel.findByIdAndUpdate(_id, {
       $set: { refreshToken: null },
     });
+  }
+
+  async signOut(userId: string) {
+    await this.noticeModel.deleteMany({ user: userId });
+    const { relays } = await this.userModel
+      .findById(userId)
+      .populate('relays')
+      .lean();
+    relays.forEach(async (relayId) => {
+      await this.relayModel.updateMany(
+        { _id: relayId },
+        {
+          $pull: { members: userId },
+          $inc: { membersCount: -1 },
+        },
+      );
+    });
+    await this.relayModel.deleteMany({ host: userId });
+    await this.categoryModel.deleteMany({ user: userId });
+    await this.commentModel.deleteMany({ user: userId });
+    await this.scrapModel.deleteMany({ user: userId });
+    await this.likeModel.deleteMany({ user: userId });
+    await this.articleModel.deleteMany({ user: userId });
+    await this.historyModel.deleteMany({ user: userId });
+    await this.blackListModel.deleteMany({ user: userId });
+    await this.userModel.deleteMany({ _id: userId });
   }
 }

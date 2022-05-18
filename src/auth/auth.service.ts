@@ -74,4 +74,8 @@ export class AuthService {
   async logOut(email: string) {
     return await this.authRepository.logOut(email);
   }
+
+  async signOut(userId: string) {
+    return await this.authRepository.signOut(userId);
+  }
 }
